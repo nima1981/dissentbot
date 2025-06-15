@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    h1 {
+      background-color: #007bff;
+      color: #fff;
+      padding: 15px;
+      margin: 0;
+      text-align: center;
+      font-size: 24px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    #conversation {
+      padding: 15px;
+      height: 300px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .user {
+      font-weight: 500;
+      color: #007bff;
+    }
+
+    .bot {
+      color: #555;
+    }
+
+    .message.user .user {
+      margin-right: 10px;
+    }
+
+    .message.bot .bot {
+      margin-left: 10px;
+    }
+
+    .message-content {
+      background-color: #e9ecef;
+      padding: 10px;
+      border-radius: 12px;
+      max-width: 75%;
+    }
+
+    .message-content.user {
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .message-content.bot {
+      background-color: #e9ecef;
+      color: #333;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 12px;
+      background-color: #007bff;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .clear-button {
+      background-color: #ff4d4d;
+      margin-left: 10px;
+    }
+
+    .clear-button:hover {
+      background-color: #ff1a1a;
+    }
+
+    #response {
+      padding: 15px;
+      border-top: 1px solid #ddd;
+      white-space: pre-wrap;
+    }
+
+    #response h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      color: #007bff;
+    }
+
+    #response p {
+      margin: 0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h1>Ask the Bot</h1>
+    <div id="conversation"></div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your question...">
+      <button onclick="sendMessage()">Ask</button>
+      <button class="clear-button" onclick="clearConversation()">Clear</button>
+    </div>
+    <div id="response"></div>
+  </div>
+
+  <script>
+    // Load conversation history from localStorage
+    let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
+
+    function renderConversation() {
+      const conversationDiv = document.getElementById('conversation');
+      conversationDiv.innerHTML = conversationHistory.map(message => 
+        `<div class="message ${message.role}">
+          <span class="${message.role}">${message.role === 'user' ? 'You:' : 'Bot:'}</span>
+          <div class="message-content ${message.role}">${message.content}</div>
+        </div>`
+      ).join('');
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+
+      if (!text) {
+        alert("Please enter a question");
+        return;
+      }
+
+      console.log("Sending request with query:", text); // Log the query being sent
+
+      // Check if the last message in the history is the same as the new user message
+      const lastMessage = conversationHistory[conversationHistory.length - 1];
+      if (lastMessage && lastMessage.role === 'user' && lastMessage.content.toLowerCase() === text.toLowerCase()) {
+        alert("Duplicate message detected. Please try again.");
+        return;
+      }
+
+      // Check if the last two messages are the same to prevent duplicates
+      const secondLastMessage = conversationHistory[conversationHistory.length - 2];
+      if (secondLastMessage && secondLastMessage.role === 'user' && secondLastMessage.content.toLowerCase() === text.toLowerCase()) {
+        alert("Duplicate message detected. Please try again.");
+        return;
+      }
+
+      // Add user message to conversation history
+      conversationHistory.push({ role: 'user', content: text });
+      renderConversation();
+
+      input.value = ''; // Clear input field
+
+      try {
+        const response = fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json' // Critical for JSON bodies
+          },
+          body: JSON.stringify({ text, history: conversationHistory }) // Include conversation history
+        });
+
+        response.then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+          }
+          return res.json();
+        }).then(data => {
+          console.log("Received answer length:", data.answer.length); // Debugging statement
+          console.log("Received answer:", data.answer.slice(0, 500)); // Log the first 500 characters of the answer
+
+          // Add bot message to conversation history with role 'assistant'
+          conversationHistory.push({ role: 'assistant', content: data.answer });
+          localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+          renderConversation();
+
+          document.getElementById('response').innerHTML = `
+            <h3>Answer:</h3>
+            <p>${data.answer}</p>
+            <h3>Context:</h3>
+            <p>${data.context || "No relevant context found"}</p>
+          `;
+        }).catch(error => {
+          console.error("Error fetching response:", error);
+          document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
+        });
+      } catch (error) {
+        console.error("Error sending message:", error);
+        document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
+      }
+    }
+
+    function clearConversation() {
+      // Clear conversation history
+      conversationHistory = [];
+      localStorage.removeItem('conversationHistory');
+      renderConversation();
+      document.getElementById('response').innerHTML = ''; // Clear response area
+      console.log("Conversation cleared"); // Log the action
+    }
+
+    // Render initial conversation history
+    renderConversation();
+  </script>
+</body>
+</html>

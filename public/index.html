@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+      color: #333;
+      position: relative; /* Needed for absolute positioning of input-area */
+    }
+	
+    .header {
+      width: 100%;
+      background-color: transparent;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 .5em 0;
+    }
+
+    .chat-container {
+      width: 100%;
+      background-color: #ffffff;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 117px); /* Full height minus the input-area + header height */
+      overflow: hidden;
+    }
+
+    h1 {
+      background-color: transparent;
+      color: #333;
+      padding: 0;
+      margin: 0;
+      text-align: center;
+      font-size: 2em;
+      font-style: italic;
+      text-decoration: none !important;
+      font-weight: 700;
+      border: none;
+      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    }
+	
+    h2 {
+      font-size: .9em;
+      text-align: center;
+      margin-top: 0;
+      font-style: italic;
+      margin-bottom: 0;
+    }
+
+    #conversation {
+      flex: 1;
+      padding: .5em;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #ddd #f4f4f9;
+    }
+
+    #conversation::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #conversation::-webkit-scrollbar-track {
+      background: #f4f4f9;
+    }
+
+    #conversation::-webkit-scrollbar-thumb {
+      background-color: #ddd;
+      border-radius: 4px;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.bot {
+      justify-content: flex-start;
+    }
+
+    .message-content {
+      padding: 10px;
+      border-radius: 4px;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+
+    .message-content.user {
+      background-color: #e9ecef;
+      color: #333;
+    }
+
+    .message-content.bot {
+      background-color: transparent;
+      color: #333;
+    }
+
+    .input-area {
+      display: flex;
+      padding: .5em;
+      align-items: center;
+      background-color: #ffffff;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    .send-button, .clear-button {
+      background-color: #000000;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .send-button:hover, .clear-button:hover {
+      background-color: #333333;
+    }
+
+    .send-button svg {
+      width: 25px;
+      height: 25px;
+      fill: #ffffff;
+    }
+
+    .clear-button svg {
+      width: 20px;
+      height: 20px;
+      stroke: #ffffff;
+      stroke-width: 2px;
+    }
+
+    #response {
+      padding: 16px;
+      white-space: normal;
+      display: none;
+    }
+
+    #response h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      color: #007bff;
+    }
+
+    #response p {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50px;
+    }
+
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007bff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+	
+    #powered {
+      font-size: .8em;
+      text-align: center;
+      margin-top: 0;
+      font-style: italic;
+      margin-bottom: 0;	 
+      font-weight: 700;	  
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>DissentBot</h1>
+    <h2>The Web's Most Forbidden AI</h2>
+    <div id="powered">powered by <a target="_blank" href="https://dissentwatch.com">DissentWatch.com</a></div>
+  </div>
+  <div class="chat-container">
+    <div id="conversation"></div>
+    <div id="loading" class="loading" style="display: none;">
+      <div class="loader"></div>
+    </div>
+  </div>
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Fire away...">
+    <button class="send-button" onclick="sendMessage()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon">
+        <path d="M8.99992 16V6.41407L5.70696 9.70704C5.31643 10.0976 4.68342 10.0976 4.29289 9.70704C3.90237 9.31652 3.90237 8.6835 4.29289 8.29298L9.29289 3.29298L9.36907 3.22462C9.76184 2.90427 10.3408 2.92686 10.707 3.29298L15.707 8.29298L15.7753 8.36915C16.0957 8.76192 16.0731 9.34092 15.707 9.70704C15.3408 10.0732 14.7618 10.0958 14.3691 9.7754L14.2929 9.70704L10.9999 6.41407V16C10.9999 16.5523 10.5522 17 9.99992 17C9.44764 17 8.99992 16.5523 8.99992 16Z">
+        </path>
+      </svg>
+    </button>
+    <button class="clear-button" onclick="clearConversation()" id="clearButton" style="display: none;">
+      <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <line x1="4" y1="4" x2="16" y2="16" stroke="white" stroke-width="2"/>
+        <line x1="4" y1="16" x2="16" y2="4" stroke="white" stroke-width="2"/>
+      </svg>
+    </button>
+  </div>
+  <div id="response"></div>
+  
+  <!-- Include marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
+  <script>
+    // Ensure marked.js is loaded
+    if (typeof marked !== 'function') {
+      console.error("marked.js is not loaded correctly.");
+    } else {
+      console.log("marked.js is loaded successfully.");
+    }
+
+    // Load conversation history from localStorage
+    let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
+
+    function renderConversation() {
+      const conversationDiv = document.getElementById('conversation');
+      conversationDiv.innerHTML = conversationHistory.map(message => 
+        `<div class="message ${message.role}">
+          <div class="message-content ${message.role}">${message.content}</div>
+        </div>`
+      ).join('');
+
+      // Set innerHTML for message content
+      conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
+        // Convert Markdown to HTML
+        const sanitizedContent = marked.parse(conversationHistory[index].content);
+        contentDiv.innerHTML = sanitizedContent;
+      });
+
+      // Scroll to the bottom of the conversation
+      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+
+      // Show or hide the clear button based on conversation history
+      const clearButton = document.getElementById('clearButton');
+      if (conversationHistory.length > 0) {
+        clearButton.style.display = 'block';
+      } else {
+        clearButton.style.display = 'none';
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+
+      if (!text) {
+        alert("Please enter a question");
+        return;
+      }
+
+      console.log("Sending request with query:", text); // Log the query being sent
+
+      // Check if the last message in the history is the same as the new user message
+      const lastMessage = conversationHistory[conversationHistory.length - 1];
+      if (lastMessage && lastMessage.role === 'user' && lastMessage.content.toLowerCase() === text.toLowerCase()) {
+        alert("Duplicate message detected. Please try again.");
+        return;
+      }
+
+      // Check if the last two messages are the same to prevent duplicates
+      const secondLastMessage = conversationHistory[conversationHistory.length - 2];
+      if (secondLastMessage && secondLastMessage.role === 'user' && secondLastMessage.content.toLowerCase() === text.toLowerCase()) {
+        alert("Duplicate message detected. Please try again.");
+        return;
+      }
+
+      // Add user message to conversation history
+      conversationHistory.push({ role: 'user', content: text });
+      renderConversation();
+
+      input.value = ''; // Clear input field
+
+      // Show loading spinner
+      document.getElementById('loading').style.display = 'flex';
+
+      try {
+        const response = fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json' // Critical for JSON bodies
+          },
+          body: JSON.stringify({ text, history: conversationHistory }) // Include conversation history
+        });
+
+        response.then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+          }
+          return res.json();
+        }).then(data => {
+          console.log("Received answer length:", data.answer.length); // Debugging statement
+          console.log("Received answer:", data.answer.slice(0, 500)); // Log the first 500 characters of the answer
+
+          // Convert Markdown to HTML
+          const sanitizedAnswer = marked.parse(data.answer);
+          const sanitizedContext = marked.parse(data.context || "No relevant context found");
+
+          // Add bot message to conversation history with role 'assistant'
+          conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
+          localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+          renderConversation();
+
+          document.getElementById('response').innerHTML = `
+            <h3>Answer:</h3>
+            <p>${sanitizedAnswer}</p>
+            <h3>Context:</h3>
+            <p>${sanitizedContext}</p>
+          `;
+
+          // Hide loading spinner
+          document.getElementById('loading').style.display = 'none';
+        }).catch(error => {
+          console.error("Error fetching response:", error);
+          document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
+
+          // Hide loading spinner
+          document.getElementById('loading').style.display = 'none';
+        });
+      } catch (error) {
+        console.error("Error sending message:", error);
+        document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
+
+        // Hide loading spinner
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function clearConversation() {
+      // Clear conversation history
+      conversationHistory = [];
+      localStorage.removeItem('conversationHistory');
+      renderConversation();
+      document.getElementById('response').innerHTML = ''; // Clear response area
+      console.log("Conversation cleared"); // Log the action
+    }
+
+    // Render initial conversation history
+    renderConversation();
+  </script>
+</body>
+</html>
