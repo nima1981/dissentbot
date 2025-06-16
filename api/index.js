@@ -92,7 +92,7 @@ async function listMorpheusModels() {
 }
 
 // Chat endpoint with Morpheus integration and exhaustive error handling
-app.post('/chat', async (req, res) => {
+app.post('/api', async (req, res) => {
   try {
     const userQuery = req.body?.text;
     const conversationHistory = req.body?.history || [];
