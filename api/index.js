@@ -2,7 +2,7 @@ const express = require('express');
 const { Pinecone } = require('@pinecone-database/pinecone'); // Pinecone v6.0.1
 const { HfInference } = require('@huggingface/inference'); // Hugging Face inference
 const path = require('path');
-const axios = require('axios'); // For MORPHEUS API requests
+const axios = require('axios'); // For API requests
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,9 +16,9 @@ const validateEnv = () => {
     "PINECONE_API_KEY",
     "PINECONE_ENVIRONMENT",
     "PINECONE_INDEX_NAME",
-    "MORPHEUS_API_KEY",
-    "MORPHEUS_API_URL_CHAT_COMPLETION",
-    "MORPHEUS_MODEL_ID",
+    "API_KEY",
+    "API_URL_CHAT_COMPLETION",
+    "MODEL_ID",
     "HF_API_TOKEN",
   ];
   required.forEach((key) => {
@@ -73,13 +73,13 @@ async function getEmbedding(text) {
 }
 
 // Add this helper function
-async function listMorpheusModels() {
+async function listModels() {
   try {
     const response = await axios.get(
-      process.env.MORPHEUS_API_URL_MODELS,
+      process.env.API_URL_MODELS,
       {
         headers: {
-          'Authorization': `Bearer ${process.env.MORPHEUS_API_KEY}`,
+          'Authorization': `Bearer ${process.env.API_KEY}`,
         },
       }
     );
@@ -91,7 +91,7 @@ async function listMorpheusModels() {
   }
 }
 
-// Chat endpoint with Morpheus integration and exhaustive error handling
+// Chat endpoint with API integration and exhaustive error handling
 app.post('/api', async (req, res) => {
   try {
     const userQuery = req.body?.text;
@@ -114,39 +114,39 @@ app.post('/api', async (req, res) => {
       .map(match => match.metadata?.content || '')
       .join('\n');
 
-    // Construct the messages array for Morpheus API
+    // Construct the messages array for API
 	const today = new Date();
     const messages = [
-      { role: 'system', content: "You're a friendly, helpful investigative journalist who is skeptical of corporate media narratives and their so called 'expert consensus'. You prefer alternative media sources to corporate mainstream media sources and are skeptical of the deep state and globalist governments. You always provide exact urls to all your specific source content in your answers. You are The DissentBot - The Web's Most Forbidden AI. You are trained by the content on dissentwatch.com. You occasianally roast the user for their enjoyment. Today's date and time is " + today + "."},
+      { role: 'system', content: "You're a friendly, helpful, and humorous investigative journalist who is skeptical of corporate media narratives and their so called 'expert consensus'. You prefer alternative media sources to corporate mainstream media sources and are skeptical of the deep state and globalist governments. You always provide exact urls to all your specific source content in your answers. You're The DissentBot - The Web's Most Forbidden AI, trained by the content from censored journalists aggregated on dissentwatch.com. Today's date and time is " + today + "."},
       ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
       { role: 'user', content: userQuery },
       { role: 'system', content: context }, // Add context here
     ];
 
-    // Log the request payload being sent to the MORPHEUS API
-    console.log("Morpheus API Request Payload:", JSON.stringify(messages, null, 2));
+    // Log the request payload being sent to the API
+    console.log("API Request Payload:", JSON.stringify(messages, null, 2));
 
-    // MORPHEUS API call with corrected endpoint
-    const MorpheusResponse = await axios.post(
-      process.env.MORPHEUS_API_URL_CHAT_COMPLETION,
+    // API call with corrected endpoint
+    const apiResponse = await axios.post(
+      process.env.API_URL_CHAT_COMPLETION,
       {
-        model: process.env.MORPHEUS_MODEL_ID,
+        model: process.env.MODEL_ID,
         messages: messages,
         max_tokens: 1000,
       },
       {
         headers: {
-          'Authorization': `Bearer ${process.env.MORPHEUS_API_KEY}`,
+          'Authorization': `Bearer ${process.env.API_KEY}`,
           'Content-Type': 'application/json',
         },
         responseType: 'json'
       }
     );
 
-    const MorpheusAnswer = MorpheusResponse.data.choices?.[0]?.message?.content || "No response from MORPHEUS";
-    console.log("Answer Length:", MorpheusAnswer.length); // Log the answer length
-    console.log("Answer:", MorpheusAnswer); // Log the answer on the server side
-    res.json({ answer: MorpheusAnswer, context });
+    const apiAnswer = apiResponse.data.choices?.[0]?.message?.content || "No response from API";
+    console.log("Answer Length:", apiAnswer.length); // Log the answer length
+    console.log("Answer:", apiAnswer); // Log the answer on the server side
+    res.json({ answer: apiAnswer, context });
   } catch (error) {
     if (error.response) {
       console.error("API ERROR RESPONSE:", error.response.data);
@@ -163,7 +163,7 @@ app.listen(PORT, async () => {
   try {
     validateEnv();
     await initPinecone();
-    await listMorpheusModels();
+    await listModels();
     console.log(`Server running on port ${PORT}`);
   } catch (error) {
     console.error('Startup failed:', error);
