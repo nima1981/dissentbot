@@ -117,7 +117,7 @@ app.post('/api', async (req, res) => {
     // Construct the messages array for API
 	const today = new Date();
     const messages = [
-      { role: 'system', content: INSTRUCTIONS + "Today's date and time is " + today + "."},
+      { role: 'system', content: process.env.INSTRUCTIONS + "Today's date and time is " + today + "."},
       ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
       { role: 'user', content: userQuery },
       { role: 'system', content: context }, // Add context here
