@@ -112,9 +112,10 @@ app.post('/api', async (req, res) => {
 
     const context = results.matches
       .map(match => match.metadata?.content + 
-	    ' (original_url: ' + match.metadata?.source_url + ', ' +
+	    ' (Sources: original_url: ' + match.metadata?.source_url + ', ' +
 	    ' archive_url: ' + match.metadata?.archive_url + ', ' +
-		' dissentwatch_url: ' + match.metadata?.dissentwatch_url + ')'
+		' dissentwatch_url: ' + match.metadata?.dissentwatch_url + ', '
+		' author: ' + match.metadata?.author + ' )'
 		|| '')
       .join("\n");
 	  
@@ -128,7 +129,7 @@ app.post('/api', async (req, res) => {
 	  { role: 'system', content: 'Context: ' + context }, // Add context here
       ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content.replace(/<[^>]*>?/gm, '') })),
     ];
-    /*
+    /* the code below duplicates the user prompt so I've removed it
 	const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + "Today's date and time is " + today + "."},
       ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
