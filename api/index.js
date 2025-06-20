@@ -106,13 +106,19 @@ app.post('/api', async (req, res) => {
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
-      topK: 25,
+      topK: 35,
       includeMetadata: true,
     });
 
     const context = results.matches
-      .map(match => match.metadata?.content || '')
+      .map(match => match.metadata?.content + 
+	    ' (original_url: ' + match.metadata?.source_url + ', ' +
+	    ' archive_url: ' + match.metadata?.archive_url + ', ' +
+		' dissentwatch_url: ' + match.metadata?.dissentwatch_url + ')'
+		|| '')
       .join("\n");
+	  
+	console.log('pinecone results: ' . results);
 
     // Construct the messages array for API
 	const today = new Date();
