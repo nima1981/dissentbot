@@ -106,22 +106,29 @@ app.post('/api', async (req, res) => {
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
-      topK: 5,
+      topK: 25,
       includeMetadata: true,
     });
 
     const context = results.matches
       .map(match => match.metadata?.content || '')
-      .join('\n');
+      .join("\n");
 
     // Construct the messages array for API
 	const today = new Date();
-    const messages = [
+    
+	const messages = [
+      { role: 'system', content: process.env.INSTRUCTIONS + "Today's date and time is " + today + "."},
+	  { role: 'system', content: 'Context: ' + context }, // Add context here
+      ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content.replace(/<[^>]*>?/gm, '') })),
+    ];
+    /*
+	const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + "Today's date and time is " + today + "."},
       ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
       { role: 'user', content: userQuery },
       { role: 'system', content: context }, // Add context here
-    ];
+    ];*/
 
     // Log the request payload being sent to the API
     console.log("API Request Payload:", JSON.stringify(messages, null, 2));
