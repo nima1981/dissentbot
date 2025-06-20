@@ -111,7 +111,7 @@ app.post('/api', async (req, res) => {
     });
 
     const context = results.matches
-      .map(match => match.metadata?.content + 
+      .map(match => 'From ' + match.metadata?.date + ': ' + match.metadata?.content + 
 	    ' (Sources: original_url: ' + match.metadata?.source_url + ', ' +
 	    ' archive_url: ' + match.metadata?.archive_url + ', ' +
 		' dissentwatch_url: ' + match.metadata?.dissentwatch_url + ', ' +
