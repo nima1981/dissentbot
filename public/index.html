@@ -27,12 +27,6 @@
       flex-direction: column;
       /*padding: 0 0 .5em 0;*/
     }
-	
-	#main-wrapper{
-	  flex: 1 1 auto; 
-	  display: flex; 
-	  flex-direction: column;
-	}
 
     .chat-container {
       width: 100%;
@@ -41,9 +35,7 @@
       display: flex;
       flex-direction: column;
       /* height: calc(100vh - 129px);*/ /* Full height minus the input-area + header height */
-      /*overflow: hidden;*/
-	  flex: 1 1 auto;
-	  position: relative;
+      overflow: hidden;
     }
 
     h1 {
@@ -74,7 +66,6 @@
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #ddd #f4f4f9;
-	  height: 100%;
     }
 
     #conversation::-webkit-scrollbar {
@@ -126,12 +117,9 @@
       padding: 0;
       align-items: center;
       background-color: transparent;
-	  width: 100%;
+	  width: 80%;
 	  max-width: 800px;
 	  margin: auto;
-	  position: fixed;
-	  bottom: 0;
-	  box-sizing: border-box;
     }
 
     #userInput {
@@ -230,28 +218,26 @@
     <h1>DissentBot</h1>
     <h2>The Web's Most Forbidden AI</h2>
   </div>
-  <div id="main-wrapper">
-	  <div class="chat-container">
-		<div id="conversation"></div>
-		<div id="loading" class="loading" style="display: none;">
-		  <div class="loader"></div>
-		</div>
-	  </div>
-	  <div class="input-area">
-		<input type="text" id="userInput" placeholder="Fire away...">
-		<button class="send-button" onclick="sendMessage()">
-		  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon">
-			<path d="M8.99992 16V6.41407L5.70696 9.70704C5.31643 10.0976 4.68342 10.0976 4.29289 9.70704C3.90237 9.31652 3.90237 8.6835 4.29289 8.29298L9.29289 3.29298L9.36907 3.22462C9.76184 2.90427 10.3408 2.92686 10.707 3.29298L15.707 8.29298L15.7753 8.36915C16.0957 8.76192 16.0731 9.34092 15.707 9.70704C15.3408 10.0732 14.7618 10.0958 14.3691 9.7754L14.2929 9.70704L10.9999 6.41407V16C10.9999 16.5523 10.5522 17 9.99992 17C9.44764 17 8.99992 16.5523 8.99992 16Z">
-			</path>
-		  </svg>
-		</button>
-		<button class="clear-button" onclick="clearConversation()" id="clearButton" style="display: none;">
-		  <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-			<line x1="4" y1="4" x2="16" y2="16" stroke="white" stroke-width="2"/>
-			<line x1="4" y1="16" x2="16" y2="4" stroke="white" stroke-width="2"/>
-		  </svg>
-		</button>
-	  </div>
+  <div class="chat-container">
+    <div id="conversation"></div>
+    <div id="loading" class="loading" style="display: none;">
+      <div class="loader"></div>
+    </div>
+  </div>
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Fire away...">
+    <button class="send-button" onclick="sendMessage()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon">
+        <path d="M8.99992 16V6.41407L5.70696 9.70704C5.31643 10.0976 4.68342 10.0976 4.29289 9.70704C3.90237 9.31652 3.90237 8.6835 4.29289 8.29298L9.29289 3.29298L9.36907 3.22462C9.76184 2.90427 10.3408 2.92686 10.707 3.29298L15.707 8.29298L15.7753 8.36915C16.0957 8.76192 16.0731 9.34092 15.707 9.70704C15.3408 10.0732 14.7618 10.0958 14.3691 9.7754L14.2929 9.70704L10.9999 6.41407V16C10.9999 16.5523 10.5522 17 9.99992 17C9.44764 17 8.99992 16.5523 8.99992 16Z">
+        </path>
+      </svg>
+    </button>
+    <button class="clear-button" onclick="clearConversation()" id="clearButton" style="display: none;">
+      <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <line x1="4" y1="4" x2="16" y2="16" stroke="white" stroke-width="2"/>
+        <line x1="4" y1="16" x2="16" y2="4" stroke="white" stroke-width="2"/>
+      </svg>
+    </button>
   </div>
   <div id="response"></div>
   <div id="powered">powered by <a target="_blank" href="https://dissentwatch.com">DissentWatch.com</a></div>
