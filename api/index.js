@@ -115,7 +115,8 @@ app.post('/api', async (req, res) => {
 	    ' (Sources: original_url: ' + match.metadata?.source_url + ', ' +
 	    ' archive_url: ' + match.metadata?.archive_url + ', ' +
 		' dissentwatch_url: ' + match.metadata?.dissentwatch_url + ', ' +
-		' author: ' + match.metadata?.author + ' )'
+		' author: ' + match.metadata?.author + ', ' +
+		' nostr_event_id: ' + match.metadata?.nostr_event_id + ' )'
 		|| '')
       .join("\n");
 	  
