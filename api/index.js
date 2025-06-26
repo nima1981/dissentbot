@@ -112,11 +112,11 @@ app.post('/api', async (req, res) => {
 
     const context = results.matches
       .map(match => 'From ' + match.metadata?.date + ': ' + match.metadata?.content + 
-	    ' (Sources: original_url: ' + match.metadata?.source_url + ', ' +
-	    ' archive_url: ' + match.metadata?.archive_url + ', ' +
-		' dissentwatch_url: ' + match.metadata?.dissentwatch_url + ', ' +
-		' author: ' + match.metadata?.author + ', ' +
-		' nostr_event_id: ' + match.metadata?.nostr_event_id + ' )'
+	    ' (Sources: Original URL ' + match.metadata?.source_url + ', ' +
+	    ' Archive URL ' + match.metadata?.archive_url + ', ' +
+		' DissentWatch URL : ' + match.metadata?.dissentwatch_url + ', ' +
+		' Author: ' + match.metadata?.author + ', ' +
+		' NOSTR Discussion Link: ' + (match.metadata?.nostr_event_id ? 'https://primal.net/e/' + match.metadata?.nostr_event_id : 'undefined') + ' )'
 		|| '')
       .join("\n");
 	  
