@@ -161,8 +161,8 @@ app.post('/api', async (req, res) => {
     const apiAnswer = apiResponse.data.choices?.[0]?.message?.content || "No response from API";
     console.log("Answer Length:", apiAnswer.length); // Log the answer length
     console.log("Answer:", apiAnswer); // Log the answer on the server side
-	console.log("Cleaned up answer:", apiAnswer.replace("[/REF]","")); // Log the answer on the server side
-    res.json({ answer: apiAnswer.replace("[/REF]",""), context });
+	console.log("Cleaned up answer:", apiAnswer.replaceAll("[/REF]","").replaceAll("[REF]","")); // Log the answer on the server side
+    res.json({ answer: apiAnswer.replaceAll("[/REF]","").replaceAll("[REF]",""), context });
   } catch (error) {
     if (error.response) {
       console.error("API ERROR RESPONSE:", error.response.data);
