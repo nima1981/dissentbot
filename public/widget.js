@@ -67,7 +67,6 @@
       toggleButton.style.position = 'absolute';
       toggleButton.style.bottom = '20px';
       toggleButton.style.right = '20px';
-      toggleButton.style.bottom = 'auto';
       toggleButton.style.zIndex = '99999';
       toggleButton.innerHTML = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
