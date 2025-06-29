@@ -5,7 +5,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 99998; /* Lower z-index than toggle */
+    z-index: 99998;
     width: 360px;
     height: 600px;
     transition: all 0.3s ease;
@@ -32,7 +32,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 99999; /* Higher z-index than widget */
+    z-index: 99999;
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -61,23 +61,32 @@
     isExpanded = !isExpanded;
     widgetContainer.style.display = isExpanded ? 'block' : 'none';
     
-    // Update button position when expanding to avoid overlap
+    // Update button position and style
     if (isExpanded) {
-      toggleButton.style.bottom = '640px'; // Move button above widget
+      // Button inside widget for closing
+      toggleButton.style.position = 'absolute';
+      toggleButton.style.top = '10px';
+      toggleButton.style.right = '10px';
+      toggleButton.style.bottom = 'auto';
+      toggleButton.style.zIndex = '99999';
+      toggleButton.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"></path>
+        </svg>
+      `;
     } else {
-      toggleButton.style.bottom = '20px'; // Reset position
+      // Button outside widget for opening
+      toggleButton.style.position = 'fixed';
+      toggleButton.style.bottom = '20px';
+      toggleButton.style.right = '20px';
+      toggleButton.style.top = 'auto';
+      toggleButton.style.zIndex = '99999';
+      toggleButton.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2H4C2.9 2 2 2.9 2 4V20L6 16H20C21.1 16 22 15.1 22 14V4C22 2.9 21.1 2 20 2ZM19 11H5V6H19V11Z" fill="white"></path>
+        </svg>
+      `;
     }
-    
-    // Toggle icon
-    toggleButton.innerHTML = isExpanded ? `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"></path>
-      </svg>
-    ` : `
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 2H4C2.9 2 2 2.9 2 4V20L6 16H20C21.1 16 22 15.1 22 14V4C22 2.9 21.1 2 20 2ZM19 11H5V6H19V11Z" fill="white"></path>
-      </svg>
-    `;
   });
   
   // Append elements to page
