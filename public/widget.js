@@ -7,7 +7,7 @@
     right: 20px;
     z-index: 99998;
     width: 360px;
-    height: 600px;
+    height: 95%;
     transition: all 0.3s ease;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
