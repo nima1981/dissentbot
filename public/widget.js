@@ -5,7 +5,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 99999;
+    z-index: 99998; /* Lower z-index than toggle */
     width: 360px;
     height: 600px;
     transition: all 0.3s ease;
@@ -32,7 +32,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 99998;
+    z-index: 99999; /* Higher z-index than widget */
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -60,6 +60,15 @@
   toggleButton.addEventListener('click', () => {
     isExpanded = !isExpanded;
     widgetContainer.style.display = isExpanded ? 'block' : 'none';
+    
+    // Update button position when expanding to avoid overlap
+    if (isExpanded) {
+      toggleButton.style.bottom = '640px'; // Move button above widget
+    } else {
+      toggleButton.style.bottom = '20px'; // Reset position
+    }
+    
+    // Toggle icon
     toggleButton.innerHTML = isExpanded ? `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"></path>
