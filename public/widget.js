@@ -65,8 +65,8 @@
     if (isExpanded) {
       // Button inside widget for closing
       toggleButton.style.position = 'absolute';
-      toggleButton.style.top = '10px';
-      toggleButton.style.right = '10px';
+      toggleButton.style.bottom = '20px';
+      toggleButton.style.right = '20px';
       toggleButton.style.bottom = 'auto';
       toggleButton.style.zIndex = '99999';
       toggleButton.innerHTML = `
