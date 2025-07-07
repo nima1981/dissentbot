@@ -31,8 +31,8 @@
   const toggleButton = document.createElement('button');
   toggleButton.style = `
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 5px;
+    right: 5px;
     z-index: 99999;
     width: 50px;
     height: 50px;
@@ -66,8 +66,8 @@
     if (isExpanded) {
       // Button inside widget for closing
       toggleButton.style.position = 'fixed';
-      toggleButton.style.bottom = '20px';
-      toggleButton.style.right = '20px';
+      toggleButton.style.bottom = '5px';
+      toggleButton.style.right = '5px';
       toggleButton.style.zIndex = '99999';
       toggleButton.innerHTML = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
