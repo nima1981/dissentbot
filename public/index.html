@@ -444,17 +444,13 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   
   <script>
-	if (typeof marked !== 'function') {
-	  console.error("marked.js is not loaded correctly.");
-	} else {
-	  console.log("marked.js is loaded successfully.");
+    // Ensure marked.js is loaded
+    if (typeof marked !== 'function') {
+      console.error("marked.js is not loaded correctly.");
+    } else {
+      console.log("marked.js is loaded successfully.");
+    }
 
-	  const renderer = new marked.Renderer();
-	  renderer.link = function(href, title, text) {
-		return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
-	  };
-	  marked.use({ renderer });
-	}
     // Load conversation history from localStorage
     let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
 
@@ -467,15 +463,11 @@
       ).join('');
 
       // Set innerHTML for message content
-    conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
-	  const message = conversationHistory[index];
-	  if (message.role === 'user') {
-		contentDiv.innerHTML = marked.parse(message.content);
-	  } else {
-		// Bot message is already HTML, so just insert it directly
-		contentDiv.innerHTML = message.content;
-	  }
-	});
+      conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
+        // Convert Markdown to HTML
+        const sanitizedContent = marked.parse(conversationHistory[index].content);
+        contentDiv.innerHTML = sanitizedContent;
+      });
 
       // Scroll to the bottom of the conversation
       conversationDiv.scrollTop = conversationDiv.scrollHeight;
@@ -541,20 +533,10 @@
           console.log("Received answer length:", data.answer.length); // Debugging statement
           console.log("Received answer:", data.answer.slice(0, 500)); // Log the first 500 characters of the answer
 
-          // Convert Markdown to HTML
+          // Convert Markdown to HTML and make anchor tags target="_blank"
           //const sanitizedAnswer = marked.parse(data.answer);
-          //const sanitizedContext = marked.parse(data.context || "No relevant context found");
-		const sanitizedAnswer = (() => {
-		  const parser = new DOMParser();
-		  const doc = parser.parseFromString(marked.parse(data.answer), 'text/html');
-		  const links = doc.querySelectorAll('a');
-		  links.forEach(link => {
-			link.setAttribute('target', '_blank');
-			link.setAttribute('rel', 'noopener');
-		  });
-		  return doc.body.innerHTML;
-		})();
-		const sanitizedContext = marked.parse(data.context || "No relevant context found");
+		  const sanitizedAnswer = marked.parse(data.answer).replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+          const sanitizedContext = marked.parse(data.context || "No relevant context found");
 
           // Add bot message to conversation history with role 'assistant'
           conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
