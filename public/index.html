@@ -213,12 +213,162 @@
     }
 	
 	#github{
-	  width: 20px;
-	  margin: 1em auto 0 auto;
+	  width: 25px;
+	  /*margin: 1em auto 0 auto;*/
 	}
 	
 	#github svg {
 	}
+
+	#embed-modal {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  z-index: 99998;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	}
+
+	#embed-modal .overlay {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  background: rgba(0,0,0,0.5);
+	  z-index: 99998;
+	}
+
+	#embed-modal .modal-content {
+	  position: relative;
+	  background: white;
+	  padding: 20px;
+	  border-radius: 8px;
+	  width: 500px;
+	  max-width: 90vw;
+	  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+	  z-index: 99999;
+	  margin: 20px;
+	}
+
+	#embed-modal .close-btn {
+	  position: absolute;
+	  top: 10px;
+	  right: 10px;
+	  font-size: 24px;
+	  background: none;
+	  border: none;
+	  cursor: pointer;
+	  font-weight: bold;
+	}
+
+	#embed-modal .code-box {
+	  background: #f4f4f9;
+	  padding: 15px;
+	  border-radius: 4px;
+	  margin: 15px 0;
+	  max-height: 60vh;
+	  overflow-y: auto;
+	  white-space: pre-wrap;
+	}
+
+	#embed-modal .copy-btn {
+	  background: #007bff;
+	  color: white;
+	  border: none;
+	  padding: 10px 15px;
+	  border-radius: 4px;
+	  cursor: pointer;
+	  float: right;
+	}
+
+	#embed-modal .copy-btn:after {
+	  content: "Copied!";
+	  margin-left: 5px;
+	  display: none;
+	  color: #2ecc71;
+	}
+
+	#embed-modal .copy-btn.copied:after {
+	  display: inline;
+	}
+	
+	#embed-trigger {
+	  width: 25px;
+	  height: 25px;
+	  background: #000000;
+	  border-radius: 50%;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  cursor: pointer;
+	  z-index: 99997;
+	  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	  transition: all 0.3s ease;
+	}
+
+	#embed-trigger:hover {
+	  transform: scale(1.05);
+	}
+
+	.code-icon {
+	  font-family: 'Courier New', monospace;
+	  font-size: 13px;
+	  color: #ffffff;
+	  font-weight: bold;
+	  line-height: 1;
+	}
+
+	.modal-content h2 {
+	  margin-top: 0;
+	  font-size: 1.2em;
+	  text-align: center;
+	  color: #000000;
+	}
+
+	.copy-btn {
+	  background: #000000;
+	  color: #ffffff;
+	  padding: 10px 15px;
+	  border-radius: 4px;
+	  cursor: pointer;
+	  border: none;
+	  transition: background 0.3s ease;
+	}
+
+	.copy-btn:hover {
+	  background: #333333;
+	}
+
+	/* Optional: Add a pulsing effect to make it more noticeable */
+	@keyframes pulse {
+	  0% { transform: scale(1); }
+	  50% { transform: scale(1.05); }
+	  100% { transform: scale(1); }
+	}
+
+	#embed-trigger.pulse {
+	  animation: pulse 2s infinite;
+	}
+	
+	#footer {
+	  display: flex;
+	  justify-content: center;
+	  width: 100%;
+	  margin-top: 10px;
+	}
+	
+	#footer div{
+		margin-right: 10px;
+	}
+	
+	@media screen and (max-width: 600px) {
+		#footer{display: none;}
+	}
+	
   </style>
 </head>
 <body>
@@ -247,8 +397,35 @@
       </svg>
     </button>
   </div>
+  
   <div id="response"></div>
-  <div id="github"><a href="https://github.com/nima1981/dissentbot" target="_blank"><svg viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" fill="#24292f"/></svg></a></div>
+  
+  <div id="embed-modal" style="display:none;">
+    <div class="overlay"></div>
+    <div class="modal-content">
+      <button class="close-btn">×</button>
+      <h2>Paste this code anywhere inside your own html to embed this chat:</h2>
+      <div class="code-box">
+        <pre><code id="embed-code">&lt;script&gt;
+  (function() {
+    const script = document.createElement('script');
+    script.src = 'https://dissentbot.com/widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+  })()
+  &lt;/script&gt;</code></pre>
+  </div>
+    <button class="copy-btn">Copy to Clipboard</button>
+    </div>
+  </div>
+    
+  <div id="footer">  
+    <div id="github"><a href="https://github.com/nima1981/dissentbot" target="_blank"><svg viewBox="0 0 98 96" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" fill="#24292f"/></svg></a></div>
+    <div id="embed-trigger">
+      <span class="code-icon">&lt;/&gt;</span>
+    </div>
+  </div>
+  
   <div id="powered">powered by <a target="_blank" href="https://dissentwatch.com">DissentWatch.com</a></div>
   
   <!-- Include marked.js -->
@@ -390,5 +567,31 @@
     // Render initial conversation history
     renderConversation();
   </script>
+  
+  <script>
+	document.getElementById('embed-trigger').addEventListener('click', () => {
+	  document.getElementById('embed-modal').style.display = 'flex';
+	});
+
+	document.querySelector('.close-btn').addEventListener('click', () => {
+	  document.getElementById('embed-modal').style.display = 'none';
+	});
+
+	document.querySelector('.copy-btn').addEventListener('click', () => {
+	  const code = document.getElementById('embed-code');
+	  const temp = document.createElement('textarea');
+	  temp.value = code.textContent;
+	  document.body.appendChild(temp);
+	  temp.select();
+	  document.execCommand('copy');
+	  document.body.removeChild(temp);
+	  
+	  // Visual feedback
+	  const copyBtn = document.querySelector('.copy-btn');
+	  copyBtn.classList.add('copied');
+	  setTimeout(() => copyBtn.classList.remove('copied'), 2000);
+	});
+  </script>
+  
 </body>
 </html>
