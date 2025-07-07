@@ -444,8 +444,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   
   <script>
-    // Ensure marked.js is loaded
-    if (typeof marked !== 'function') {
+	if (typeof marked !== 'function') {
 	  console.error("marked.js is not loaded correctly.");
 	} else {
 	  console.log("marked.js is loaded successfully.");
@@ -454,9 +453,8 @@
 	  renderer.link = function(href, title, text) {
 		return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 	  };
-	  marked.setOptions({ renderer });
+	  marked.use({ renderer });
 	}
-
     // Load conversation history from localStorage
     let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
 
