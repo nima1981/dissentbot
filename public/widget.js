@@ -6,7 +6,8 @@
     bottom: 20px;
     right: 20px;
     z-index: 99998;
-    width: 360px;
+    width: 600px;
+	max-width: 100%;
     height: 95%;
     transition: all 0.3s ease;
     border-radius: 8px;
