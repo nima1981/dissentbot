@@ -66,6 +66,7 @@
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #ddd #f4f4f9;
+	  transition: scroll-top 1s ease; /* Adds smooth scrolling animation */
     }
 
     #conversation::-webkit-scrollbar {
@@ -477,7 +478,7 @@
       });
 
       // Scroll to the bottom of the conversation
-      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
 
       // Show or hide the clear button based on conversation history
       const clearButton = document.getElementById('clearButton');
