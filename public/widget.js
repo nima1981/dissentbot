@@ -33,8 +33,8 @@
     bottom: 20px;
     right: 20px;
     z-index: 99999;
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #000000;
     color: #ffffff;
@@ -64,7 +64,7 @@
     // Update button position and style
     if (isExpanded) {
       // Button inside widget for closing
-      toggleButton.style.position = 'absolute';
+      toggleButton.style.position = 'fixed';
       toggleButton.style.bottom = '20px';
       toggleButton.style.right = '20px';
       toggleButton.style.zIndex = '99999';
