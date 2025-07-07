@@ -3,8 +3,8 @@
   const widgetContainer = document.createElement('div');
   widgetContainer.style = `
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 5px;
+    right: 5px;
     z-index: 99998;
     width: 600px;
 	max-width: 100%;
