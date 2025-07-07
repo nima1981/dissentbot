@@ -584,6 +584,12 @@
       document.getElementById('response').innerHTML = ''; // Clear response area
       console.log("Conversation cleared"); // Log the action
     }
+	
+	document.getElementById('userInput').addEventListener('keydown', function(event) {
+	  if (event.keyCode === 13) {
+		sendMessage();
+	  }
+	});
 
     // Render initial conversation history
     renderConversation();
