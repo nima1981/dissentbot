@@ -542,8 +542,19 @@
           console.log("Received answer:", data.answer.slice(0, 500)); // Log the first 500 characters of the answer
 
           // Convert Markdown to HTML
-          const sanitizedAnswer = marked.parse(data.answer);
-          const sanitizedContext = marked.parse(data.context || "No relevant context found");
+          //const sanitizedAnswer = marked.parse(data.answer);
+          //const sanitizedContext = marked.parse(data.context || "No relevant context found");
+		const sanitizedAnswer = (() => {
+		  const parser = new DOMParser();
+		  const doc = parser.parseFromString(marked.parse(data.answer), 'text/html');
+		  const links = doc.querySelectorAll('a');
+		  links.forEach(link => {
+			link.setAttribute('target', '_blank');
+			link.setAttribute('rel', 'noopener');
+		  });
+		  return doc.body.innerHTML;
+		})();
+		const sanitizedContext = marked.parse(data.context || "No relevant context found");
 
           // Add bot message to conversation history with role 'assistant'
           conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
