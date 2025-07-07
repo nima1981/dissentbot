@@ -467,11 +467,15 @@
       ).join('');
 
       // Set innerHTML for message content
-      conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
-        // Convert Markdown to HTML
-        const sanitizedContent = marked.parse(conversationHistory[index].content);
-        contentDiv.innerHTML = sanitizedContent;
-      });
+    conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
+	  const message = conversationHistory[index];
+	  if (message.role === 'user') {
+		contentDiv.innerHTML = marked.parse(message.content);
+	  } else {
+		// Bot message is already HTML, so just insert it directly
+		contentDiv.innerHTML = message.content;
+	  }
+	});
 
       // Scroll to the bottom of the conversation
       conversationDiv.scrollTop = conversationDiv.scrollHeight;
