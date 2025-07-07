@@ -34,8 +34,6 @@
     bottom: 5px;
     right: 5px;
     z-index: 99999;
-    width: 50px;
-    height: 50px;
     border-radius: 50%;
     background: #000000;
     color: #ffffff;
@@ -47,6 +45,7 @@
     justify-content: center;
     font-size: 24px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+	padding: 10px;
   `;
   
   toggleButton.innerHTML = `
