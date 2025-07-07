@@ -327,6 +327,7 @@
 	  font-size: 1.2em;
 	  text-align: center;
 	  color: #000000;
+	  font-style: normal;
 	}
 
 	.copy-btn {
@@ -363,6 +364,17 @@
 	
 	#footer div{
 		margin-right: 10px;
+	}
+	
+	.overlay {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  background: rgba(0,0,0,0.5);
+	  z-index: 99998;
+	  cursor: default; /* Ensures clicks aren't blocked */
 	}
 	
 	@media screen and (max-width: 600px) {
@@ -590,6 +602,20 @@
 	  const copyBtn = document.querySelector('.copy-btn');
 	  copyBtn.classList.add('copied');
 	  setTimeout(() => copyBtn.classList.remove('copied'), 2000);
+	});
+	
+	// Click-outside-to-close
+	document.querySelector('.overlay').addEventListener('click', (e) => {
+	  if (e.target === e.currentTarget) {
+		document.getElementById('embed-modal').style.display = 'none';
+	  }
+	});
+
+	// Escape key to close
+	document.addEventListener('keydown', (e) => {
+	  if (e.key === 'Escape' && document.getElementById('embed-modal').style.display === 'flex') {
+		document.getElementById('embed-modal').style.display = 'none';
+	  }
 	});
   </script>
   
