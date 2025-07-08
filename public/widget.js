@@ -77,6 +77,7 @@
     } else {
       // Button outside widget for opening
       toggleButton.style.position = 'fixed';
+	  toggleButton.style.padding = '10px';
       toggleButton.style.bottom = '5px';
       toggleButton.style.right = '5px';
       toggleButton.style.top = 'auto';
