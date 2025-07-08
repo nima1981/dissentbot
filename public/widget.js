@@ -7,7 +7,7 @@
     right: 5px;
     z-index: 99998;
     width: 600px;
-	max-width: 99%;
+	max-width: 98%;
     height: 99%;
     transition: all 0.3s ease;
     border-radius: 8px;
