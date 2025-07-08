@@ -147,7 +147,7 @@ app.post('/api', async (req, res) => {
       {
         model: process.env.MODEL_ID,
         messages: messages,
-        max_tokens: 1000,
+        max_tokens: 5000,
       },
       {
         headers: {
