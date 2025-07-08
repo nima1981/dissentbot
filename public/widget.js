@@ -49,7 +49,7 @@
   `;
   
   toggleButton.innerHTML = `
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="35" height="35" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M20 2H4C2.9 2 2 2.9 2 4V20L6 16H20C21.1 16 22 15.1 22 14V4C22 2.9 21.1 2 20 2ZM19 11H5V6H19V11Z" fill="white"></path>
     </svg>
   `;
@@ -77,13 +77,13 @@
     } else {
       // Button outside widget for opening
       toggleButton.style.position = 'fixed';
-	  toggleButton.style.padding = '10px';
+	  toggleButton.style.padding = '15px';
       toggleButton.style.bottom = '5px';
       toggleButton.style.right = '5px';
       toggleButton.style.top = 'auto';
       toggleButton.style.zIndex = '99999';
       toggleButton.innerHTML = `
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="35" height="35" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 2H4C2.9 2 2 2.9 2 4V20L6 16H20C21.1 16 22 15.1 22 14V4C22 2.9 21.1 2 20 2ZM19 11H5V6H19V11Z" fill="white"></path>
         </svg>
       `;
