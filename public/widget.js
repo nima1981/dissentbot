@@ -65,6 +65,7 @@
     if (isExpanded) {
       // Button inside widget for closing
       toggleButton.style.position = 'fixed';
+	  toggleButton.style.padding = '1px';
       toggleButton.style.bottom = '5px';
       toggleButton.style.right = '5px';
       toggleButton.style.zIndex = '99999';
