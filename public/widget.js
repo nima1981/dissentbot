@@ -45,11 +45,11 @@
     justify-content: center;
     font-size: 24px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-	padding: 10px;
+	padding: 15px;
   `;
   
   toggleButton.innerHTML = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M20 2H4C2.9 2 2 2.9 2 4V20L6 16H20C21.1 16 22 15.1 22 14V4C22 2.9 21.1 2 20 2ZM19 11H5V6H19V11Z" fill="white"></path>
     </svg>
   `;
