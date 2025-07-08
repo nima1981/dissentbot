@@ -7,8 +7,8 @@
     right: 5px;
     z-index: 99998;
     width: 600px;
-	max-width: 95%;
-    height: 95%;
+	max-width: 99%;
+    height: 99%;
     transition: all 0.3s ease;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
