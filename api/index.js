@@ -129,7 +129,7 @@ app.post('/api', async (req, res) => {
     
 	const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + "Today's date and time is " + today + "."},
-	  { role: 'system', content: 'Context: ' + context }, // Add context here
+	  { role: 'system', content: 'Context: \n\n' + context }, // Add context here
       ...conversationHistory.map(msg => ({ role: msg.role, content: msg.content.replace(/<[^>]*>?/gm, '') })),
     ];
     /* the code below duplicates the user prompt so I've removed it
