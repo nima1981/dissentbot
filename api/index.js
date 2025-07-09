@@ -113,9 +113,10 @@ app.post('/api', async (req, res) => {
     const context = results.matches
       .map(match => 'From ' + match.metadata?.date + ': ' + match.metadata?.content + 
 		' (Title: ' + match.metadata?.title + ', ' +
-	    'Sources: Original URL ' + match.metadata?.source_url + ', ' +
+	    'Sources: ' + 
+		'Primary URL ' + match.metadata?.dissentwatch_url + ', ' +
 	    'Archive URL ' + match.metadata?.archive_url + ', ' +
-		'DissentWatch URL ' + match.metadata?.dissentwatch_url + ', ' +
+		'Original URL ' + match.metadata?.source_url + ', ' +
 		'Author ' + match.metadata?.author + 
 		(match.metadata?.nostr_event_id ? ', NOSTR Discussion Link https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
 		' )'
