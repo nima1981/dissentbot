@@ -112,12 +112,12 @@ app.post('/api', async (req, res) => {
 
     const context = results.matches
       .map(match => 'From ' + match.metadata?.date + ': ' + match.metadata?.content + 
-	    ' (Sources: Original URL: ' + match.metadata?.source_url + ', ' +
-	    ' Archive URL: ' + match.metadata?.archive_url + ', ' +
-		' DissentWatch URL: ' + match.metadata?.dissentwatch_url + ', ' +
-		' Author: ' + match.metadata?.author +
-		(match.metadata?.nostr_event_id ? ', NOSTR Discussion Link: https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
-		/* ' NOSTR Discussion Link: ' + (match.metadata?.nostr_event_id ? 'https://primal.net/e/' + match.metadata?.nostr_event_id : 'undefined') */
+		' (Title: ' + match.metadata?.title + ', ' +
+	    'Sources: Original URL ' + match.metadata?.source_url + ', ' +
+	    'Archive URL ' + match.metadata?.archive_url + ', ' +
+		'DissentWatch URL ' + match.metadata?.dissentwatch_url + ', ' +
+		'Author ' + match.metadata?.author + 
+		(match.metadata?.nostr_event_id ? ', NOSTR Discussion Link https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
 		' )'
 		|| '')
       .join("\n\n");
