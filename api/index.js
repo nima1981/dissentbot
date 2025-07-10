@@ -7,6 +7,7 @@ const axios = require('axios'); // For API requests
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MAX_TOKENS = parseInt(process.env.MAX_TOKENS) || 1000;
+const MAX_CONTEXT_PARAGRAPHS = parseInt(process.env.MAX_CONTEXT_PARAGRAPHS) || 15;
 
 
 app.use(express.json()); // Parse JSON bodies
@@ -108,7 +109,7 @@ app.post('/api', async (req, res) => {
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
-      topK: 15,
+      topK: 25,
       includeMetadata: true,
     });
 
