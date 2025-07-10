@@ -119,7 +119,7 @@ app.post('/api', async (req, res) => {
 	    'Archive URL ' + match.metadata?.archive_url + ', ' +
 		'Original URL ' + match.metadata?.source_url + ', ' +
 		'Author ' + match.metadata?.author + 
-		(match.metadata?.nostr_event_id ? ', NOSTR Discussion Link https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
+		(match.metadata?.nostr_event_id ? ', NOSTR Discussion URL https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
 		' )'
 		|| '')
       .join("\n\n");
