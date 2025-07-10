@@ -6,7 +6,7 @@ const axios = require('axios'); // For API requests
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MAX_TOKENS = process.env.MAX_TOKENS || 1000;
+const MAX_TOKENS = parseInt(process.env.MAX_TOKENS) || 1000;
 
 
 app.use(express.json()); // Parse JSON bodies
