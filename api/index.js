@@ -6,6 +6,8 @@ const axios = require('axios'); // For API requests
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MAX_TOKENS = process.env.MAX_TOKENS || 1000;
+
 
 app.use(express.json()); // Parse JSON bodies
 app.use(express.static('public'));
@@ -151,7 +153,7 @@ app.post('/api', async (req, res) => {
       {
         model: process.env.MODEL_ID,
         messages: messages,
-        max_tokens: 15000,
+        max_tokens: MAX_TOKENS,
       },
       {
         headers: {
