@@ -146,7 +146,7 @@ app.post('/api', async (req, res) => {
 
     // Log the request payload being sent to the API
     console.log("API Request Payload:", JSON.stringify(messages, null, 2));
-	consolde.log("MAX_TOKENS: ", MAX_TOKENS);
+	console.log("MAX_TOKENS: ", MAX_TOKENS);
     // API call with corrected endpoint
     const apiResponse = await axios.post(
       process.env.API_URL_CHAT_COMPLETION,
