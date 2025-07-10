@@ -111,8 +111,9 @@ app.post('/api', async (req, res) => {
     });
 
     const context = results.matches
-      .map(match => 'From ' + match.metadata?.date + ': ' + match.metadata?.content + 
-		' (Title: ' + match.metadata?.title + ', ' +
+      .map(match => match.metadata?.content + 
+		' (Title: ' + match.metadata?.title + '; ' +
+		'Date & Time: ' + match.metadata?.date + '; ' + 
 	    'Sources: ' + 
 		'Primary URL ' + match.metadata?.dissentwatch_url + ', ' +
 	    'Archive URL ' + match.metadata?.archive_url + ', ' +
