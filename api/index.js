@@ -109,7 +109,7 @@ app.post('/api', async (req, res) => {
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
-      topK: 25,
+      topK: MAX_CONTEXT_PARAGRAPHS,
       includeMetadata: true,
     });
 
