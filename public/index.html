@@ -758,6 +758,12 @@
 			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
 			return;
 		}
+		
+		// ✅ HANDLE FORBIDDEN
+		if (response.status === 429) {
+			document.getElementById('walletMessage').innerHTML = 'Too many requests - ' + INSUFFICIENT_MOR_MESSAGE;
+			return;
+		}
 
 		// ✅ HANDLE OTHER ERRORS
 		if (!response.ok) {
