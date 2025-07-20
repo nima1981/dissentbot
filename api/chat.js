@@ -1,7 +1,7 @@
 // ✅ chat.js
 import { Pinecone } from "@pinecone-database/pinecone";
 import { HfInference } from "@huggingface/inference";
-import axios from "axios"; // ✅ MUST BE TOP-LEVEL
+import axios from "axios";
 import { ethers } from "ethers";
 import jwt from "jsonwebtoken";
 
@@ -44,9 +44,10 @@ export default async function handler(req, res) {
 
     const initPinecone = async () => {
       try {
-        const pinecone = new Pinecone({
-          apiKey: process.env.PINECONE_API_KEY,
-          environment: process.env.PINECONE_ENVIRONMENT // ✅ MUST BE SET
+        // ❌ OLD: const pinecone = new Pinecone({ apiKey, environment });
+        // ✅ NEW: environment is now handled automatically
+        const pinecone = new Pinecone({ 
+          apiKey: process.env.PINECONE_API_KEY
         });
         return pinecone.Index(process.env.PINECONE_INDEX_NAME);
       } catch (error) {
@@ -84,7 +85,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("Server error:", error.message); // ✅ LOG ERROR
+    console.error("Server error:", error.message);
     res.status(500).json({ error: error.message });
   }
 }
