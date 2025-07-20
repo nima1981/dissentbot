@@ -1,6 +1,7 @@
+// ✅ chat.js
 import { Pinecone } from "@pinecone-database/pinecone";
 import { HfInference } from "@huggingface/inference";
-import axios from "axios";
+import axios from "axios"; // ✅ MUST BE TOP-LEVEL
 import { ethers } from "ethers";
 import jwt from "jsonwebtoken";
 
@@ -20,10 +21,10 @@ export default async function handler(req, res) {
 
     if (!text) return res.status(400).json({ error: "Missing 'text' in request body" });
 
-    const verifySignature = (address, message, signature) => {
+    const verifySignature = (address, msg, sig) => {
       try {
-        const recoveredAddress = ethers.utils.verifyMessage(message, signature);
-        return recoveredAddress.toLowerCase() === address.toLowerCase();
+        const recovered = ethers.utils.verifyMessage(msg, sig);
+        return recovered.toLowerCase() === address.toLowerCase();
       } catch (error) {
         return false;
       }
@@ -31,14 +32,13 @@ export default async function handler(req, res) {
 
     const getEmbedding = async (text) => {
       try {
-        const hfEmbeddings = new HfInference(process.env.HF_API_TOKEN);
-        const response = await hfEmbeddings.featureExtraction({
+        const hf = new HfInference(process.env.HF_API_TOKEN);
+        return await hf.featureExtraction({
           model: "sentence-transformers/all-MiniLM-L6-v2",
           inputs: text
         });
-        return response;
       } catch (error) {
-        throw new Error("Failed to generate embedding: " + (error.message || "Unknown"));
+        throw new Error("Embedding failed: " + (error.message || "Unknown"));
       }
     };
 
@@ -46,11 +46,11 @@ export default async function handler(req, res) {
       try {
         const pinecone = new Pinecone({
           apiKey: process.env.PINECONE_API_KEY,
-          environment: process.env.PINECONE_ENVIRONMENT // ✅ REQUIRED
+          environment: process.env.PINECONE_ENVIRONMENT // ✅ MUST BE SET
         });
         return pinecone.Index(process.env.PINECONE_INDEX_NAME);
       } catch (error) {
-        throw new Error("Pinecone initialization failed: " + (error.message || "Unknown"));
+        throw new Error("Pinecone init failed: " + (error.message || "Unknown"));
       }
     };
 
@@ -62,12 +62,14 @@ export default async function handler(req, res) {
       includeMetadata: true
     });
 
-    const context = results.matches.map(match => match.metadata?.content + '...').join("\n\n");
+    const context = results.matches
+      .map(match => match.metadata?.content + '...').join("\n\n");
+
     const today = new Date();
     const messages = [
-      { role: 'system', content: process.env.INSTRUCTIONS + " Today's date: " + today },
+      { role: 'system', content: process.env.INSTRUCTIONS + " Today: " + today },
       { role: 'system', content: 'Context: \n\n' + context },
-      ...history.map(msg => ({ role: msg.role, content: msg.content })),
+      ...history.map(msg => ({ role: msg.role, content: msg.content }))
     ];
 
     const apiResponse = await axios.post(
@@ -82,7 +84,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("Server error:", error.message); // ✅ LOG THE ACTUAL ERROR
+    console.error("Server error:", error.message); // ✅ LOG ERROR
     res.status(500).json({ error: error.message });
   }
 }

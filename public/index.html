@@ -675,96 +675,57 @@
 	});
 	});
 
-  // Send message with wallet verification
+	  // Send message with wallet verification
 	async function sendMessage() {
 	  const input = document.getElementById('userInput');
 	  const text = input.value.trim();
 
-	  if (!text) {
-		document.getElementById('loading').style.display = 'none'; 
-		alert("Please enter a question");
-		return;
-	  }
-	  
-	  console.log("Sending request with query:", text); // Log the query being sent
-
+	  if (!text) return alert("Enter a question");
 
 	  try {
-	    
 		document.getElementById('loading').style.display = 'flex';
-		
+
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
 		let authData = {};
-		
-		
-		// Only sign if no token
+
 		if (sessionToken) {
-			authData = { token: sessionToken };
+		  authData = { token: sessionToken };
 		} else if (wallet) {
-			const { message, signature } = await signChallenge(wallet);
-			authData = { message, signature, walletAddress: wallet };
-		} else {
-			authData = {};
+		  const { message, signature } = await signChallenge(wallet);
+		  authData = { message, signature, walletAddress: wallet };
 		}
 
-		// Add user message to conversation history
-		conversationHistory.push({ 
-		  role: 'user', 
-		  content: text,
-		  ...authData
-		});
-		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
-		renderConversation();
-		input.value = '';
-
-		// Show loading spinner
-		document.getElementById('loading').style.display = 'flex';
-		
-		//const sessionToken = localStorage.getItem('sessionToken');
-
-		// Send to backend (no fake API calls here)
+		// ✅ SEND MESSAGE
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ 
-			text, 
-			history: conversationHistory,
-			...authData
-		  })
+		  body: JSON.stringify({ text, history: conversationHistory, ...authData })
 		});
 
-		// In your `catch` block after fetch
-		// In your fetch block
-		if (!response.ok) {
-		  
-		  const errorText = await response.text();
-		  let errorData;
-		  
-		  try {
-			errorData = JSON.parse(errorText);
-		  } catch {
-			errorData = { error: errorText };
-		  }
+		// ✅ READ BODY ONLY ONCE
+		const errorText = await response.text(); // ✅ READ ONCE
+		let errorData;
+		try {
+		  errorData = JSON.parse(errorText); // ✅ TRY JSON
+		} catch {
+		  errorData = { error: errorText }; // ✅ FALLBACK TO TEXT
+		}
 
+		if (!response.ok) {
 		  document.getElementById('walletMessage').innerHTML = 
 			errorData.error.includes("staked") 
 			  ? INSUFFICIENT_MOR_MESSAGE 
 			  : `⚠️ ${errorData.error || "Unknown error"}`;
-
-		  document.getElementById('loading').style.display = 'none';
-		  document.getElementById('wallet-status').scrollIntoView({ behavior: 'smooth' });
-		 // return;
+		  return;
 		}
-		
-		document.getElementById('loading').style.display = 'none';
-		document.getElementById('walletMessage').innerHTML = '';
 
-		const data = await response.json();
-		const sanitizedAnswer = marked.parse(data.answer).replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
-		const sanitizedContext = marked.parse(data.context || "No relevant context found");
+		// ✅ PARSE VALID RESPONSE
+		const data = JSON.parse(await response.text());
+		const sanitizedAnswer = marked.parse(data.answer)
+		  .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+		const sanitizedContext = marked.parse(data.context || "No context");
 
-		// Add bot response
 		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		renderConversation();
@@ -775,26 +736,11 @@
 		  <h3>Context:</h3>
 		  <p>${sanitizedContext}</p>
 		`;
-		
+
 	  } catch (error) {
-		
-	    document.getElementById('loading').style.display = 'none';
-		console.error("Chat error:", error);
-		document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
+		document.getElementById('walletMessage').textContent = `⚠️ ${error.message}`;
+	  } finally {
 		document.getElementById('loading').style.display = 'none';
-
-		// In your `catch` block
-		if (error.message.includes("ANONYMOUS_RATE_LIMIT")) {
-		  document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-		} else if (error.message.includes("RATE_LIMIT_EXCEEDED")) {
-		  document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-		} else if (error.message.includes("staked")) {
-		  document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-		} else {
-		  document.getElementById('walletMessage').textContent = `⚠️ ${error.message}`;
-		}
-
-		document.getElementById('wallet-status').scrollIntoView({ behavior: 'smooth' });
 	  }
 	}
 
