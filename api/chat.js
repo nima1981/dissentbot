@@ -47,13 +47,13 @@ export default async function handler(req, res) {
         "stakeStatus=staked; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict"
       );
     }
-
+/*
     if (!isStaked) {
       return res.status(403).json({
         error: "Need 10+ MOR tokens staked"
       });
     }
-
+*/
     const verifySignature = (address, msg, sig) => {
       try {
         const recovered = ethers.utils.verifyMessage(msg, sig);

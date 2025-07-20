@@ -251,7 +251,7 @@ app.post('/api', async (req, res) => {
     const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
 	
 	    // Rate limit logic
-
+/*
     if (verifiedAddress && !isStaked) {
       const now = Date.now();
       const key = verifiedAddress;
@@ -271,7 +271,7 @@ app.post('/api', async (req, res) => {
         }
       }
     }
-
+*/
     // Process chat request
     const queryEmbedding = await getEmbedding(text);
 	const pineconeIndex = await initPinecone();
