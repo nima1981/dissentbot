@@ -98,7 +98,7 @@ export default async function handler(req, res) {
 	const maxTokens = parseInt(process.env.MAX_TOKENS) || 500;
 
     console.log("API Request Payload:", JSON.stringify(messages, null, 2));
-	console.log("MAX_TOKENS: ", MAX_TOKENS);
+	console.log("MAX_TOKENS: ", maxTokens);
 
 	const apiResponse = await axios.post(
 	  process.env.API_URL_CHAT_COMPLETION,
