@@ -576,6 +576,7 @@
       conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
         // Convert Markdown to HTML
         const sanitizedContent = marked.parse(conversationHistory[index].content);
+		console.log('sanitizedContend after marked: ', sanitizedContent);
         contentDiv.innerHTML = sanitizedContent;
       });
 
