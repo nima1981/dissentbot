@@ -8,6 +8,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="DissentBot">
+
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -570,13 +572,8 @@
 		  +'">Arbitrum</a>. If you change your mind you can simply withdraw your stake. <a target="_blank" href="https://mor.org/?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1">Decentralized AI</a> is the future!';
 		  
    if (walletAddress) {
-	  //const isStaked = checkMorpheusStake(walletAddress);
-	  //if (!isStaked) {
-	//	document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-	  //} else {
 		isAuthenticated = true;
 		document.getElementById('walletMessage').innerHTML = '';
-	 // }
 	}
 
   // Render conversation history
@@ -655,6 +652,18 @@
 		document.getElementById('walletMessage').textContent = '';
 		renderConversation();
 		return;
+	  }
+	  
+	  // ✅ MOBILE WALLET CONNECTION LOGIC
+	  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+	  if (isMobile) {
+		// ✅ USE METAMASK MOBILE DEEP LINK IF NO PROVIDER
+		if (typeof window.ethereum === 'undefined') {
+		  // ✅ REDIRECT TO METAMASK APP
+		  window.location.href = 'https://metamask.app.link/dapp/dissentbot.com';
+		  return;
+		}
 	  }
 
 	  // Connect logic
