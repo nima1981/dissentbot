@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+	"jsonwebtoken": "^9.0.0",  
+	"ethers": "^5.8.0",
     "@huggingface/inference": "^3.13.2",
     "@pinecone-database/pinecone": "^6.0.1",
     "axios": "^1.9.0",
