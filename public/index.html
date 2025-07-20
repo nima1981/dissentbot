@@ -737,22 +737,20 @@
 		// In your `catch` block after fetch
 		// In your fetch block
 		if (!response.ok) {
-		
-		  document.getElementById('loading').style.display = 'none'; 
-		  const errorData = await response.json();
-
-		  if (errorData.error === "ANONYMOUS_RATE_LIMIT_EXCEEDED") {
-			document.getElementById('walletMessage').innerHTML = 
-			  INSUFFICIENT_MOR_MESSAGE;
-		  } else if (errorData.error === "RATE_LIMIT_EXCEEDED") {
-			document.getElementById('walletMessage').innerHTML = 
-			  INSUFFICIENT_MOR_MESSAGE;
-		  } else if (errorData.error.includes("staked")) {
-			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-		  } else {
-			throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+		  let errorData;
+		  try {
+			errorData = await response.json(); // ❌ May fail
+		  } catch (jsonError) {
+			// ✅ Fallback to text if response isn't JSON
+			errorData = { error: await response.text() };
 		  }
 
+		  document.getElementById('walletMessage').innerHTML = 
+			errorData.error.includes("staked") 
+			  ? INSUFFICIENT_MOR_MESSAGE 
+			  : `⚠️ ${errorData.error || "Unknown error"}`;
+
+		  document.getElementById('loading').style.display = 'none';
 		  document.getElementById('wallet-status').scrollIntoView({ behavior: 'smooth' });
 		  return;
 		}

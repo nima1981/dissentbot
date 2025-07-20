@@ -1,4 +1,3 @@
-// pages/api/chat.js
 import { Pinecone } from "@pinecone-database/pinecone";
 import { HfInference } from "@huggingface/inference";
 import axios from "axios";
@@ -6,12 +5,10 @@ import { ethers } from "ethers";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
-  // ✅ Minimal Vercel compatibility (no Express req/res)
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    // 🔁 Core chat logic (no rate limit stores in Vercel)
     const {
       text,
       history,
@@ -23,18 +20,15 @@ export default async function handler(req, res) {
 
     if (!text) return res.status(400).json({ error: "Missing 'text' in request body" });
 
-    // ✅ Vercel version of verifySignature
     const verifySignature = (address, message, signature) => {
       try {
         const recoveredAddress = ethers.utils.verifyMessage(message, signature);
         return recoveredAddress.toLowerCase() === address.toLowerCase();
       } catch (error) {
-        console.error("Signature verification failed:", error.message);
         return false;
       }
     };
 
-    // ✅ Vercel version of getEmbedding
     const getEmbedding = async (text) => {
       try {
         const hfEmbeddings = new HfInference(process.env.HF_API_TOKEN);
@@ -44,24 +38,22 @@ export default async function handler(req, res) {
         });
         return response;
       } catch (error) {
-        console.error("Embedding generation failed:", error);
-        throw new Error("Failed to generate embedding");
+        throw new Error("Failed to generate embedding: " + (error.message || "Unknown"));
       }
     };
 
-    // ✅ Vercel version of initPinecone
     const initPinecone = async () => {
       try {
-        return new Pinecone({
+        const pinecone = new Pinecone({
           apiKey: process.env.PINECONE_API_KEY,
-        }).Index(process.env.PINECONE_INDEX_NAME);
+          environment: process.env.PINECONE_ENVIRONMENT // ✅ REQUIRED
+        });
+        return pinecone.Index(process.env.PINECONE_INDEX_NAME);
       } catch (error) {
-        console.error("Pinecone initialization failed:", error);
-        throw new Error("Failed to initialize Pinecone");
+        throw new Error("Pinecone initialization failed: " + (error.message || "Unknown"));
       }
     };
 
-    // ✅ Process chat request
     const queryEmbedding = await getEmbedding(text);
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
@@ -88,7 +80,9 @@ export default async function handler(req, res) {
       answer: apiResponse.data.choices[0].message.content,
       context
     });
+
   } catch (error) {
+    console.error("Server error:", error.message); // ✅ LOG THE ACTUAL ERROR
     res.status(500).json({ error: error.message });
   }
 }
