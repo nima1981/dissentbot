@@ -72,12 +72,24 @@ export default async function handler(req, res) {
       { role: 'system', content: 'Context: \n\n' + context },
       ...history.map(msg => ({ role: msg.role, content: msg.content }))
     ];
+	
+	// ✅ Convert max_tokens to number
+	const maxTokens = parseInt(process.env.MAX_TOKENS) || 500;
 
-    const apiResponse = await axios.post(
-      process.env.API_URL_CHAT_COMPLETION,
-      { model: process.env.MODEL_ID, messages, max_tokens: process.env.MAX_TOKENS },
-      { headers: { 'Authorization': `Bearer ${process.env.API_KEY}` } }
-    );
+	const apiResponse = await axios.post(
+	  process.env.API_URL_CHAT_COMPLETION,
+	  {
+		model: process.env.MODEL_ID,
+		messages: messages,
+		max_tokens: maxTokens // ✅ NOW IT'S A NUMBER
+	  },
+	  {
+		headers: {
+		  'Authorization': `Bearer ${process.env.API_KEY}`,
+		  'Content-Type': 'application/json'
+		}
+	  }
+	);
 
     res.status(200).json({
       answer: apiResponse.data.choices[0].message.content,
