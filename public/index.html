@@ -737,12 +737,14 @@
 		// In your `catch` block after fetch
 		// In your fetch block
 		if (!response.ok) {
+		  
+		  const errorText = await response.text();
 		  let errorData;
+		  
 		  try {
-			errorData = await response.json(); // ❌ May fail
-		  } catch (jsonError) {
-			// ✅ Fallback to text if response isn't JSON
-			errorData = { error: await response.text() };
+			errorData = JSON.parse(errorText);
+		  } catch {
+			errorData = { error: errorText };
 		  }
 
 		  document.getElementById('walletMessage').innerHTML = 
@@ -752,7 +754,7 @@
 
 		  document.getElementById('loading').style.display = 'none';
 		  document.getElementById('wallet-status').scrollIntoView({ behavior: 'smooth' });
-		  return;
+		 // return;
 		}
 		
 		document.getElementById('loading').style.display = 'none';
