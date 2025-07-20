@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.SESSION_SECRET);
-        verifiedAddress = decoded.address;
+        verifiedAddress = decoded.address.toLowerCase();
       } catch (e) {
         return res.status(401).json({ error: "Invalid session token" });
       }
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       if (!isValidSignature) {
         return res.status(401).json({ error: "Invalid wallet signature" });
       }
-      verifiedAddress = walletAddress;
+      verifiedAddress = walletAddress.toLowerCase();
     }
 
     // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
