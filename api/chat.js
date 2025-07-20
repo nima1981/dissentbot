@@ -62,19 +62,43 @@ export default async function handler(req, res) {
       topK: 15,
       includeMetadata: true
     });
-
+/*
     const context = results.matches
       .map(match => match.metadata?.content + '...').join("\n\n");
+*/	  
+    const context = results.matches
+      .map(match => match.metadata?.content + 
+		' (Title: ' + match.metadata?.title + '; ' +
+		'Date & Time: ' + match.metadata?.date + '; ' + 
+	    'Sources: ' + 
+		'Primary URL ' + match.metadata?.dissentwatch_url + ', ' +
+	    'Archive URL ' + match.metadata?.archive_url + ', ' +
+		'Original URL ' + match.metadata?.source_url + ', ' +
+		'Author ' + match.metadata?.author + 
+		(match.metadata?.nostr_event_id ? ', NOSTR Discussion URL https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
+		' )'
+		|| '')
+      .join("\n\n");
 
     const today = new Date();
-    const messages = [
+    /*const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + " Today: " + today },
       { role: 'system', content: 'Context: \n\n' + context },
       ...history.map(msg => ({ role: msg.role, content: msg.content }))
+    ];*/
+	
+    const messages = [
+      { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + "." },
+      { role: 'system', content: 'Context: \n\n' + context },
+      ...history.map(msg => ({ role: msg.role, content: msg.content /*.replace(/<[^>]*>?/gm, '')*/ })),
     ];
+	
 	
 	// ✅ Convert max_tokens to number
 	const maxTokens = parseInt(process.env.MAX_TOKENS) || 500;
+
+    console.log("API Request Payload:", JSON.stringify(messages, null, 2));
+	console.log("MAX_TOKENS: ", MAX_TOKENS);
 
 	const apiResponse = await axios.post(
 	  process.env.API_URL_CHAT_COMPLETION,
@@ -87,10 +111,13 @@ export default async function handler(req, res) {
 		headers: {
 		  'Authorization': `Bearer ${process.env.API_KEY}`,
 		  'Content-Type': 'application/json'
-		}
+		},
+        responseType: 'json'
 	  }
 	);
-
+	
+	console.log("Answer:", apiResponse.data.choices[0].message.content);
+	
     res.status(200).json({
       answer: apiResponse.data.choices[0].message.content,
       context
