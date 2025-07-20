@@ -675,7 +675,6 @@
 	});
 	});
 
-	  // Send message with wallet verification
 	async function sendMessage() {
 	  const input = document.getElementById('userInput');
 	  const text = input.value.trim();
@@ -696,32 +695,35 @@
 		  authData = { message, signature, walletAddress: wallet };
 		}
 
-		// ✅ SEND MESSAGE
+		// ✅ FETCH AND READ BODY ONCE
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ text, history: conversationHistory, ...authData })
 		});
 
-		// ✅ READ BODY ONLY ONCE
-		const errorText = await response.text(); // ✅ READ ONCE
-		let errorData;
+		// ✅ READ BODY ONCE
+		const bodyText = await response.text(); // ✅ FIRST AND ONLY READ
+
+		// ✅ PARSE ONCE
+		let data;
 		try {
-		  errorData = JSON.parse(errorText); // ✅ TRY JSON
+		  data = JSON.parse(bodyText);
 		} catch {
-		  errorData = { error: errorText }; // ✅ FALLBACK TO TEXT
+		  data = { answer: bodyText, context: "" };
 		}
 
+		// ✅ HANDLE ERROR CASE
 		if (!response.ok) {
+		  const error = data.error || bodyText;
 		  document.getElementById('walletMessage').innerHTML = 
-			errorData.error.includes("staked") 
+			error.includes("staked") 
 			  ? INSUFFICIENT_MOR_MESSAGE 
-			  : `⚠️ ${errorData.error || "Unknown error"}`;
+			  : `⚠️ ${error}`;
 		  return;
 		}
 
-		// ✅ PARSE VALID RESPONSE
-		const data = JSON.parse(await response.text());
+		// ✅ HANDLE SUCCESS CASE
 		const sanitizedAnswer = marked.parse(data.answer)
 		  .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 		const sanitizedContext = marked.parse(data.context || "No context");
@@ -738,12 +740,12 @@
 		`;
 
 	  } catch (error) {
+		console.error("Chat error:", error);
 		document.getElementById('walletMessage').textContent = `⚠️ ${error.message}`;
 	  } finally {
 		document.getElementById('loading').style.display = 'none';
 	  }
 	}
-
   // Clear conversation
   function clearConversation() {
     conversationHistory = [];
