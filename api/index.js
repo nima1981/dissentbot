@@ -30,9 +30,17 @@ const MIN_STAKE = process.env.MIN_STAKE || 10;
 const DUNE_API_KEY = process.env.DUNE_API_KEY;
 //const MOCK_STAKE = 10;
 
+
 // Middleware
 app.use(express.json());
 app.use(express.static('public'));
+
+// Add to top of index.js
+app.use((req, res, next) => {
+  res.header("Cache-Control", "public, max-age=31536000");
+  next();
+});
+
 
 // Validate environment
 const validateEnv = () => {
