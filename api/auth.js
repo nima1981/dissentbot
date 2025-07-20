@@ -19,6 +19,17 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Invalid wallet signature" });
     }
 
+    // ✅ Verify staking status
+    const isStaked = await verifyMorpheusStake(walletAddress);
+
+    // ✅ Set cookie only if staked
+    if (isStaked) {
+      res.setHeader(
+        "Set-Cookie",
+        "stakeStatus=staked; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict"
+      );
+    }
+
     // ✅ JWT token generation
     const token = jwt.sign({ address: walletAddress }, process.env.SESSION_SECRET, {
       expiresIn: "30d"

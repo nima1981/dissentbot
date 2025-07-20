@@ -39,17 +39,20 @@ export default async function handler(req, res) {
 
     // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
     const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
+	
+	// ✅ Set cookie only if staked
+    if (isStaked) {
+      res.setHeader(
+        "Set-Cookie",
+        "stakeStatus=staked; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict"
+      );
+    }
 
     if (!isStaked) {
       return res.status(403).json({
         error: "Need 10+ MOR tokens staked"
       });
-    } else {
-		res.setHeader(
-		"Set-Cookie",
-		"stakeStatus=staked; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict"
-		);
-	}
+    }
 
     const verifySignature = (address, msg, sig) => {
       try {
