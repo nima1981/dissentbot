@@ -22,22 +22,18 @@ export default async function handler(req, res) {
     // ✅ Verify staking status
     const isStaked = await verifyMorpheusStake(walletAddress);
 
-	// ✅ AFTER STAKE VERIFICATION
-	const isStaked = await verifyMorpheusStake(walletAddress);
-
 	if (isStaked) {
-	  const cookieValue = jwt.sign(
-		{ wallet: walletAddress, staked: true },
-		process.env.SESSION_SECRET,
+	  const signedCookie = jwt.sign(
+		{ staked: true },
+		process.env.COOKIE_SECRET,
 		{ expiresIn: "30d" }
 	  );
 
 	  res.setHeader(
 		"Set-Cookie",
-		`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
+		`isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
 	  );
 	}
-
     // ✅ JWT token generation
     const token = jwt.sign({ address: walletAddress }, process.env.SESSION_SECRET, {
       expiresIn: "30d"
