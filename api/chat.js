@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
     const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
 
-    if (verifiedAddress && !isStaked) {
+    if (!isStaked) {
       return res.status(403).json({
         error: "Need 10+ MOR tokens staked"
       });
