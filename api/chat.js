@@ -40,13 +40,20 @@ export default async function handler(req, res) {
     // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
     const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
 	
-	// ✅ Set cookie only if staked
-    if (isStaked) {
-      res.setHeader(
-        "Set-Cookie",
-        "stakeStatus=staked; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict"
-      );
-    }
+	// ✅ SET JWT-SIGNED COOKIE
+	if (isStaked) {
+	  const cookieValue = jwt.sign(
+		{ wallet: verifiedAddress, staked: true },
+		process.env.SESSION_SECRET,
+		{ expiresIn: "30d" }
+	  );
+
+	  res.setHeader(
+		"Set-Cookie",
+		`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
+	  );
+	}
+	
 /*
     if (verifiedAddress && !isStaked) {
       return res.status(403).json({
