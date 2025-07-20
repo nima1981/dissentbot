@@ -162,7 +162,7 @@ async function verifyMorpheusStake(address) {
 		const options = {method: 'GET', headers: {'X-DUNE-API-KEY': process.env.DUNE_API_KEY}};
 		
 		const queryParams = new URLSearchParams({
-			filters: "subnet_id = " + process.env.SUBNET_ID + " AND wallet_address = " + address,
+			filters: "subnet_id = " + process.env.SUBNET_ID + " AND wallet_address = " + address.toLowerCase(),
 			columns: "net_staked_tokens"
 		});
 	
