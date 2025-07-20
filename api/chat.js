@@ -7,16 +7,6 @@ import jwt from "jsonwebtoken";
 export default async function handler(req, res) {
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  
-  // ✅ VERIFY MOR STAKE
-  const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
-  
-  // ✅ BLOCK NON-STAKED USERS
-  if (verifiedAddress && !isStaked) {
-    return res.status(403).json({
-      error: "Need 10+ MOR tokens staked"
-    });
-  }
 
   try {
     const {
@@ -29,6 +19,32 @@ export default async function handler(req, res) {
     } = req.body;
 
     if (!text) return res.status(400).json({ error: "Missing 'text' in request body" });
+	
+	let verifiedAddress = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.SESSION_SECRET);
+        verifiedAddress = decoded.address;
+      } catch (e) {
+        return res.status(401).json({ error: "Invalid session token" });
+      }
+    } else if (walletAddress && signature && message) {
+      const isValidSignature = await verifySignature(walletAddress, message, signature);
+      if (!isValidSignature) {
+        return res.status(401).json({ error: "Invalid wallet signature" });
+      }
+      verifiedAddress = walletAddress;
+    }
+
+    // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
+    const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
+
+    if (verifiedAddress && !isStaked) {
+      return res.status(403).json({
+        error: "Need 10+ MOR tokens staked"
+      });
+    }
 
     const verifySignature = (address, msg, sig) => {
       try {
