@@ -44,7 +44,12 @@ export default async function handler(req, res) {
       return res.status(403).json({
         error: "Need 10+ MOR tokens staked"
       });
-    }
+    } else {
+		res.setHeader(
+		"Set-Cookie",
+		"stakeStatus=staked; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict"
+		);
+	}
 
     const verifySignature = (address, msg, sig) => {
       try {
