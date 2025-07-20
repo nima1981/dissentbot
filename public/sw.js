@@ -9,6 +9,7 @@ self.addEventListener('install', (e) => {
         '/icon-192.png',
         '/icon-512.png',
         '/widget.js',
+        '/api/chat'
       ]);
     })
   );

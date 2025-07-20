@@ -618,9 +618,7 @@
 		? `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]` 
 		: '<span id="connectAction">[CONNECT]</span>';
 		
-		if (isAuthenticated) {
-			document.getElementById('walletMessage').innerHTML = '';
-		}
+	  document.getElementById('walletMessage').innerHTML = '';
 	  
     }
 
@@ -802,6 +800,7 @@
     localStorage.removeItem('conversationHistory');
     renderConversation();
     document.getElementById('response').innerHTML = '';
+	document.getElementById('walletMessage').innerHTML = '';
     console.log("Conversation cleared");
   }
 
