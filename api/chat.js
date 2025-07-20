@@ -1,4 +1,3 @@
-// ✅ chat.js
 import { Pinecone } from "@pinecone-database/pinecone";
 import { HfInference } from "@huggingface/inference";
 import axios from "axios";
@@ -8,6 +7,16 @@ import jwt from "jsonwebtoken";
 export default async function handler(req, res) {
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  
+  // ✅ VERIFY MOR STAKE
+  const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
+  
+  // ✅ BLOCK NON-STAKED USERS
+  if (verifiedAddress && !isStaked) {
+    return res.status(403).json({
+      error: "Need 10+ MOR tokens staked"
+    });
+  }
 
   try {
     const {
@@ -94,7 +103,7 @@ export default async function handler(req, res) {
     ];
 	
 	
-	// ✅ Convert max_tokens to number
+	// Convert max_tokens to number
 	const maxTokens = parseInt(process.env.MAX_TOKENS) || 500;
 
     console.log("API Request Payload:", JSON.stringify(messages, null, 2));
@@ -105,7 +114,7 @@ export default async function handler(req, res) {
 	  {
 		model: process.env.MODEL_ID,
 		messages: messages,
-		max_tokens: maxTokens // ✅ NOW IT'S A NUMBER
+		max_tokens: maxTokens 
 	  },
 	  {
 		headers: {
@@ -127,4 +136,43 @@ export default async function handler(req, res) {
     console.error("Server error:", error.message);
     res.status(500).json({ error: error.message });
   }
+}
+
+// Verify Morpheus stake
+
+async function verifyMorpheusStake(address) {
+	try {
+				
+		const options = {method: 'GET', headers: {'X-DUNE-API-KEY': process.env.DUNE_API_KEY}};
+		
+		const queryParams = new URLSearchParams({
+			filters: "subnet_id = " + process.env.SUBNET_ID + " AND wallet_address = " + address,
+			columns: "net_staked_tokens"
+		});
+	
+		const url = `https://api.dune.com/api/v1/query/5112115/results?${queryParams}`;
+		const response = await fetch(url, options);
+		  
+		if (!response.ok) {
+			throw new Error('Dune API query failed.');
+		}
+		  
+		const data = await response.json();
+		console.log("Dune data response: JSON.stringify(data.result.rows.length)): " + JSON.stringify(data.result.rows.length));
+		//const response = {"data": {"stakedAmount": MOCK_STAKE}};
+		
+		let stakedTokens = 0;
+		
+		if (data.result.rows.length > 0)
+			stakedTokens = parseFloat(data.result.rows[0].net_staked_tokens);
+		
+		console.log("stakedTokens: " + stakedTokens);
+		
+		//return MOCK_STAKE >= MIN_STAKE;		
+		return stakedTokens >= process.env.MIN_STAKE;
+		
+	} catch (error) {
+		console.error("Staking verification failed:", error);
+		return false;
+	}
 }

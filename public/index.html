@@ -718,14 +718,16 @@
 		} catch {
 		  data = { answer: bodyText, context: "" };
 		}
+		
+		// ✅ HANDLE FORBIDDEN
+		if (response.status === 403) {
+			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
+			return;
+		}
 
-		// ✅ HANDLE ERROR CASE
+		// ✅ HANDLE OTHER ERRORS
 		if (!response.ok) {
-		  const error = data.error || bodyText;
-		  document.getElementById('walletMessage').innerHTML = 
-			error.includes("staked") 
-			  ? INSUFFICIENT_MOR_MESSAGE 
-			  : `⚠️ ${error}`;
+		  document.getElementById('walletMessage').innerHTML = `⚠️ ${data.error}`;
 		  return;
 		}
 
