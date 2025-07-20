@@ -680,6 +680,12 @@
 	  const text = input.value.trim();
 
 	  if (!text) return alert("Enter a question");
+	  
+	  // Add user message to conversation history
+      conversationHistory.push({ role: 'user', content: text });
+      renderConversation();
+
+      input.value = ''; // Clear input field
 
 	  try {
 		document.getElementById('loading').style.display = 'flex';
