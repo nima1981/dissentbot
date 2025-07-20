@@ -594,7 +594,7 @@
 	  const connectButton = document.getElementById('connectWallet');
 	  connectButton.innerHTML = 
 		(isAuthenticated || localStorage.getItem('walletAddress')) 
-		? `<span id="connectAction">[X]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]` 
+		? `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]` 
 		: '<span id="connectAction">[CONNECT]</span>';
 		
 		if (isAuthenticated) {
@@ -667,7 +667,7 @@
 		isAuthenticated = true;
 		document.getElementById('walletMessage').innerHTML = ''; // Clear message after successful login
 
-		connectButton.innerHTML = `<span id="connectAction">[X]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+		connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
 
 	  } catch (error) {
 		console.error("Wallet connection failed:", error);
