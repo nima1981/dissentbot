@@ -651,7 +651,7 @@
 		localStorage.setItem('walletAddress', walletAddress);
 
 		const { message, signature } = await signChallenge(walletAddress);
-		const authResponse = await fetch('/auth', {
+		const authResponse = await fetch('/api/auth', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ walletAddress, signature, message })
@@ -724,7 +724,7 @@
 		//const sessionToken = localStorage.getItem('sessionToken');
 
 		// Send to backend (no fake API calls here)
-		const response = await fetch('/api', {
+		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ 
