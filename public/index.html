@@ -553,13 +553,13 @@
 		  +'">Arbitrum</a>. If you change your mind you can simply withdraw your stake. <a target="_blank" href="https://mor.org/?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1">Decentralized AI</a> is the future!';
 		  
    if (walletAddress) {
-	  const isStaked = checkMorpheusStake(walletAddress);
-	  if (!isStaked) {
-		document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-	  } else {
+	  //const isStaked = checkMorpheusStake(walletAddress);
+	  //if (!isStaked) {
+	//	document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
+	  //} else {
 		isAuthenticated = true;
 		document.getElementById('walletMessage').innerHTML = '';
-	  }
+	 // }
 	}
 
   // Render conversation history
