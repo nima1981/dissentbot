@@ -37,6 +37,45 @@ export default async function handler(req, res) {
       verifiedAddress = walletAddress.toLowerCase();
     }
 
+    // ✅ INSERT STEP 2 CODE HERE — VERIFY SIGNED COOKIE
+    const cookieHeader = req.headers.cookie;
+    let cookieStaked = false;
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split("; ").reduce((acc, cookie) => {
+        const [key, value] = cookie.split("=");
+        acc[key.trim()] = value.trim();
+        return acc;
+      }, {});
+
+      const signedCookie = cookies.isStaked;
+
+      if (signedCookie) {
+        try {
+          const decoded = jwt.verify(signedCookie, process.env.COOKIE_SECRET);
+          if (decoded.staked && decoded.wallet) {
+            // ✅ Double-check stake status in case cookie is old
+            const currentStakeStatus = await verifyMorpheusStake(decoded.wallet);
+            if (currentStakeStatus) {
+              cookieStaked = true;
+            } else {
+              // ✅ Clear forged/expired cookie
+              res.setHeader(
+                "Set-Cookie",
+                "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict"
+              );
+            }
+          }
+        } catch (e) {
+          // ❌ Invalid JWT — clear forged cookie
+          res.setHeader(
+            "Set-Cookie",
+            "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict"
+          );
+        }
+      }
+    }
+
     // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
     const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
 	
