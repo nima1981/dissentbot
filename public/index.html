@@ -656,7 +656,7 @@
 		connectButton.innerHTML = '<span id="connectAction">[CONNECT]</span>';
 		document.getElementById('walletMessage').textContent = '';
 		// ✅ Clear stakeStatus cookie
-		document.cookie = "stakeStatus=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict";
+		document.cookie = "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict";
 		renderConversation();
 		return;
 	  }
