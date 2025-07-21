@@ -281,8 +281,8 @@
       height: 50px;
       position: absolute;
       background: transparent;
-      left: 50%;
-      top: 50%;
+      left: 45%;
+      top: 45%;
     }
 
 	.spinner-container {
@@ -304,23 +304,23 @@
 	.spinner .dot {
 	  width: 6px;
 	  height: 6px;
-	  background: #007bff;
+	  background: green;
 	  border-radius: 50%;
 	  animation: bounce 1.4s infinite ease-in-out both;
 	}
 
 	.spinner .dot:nth-child(1) { 
 	  animation-delay: -0.32s; 
-	  background: #007bff;
+	  background: green;
 	}
 
 	.spinner .dot:nth-child(2) { 
 	  animation-delay: -0.16s; 
-	  background: #007bff;
+	  background: green;
 	}
 
 	.spinner .dot:nth-child(3) { 
-	  background: #007bff;
+	  background: green;
 	}
 
 	@keyframes bounce {
@@ -330,9 +330,10 @@
 
 	#loading-message {
 	  margin-top: 12px;
-	  font-size: 1em;
-	  color: #007bff;
-	  animation: pulse 3s infinite;
+	  font-size: 2em;
+	  color: green;
+	  animation: pulse 2s infinite;
+	  text-transform: uppercase;
 	}
 
 	@keyframes pulse {
