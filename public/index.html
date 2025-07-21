@@ -834,7 +834,8 @@
 		});
 		
 		// ✅ CLEAR TIMER
-		clearTimeout(longWaitTimer);
+		clearTimeout(longWaitTimer1);
+		clearTimeout(longWaitTimer2);
 		loadingMessage.textContent = "Thinking...";
 		document.getElementById('loading').style.display = 'none';
 
@@ -886,7 +887,8 @@
 		`;
 
 	  } catch (error) {
-	    clearTimeout(longWaitTimer);
+	    clearTimeout(longWaitTimer1);
+		clearTimeout(longWaitTimer2);
 		console.error("Chat error:", error);
 		console.error("Chat error:", error.message);
 		document.getElementById('walletMessage').textContent = '';
