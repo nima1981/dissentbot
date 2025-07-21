@@ -52,7 +52,7 @@ export default async function handler(req, res) {
 
       if (signedCookie) {
         try {
-          const decoded = jwt.verify(signedCookie, process.env.COOKIE_SECRET);
+          const decoded = jwt.verify(signedCookie, process.env.SESSION_SECRET);
           if (decoded.staked && decoded.wallet) {
             // ✅ Double-check stake status in case cookie is old
             const currentStakeStatus = await verifyMorpheusStake(decoded.wallet);
