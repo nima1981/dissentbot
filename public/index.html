@@ -568,15 +568,19 @@
   const SUBNET_ID = "0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb";
   const MIN_STAKE = 10;
   //const MOCK_STAKE = 10;
-  const BUY_MORPHEUS_URL = "https://app.uniswap.org/swap?outputCurrency=0xcbb8f1bda10b9696c57e13bc128fe674769dcec0&exactAmount=10&exactField=output";
+  const UNISWAP_MORPHEUS_URL = "https://app.uniswap.org/swap?outputCurrency=0xcbb8f1bda10b9696c57e13bc128fe674769dcec0&exactAmount=10&exactField=output";
+  const MORPHEUS_URL = "https://www.coingecko.com/en/coins/morpheusai";
   const STAKE_MORPHEUS_BASE_URL = "https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base";
   const STAKE_MORPHEUS_ARBITRUM_URL = "https://builders.mor.org/builders/dissentwatch-arbitrum?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Arbitrum";
-  const INSUFFICIENT_MOR_MESSAGE = 'Unlock <strong>UNLIMITED LIFETIME ACCESS</strong> to The Web\'s Most Forbidden News  by staking <a target="_blank" href="' 
-		  + BUY_MORPHEUS_URL 
-		  + '">' + MIN_STAKE + ' MOR</a> on <a target="_blank" href="' 
+  const INSUFFICIENT_MOR_MESSAGE = 
+		  'To unlock <strong>UNLIMITED LIFETIME ACCESS</strong> stake <a target="_blank" href="' 
+		  + MORPHEUS_URL 
+		  + '">' + MIN_STAKE + ' MOR</a> on our subnet at <a target="_blank" href="' 
 		  + STAKE_MORPHEUS_BASE_URL + '">Base</a> or <a target="_blank" href="'
 		  + STAKE_MORPHEUS_ARBITRUM_URL 
-		  +'">Arbitrum</a>. If you change your mind you can simply withdraw your stake. <a target="_blank" href="https://mor.org/?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1">Decentralized AI</a> is the future!';
+		  + '">Arbitrum</a> or just connect your wallet if you\'ve already staked. '
+		  + 'You can <a href="'+ UNISWAP_MORPHEUS_URL + '">buy MOR on Uniswap</a> and'
+		  + '<a href="https://mor.org/?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1">learn about Morpheus AI here</a>.';
 		  
    if (walletAddress) {
 		isAuthenticated = true;
