@@ -75,22 +75,26 @@ export default async function handler(req, res) {
         }
       }
     }
-
-    // ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
-    const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
 	
-	// ✅ SET JWT-SIGNED COOKIE
-	if (isStaked) {
-	  const cookieValue = jwt.sign(
-		{ wallet: verifiedAddress, staked: true },
-		process.env.SESSION_SECRET,
-		{ expiresIn: "30d" }
-	  );
+	
+	if (!cookieStaked) {
 
-	  res.setHeader(
-		"Set-Cookie",
-		`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
-	  );
+		// ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
+		const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
+		
+		// ✅ SET JWT-SIGNED COOKIE
+		if (isStaked) {
+		  const cookieValue = jwt.sign(
+			{ wallet: verifiedAddress, staked: true },
+			process.env.SESSION_SECRET,
+			{ expiresIn: "30d" }
+		  );
+
+		  res.setHeader(
+			"Set-Cookie",
+			`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
+		  );
+		}
 	}
 	
 /*
@@ -123,8 +127,6 @@ export default async function handler(req, res) {
 
     const initPinecone = async () => {
       try {
-        // ❌ OLD: const pinecone = new Pinecone({ apiKey, environment });
-        // ✅ NEW: environment is now handled automatically
         const pinecone = new Pinecone({ 
           apiKey: process.env.PINECONE_API_KEY
         });
@@ -141,10 +143,7 @@ export default async function handler(req, res) {
       topK: 15,
       includeMetadata: true
     });
-/*
-    const context = results.matches
-      .map(match => match.metadata?.content + '...').join("\n\n");
-*/	  
+  
     const context = results.matches
       .map(match => match.metadata?.content + 
 		' (Title: ' + match.metadata?.title + '; ' +
@@ -160,11 +159,6 @@ export default async function handler(req, res) {
       .join("\n\n");
 
     const today = new Date();
-    /*const messages = [
-      { role: 'system', content: process.env.INSTRUCTIONS + " Today: " + today },
-      { role: 'system', content: 'Context: \n\n' + context },
-      ...history.map(msg => ({ role: msg.role, content: msg.content }))
-    ];*/
 	
     const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + "." },
