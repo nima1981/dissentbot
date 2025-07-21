@@ -786,6 +786,8 @@
 	  }
 	});
 	});
+	
+	let longWaitTimer1, longWaitTimer2;
 
 	async function sendMessage() {
 	  const input = document.getElementById('userInput');
@@ -804,9 +806,14 @@
 
 		// ✅ SHOW MESSAGE AFTER 10s
 		  const loadingMessage = document.getElementById('loading-message');
-		  const longWaitTimer = setTimeout(() => {
-			loadingMessage.textContent = "Almost there ...";
+		 // ✅ SET MESSAGE AFTER 10s
+		  longWaitTimer1 = setTimeout(() => {
+			document.getElementById('loading-message').textContent = "Almost there ...";
 		  }, 10000);
+		  // ✅ SET MESSAGE AFTER 20s
+		  longWaitTimer2 = setTimeout(() => {
+			document.getElementById('loading-message').textContent = "Finalizing response ...";
+		  }, 20000);
 
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
