@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 	if (isStaked) {
 	  const signedCookie = jwt.sign(
 		{ staked: true },
-		process.env.COOKIE_SECRET,
+		process.env.SESSION_SECRET,
 		{ expiresIn: "30d" }
 	  );
 
