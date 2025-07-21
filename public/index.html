@@ -626,7 +626,7 @@
     }
 
 	async function signChallenge(address) {
-	  const message = `Authenticate to DissentBot Chat - ${Date.now()}`;
+	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 	  
 	  const signature = await window.ethereum.request({
 		method: 'personal_sign',
