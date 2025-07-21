@@ -1,4 +1,4 @@
-const express = i('express');
+const express = require('express');
 const { Pinecone } = require('@pinecone-database/pinecone');
 const { HfInference } = require('@huggingface/inference');
 const axios = require('axios');
@@ -250,7 +250,7 @@ app.post('/api', async (req, res) => {
 	// Now that we have verifiedAddress, check staking
     const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
 	
-	    // Rate limit logic
+	    // Rate limit logic, no longer needed because vercel has its own rate limiting logic
 /*
     if (verifiedAddress && !isStaked) {
       const now = Date.now();
