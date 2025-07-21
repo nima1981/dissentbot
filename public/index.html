@@ -794,7 +794,7 @@
 	});
 	});
 	
-	let longWaitTimer1, longWaitTimer2;
+	let longWaitTimer1, longWaitTimer2, longWaitTimer3;
 
 	async function sendMessage() {
 	  const input = document.getElementById('userInput');
@@ -821,6 +821,10 @@
 		  longWaitTimer2 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Finalizing response ...";
 		  }, 20000);
+		  // ✅ SET MESSAGE AFTER 20s
+		  longWaitTimer3 = setTimeout(() => {
+			document.getElementById('loading-message').textContent = "... please hang tight & excuse my tardiness!";
+		  }, 30000);
 
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
@@ -843,6 +847,7 @@
 		// ✅ CLEAR TIMER
 		clearTimeout(longWaitTimer1);
 		clearTimeout(longWaitTimer2);
+		clearTimeout(longWaitTimer3);
 		loadingMessage.textContent = "Thinking...";
 		document.getElementById('loading').style.display = 'none';
 
@@ -896,6 +901,7 @@
 	  } catch (error) {
 	    clearTimeout(longWaitTimer1);
 		clearTimeout(longWaitTimer2);
+		clearTimeout(longWaitTimer3);
 		console.error("Chat error:", error);
 		console.error("Chat error:", error.message);
 		document.getElementById('walletMessage').textContent = '';
