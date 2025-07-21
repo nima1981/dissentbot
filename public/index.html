@@ -765,13 +765,15 @@
 		
 		// ✅ HANDLE FORBIDDEN
 		if (response.status === 429) {
-			document.getElementById('walletMessage').innerHTML = 'Too many requests - ' + INSUFFICIENT_MOR_MESSAGE;
+			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
 			return;
 		}
 
 		// ✅ HANDLE OTHER ERRORS
 		if (!response.ok) {
-		  document.getElementById('walletMessage').innerHTML = `⚠️ ${data.error}`;
+		  console.error("Chat error:", data.error);
+		  //document.getElementById('walletMessage').innerHTML = `⚠️ ${data.error}`;
+		  document.getElementById('walletMessage').innerHTML = '';
 		  return;
 		}
 
@@ -793,7 +795,9 @@
 
 	  } catch (error) {
 		console.error("Chat error:", error);
-		document.getElementById('walletMessage').textContent = `⚠️ ${error.message}`;
+		console.error("Chat error:", error.message);
+		document.getElementById('walletMessage').textContent = '';
+		//document.getElementById('walletMessage').textContent = `⚠️ ${error.message}`;
 	  } finally {
 		document.getElementById('loading').style.display = 'none';
 	  }
