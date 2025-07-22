@@ -64,6 +64,7 @@ export default async function handler(req, res) {
                 "Set-Cookie",
                 "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict"
               );
+			  return res.status(403).json({ error: "Invalid cookie" });
             }
           }
         } catch (e) {
@@ -72,6 +73,7 @@ export default async function handler(req, res) {
             "Set-Cookie",
             "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict"
           );
+		  return res.status(403).json({ error: "Invalid cookie" });
         }
       }
     }
