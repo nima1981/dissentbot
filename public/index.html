@@ -876,6 +876,12 @@
 			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
 			return;
 		}
+		
+		// ✅ HANDLE FORBIDDEN
+		if (response.status === 500) {
+			document.getElementById('walletMessage').innerHTML = 'Apologies, the AI network returned a temporary error. Please try again now!';
+			return;
+		}
 
 		// ✅ HANDLE OTHER ERRORS
 		if (!response.ok) {
