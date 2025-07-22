@@ -370,7 +370,7 @@
       width: 25px;
     }
 
-    #embed-modal {
+    #embed-modal, #stake-modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -382,7 +382,7 @@
       justify-content: center;
     }
 
-    #embed-modal .overlay {
+    #embed-modal .overlay, #stake-modal .overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -392,7 +392,7 @@
       z-index: 99998;
     }
 
-    #embed-modal .modal-content {
+    #embed-modal .modal-content, #stake-modal .modal-content {
       position: relative;
       background: white;
       padding: 20px;
@@ -404,7 +404,7 @@
       margin: 20px;
     }
 
-    #embed-modal .close-btn {
+    #embed-modal .close-btn, #stake-modal .close-btn {
       position: absolute;
       top: 10px;
       right: 10px;
@@ -415,7 +415,7 @@
       font-weight: bold;
     }
 
-    #embed-modal .code-box {
+    #embed-modal .code-box, #stake-modal .stake-content-box {
       background: #f4f4f9;
       padding: 15px;
       border-radius: 4px;
@@ -591,6 +591,18 @@
       <button class="copy-btn">Copy to Clipboard</button>
     </div>
   </div>
+  
+  <div id="stake-modal" style="display:none;">
+    <div class="overlay"></div>
+    <div class="modal-content">
+      <button class="stake-close-btn">×</button>
+      <h2>Stake 10 MOR on our Base or Arbitrum subnet for UNLIMITED LIFETIME ACCESS:</h2>
+      <div class="stake-content-box">
+        <p><a target="_blank" href="https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base">Base</a></p>
+		<p><a target="_blank" href="https://builders.mor.org/builders/dissentwatch-arbitrum?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Arbitrum">Arbitrum</a></p>
+      </div>
+    </div>
+  </div>
 
   <div id="footer">  
     <div id="github">
@@ -614,7 +626,7 @@
 	</svg>
 	</a>
   </div>
-  <div>
+  <div id="morpheus-stake-trigger">
 	<a title="Morpheus AI" target="_blank" href="https://dashboard.mor.org/#/capital?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1&network=mainnet"><img id="morpheus-logo" style="width: 41px;" src="/morpheus-logo.png"/></a>
   </div>
 </div>
@@ -939,8 +951,16 @@
     document.getElementById('embed-modal').style.display = 'flex';
   });
 
+  document.getElementById('morpheus-stake-trigger').addEventListener('click', () => {
+    document.getElementById('stake-modal').style.display = 'flex';
+  });
+
   document.querySelector('.close-btn').addEventListener('click', () => {
     document.getElementById('embed-modal').style.display = 'none';
+  });
+ 
+  document.querySelector('.stake-close-btn').addEventListener('click', () => {
+    document.getElementById('stake-modal').style.display = 'none';
   });
 
   document.querySelector('.copy-btn').addEventListener('click', () => {
@@ -962,6 +982,7 @@
   document.querySelector('.overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) {
       document.getElementById('embed-modal').style.display = 'none';
+	  document.getElementById('stake-modal').style.display = 'none';
     }
   });
 
@@ -969,6 +990,13 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.getElementById('embed-modal').style.display === 'flex') {
       document.getElementById('embed-modal').style.display = 'none';
+	  document.getElementById('stake-modal').style.display = 'none';
+    }
+  });
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('stake-modal').style.display === 'flex') {
+	  document.getElementById('stake-modal').style.display = 'none';
     }
   });
 
