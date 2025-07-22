@@ -458,6 +458,10 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       transition: all 0.3s ease;
     }
+	
+	#morpheus-stake-trigger{
+	  cursor: pointer;
+	}
 
     #embed-trigger:hover {
       transform: scale(1.05);
@@ -990,7 +994,6 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.getElementById('embed-modal').style.display === 'flex') {
       document.getElementById('embed-modal').style.display = 'none';
-	  document.getElementById('stake-modal').style.display = 'none';
     }
   });
   
