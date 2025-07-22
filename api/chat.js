@@ -65,7 +65,7 @@ export default async function handler(req, res) {
               // ✅ Clear forged/expired cookie
               res.setHeader(
                 "Set-Cookie",
-                "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com"
+                "isStaked=; Max-Age=0; Path=/; Secure; SameSite=None; Domain=dissentbot.com"
               );
 			  return res.status(403).json({ error: "Invalid cookie" });
             }
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
           // ❌ Invalid JWT — clear forged cookie
           res.setHeader(
             "Set-Cookie",
-            "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com"
+            "isStaked=; Max-Age=0; Path=/; Secure; SameSite=None; Domain=dissentbot.com"
           );
 		  return res.status(403).json({ error: "Invalid cookie" });
         }
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
 
 		  res.setHeader(
 			"Set-Cookie",
-			`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com`
+			`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; SameSite=None; Domain=dissentbot.com`
 		  );
 		}
 	}

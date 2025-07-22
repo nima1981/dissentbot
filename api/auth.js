@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
 	  res.setHeader(
 		"Set-Cookie",
-		`isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com`
+		`isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; SameSite=None; Domain=dissentbot.com`
 	  );
 	}
     // ✅ JWT token generation
