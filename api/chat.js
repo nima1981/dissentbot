@@ -178,6 +178,62 @@ export default async function handler(req, res) {
     console.log("API Request Payload:", JSON.stringify(messages, null, 2));
 	console.log("MAX_TOKENS: ", maxTokens);
 
+	// ✅ RETRY 3 TIMES ON 500 ERROR
+	let retries = 0;
+	const maxRetries = 3;
+	let apiError = null;
+
+	while (retries <= maxRetries) {
+	  try {
+		const apiResponse = await axios.post(
+		  process.env.API_URL_CHAT_COMPLETION,
+		  {
+			model: process.env.MODEL_ID,
+			messages: messages,
+			max_tokens: maxTokens
+		  },
+		  {
+			headers: {
+			  "Authorization": `Bearer ${process.env.API_KEY}`,
+			  "Content-Type": "application/json"
+			},
+			responseType: "json"
+		  }
+		);
+
+		// ✅ SUCCESS — BREAK RETRY LOOP
+		res.status(200).json({
+		  answer: apiResponse.data.choices[0].message.content,
+		  context
+		});
+		break;
+
+	  } catch (error) {
+		apiError = error;
+		retries++;
+
+		// ✅ LOG RETRY
+		console.error(`API (${process.env.API_URL_CHAT_COMPLETION}) failed (attempt ${retries}/${maxRetries + 1})`, error.message);
+
+		// ✅ ONLY RETRY ON 500-LEVEL ERRORS
+		if (
+		  error.response &&
+		  (error.response.status >= 500 && error.response.status <= 599)
+		) {
+		  if (retries <= maxRetries) {
+			// ✅ WAIT 1s BETWEEN RETRIES
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			continue;
+		  }
+		}
+
+		// ✅ ALL RETRIES FAILED — RETURN ERROR TO CLIENT
+		res.status(500).json({ error: "AI network temporarily unavailable" });
+		return;
+	  }
+	}
+
+/*
 	const apiResponse = await axios.post(
 	  process.env.API_URL_CHAT_COMPLETION,
 	  {
@@ -200,6 +256,8 @@ export default async function handler(req, res) {
       answer: apiResponse.data.choices[0].message.content,
       context
     });
+	
+*/
 
   } catch (error) {
     console.error("Server error:", error.message);
