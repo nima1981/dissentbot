@@ -983,9 +983,15 @@
   });
 
   // Click-outside-to-close
-  document.querySelector('.overlay').addEventListener('click', (e) => {
+  document.querySelector('#embed-modal .overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) {
       document.getElementById('embed-modal').style.display = 'none';
+    }
+  });
+
+  // Click-outside-to-close
+  document.querySelector('#stake-modal .overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
 	  document.getElementById('stake-modal').style.display = 'none';
     }
   });
