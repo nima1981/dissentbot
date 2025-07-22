@@ -6,6 +6,9 @@ export default async function handler(req, res) {
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
   try {
     const { walletAddress, signature, message } = req.body;
 
@@ -31,7 +34,7 @@ export default async function handler(req, res) {
 
 	  res.setHeader(
 		"Set-Cookie",
-		`isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
+		`isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com`
 	  );
 	}
     // ✅ JWT token generation

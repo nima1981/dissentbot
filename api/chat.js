@@ -7,6 +7,9 @@ import jwt from "jsonwebtoken";
 export default async function handler(req, res) {
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
   try {
     const {
@@ -62,7 +65,7 @@ export default async function handler(req, res) {
               // ✅ Clear forged/expired cookie
               res.setHeader(
                 "Set-Cookie",
-                "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict"
+                "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com"
               );
 			  return res.status(403).json({ error: "Invalid cookie" });
             }
@@ -71,7 +74,7 @@ export default async function handler(req, res) {
           // ❌ Invalid JWT — clear forged cookie
           res.setHeader(
             "Set-Cookie",
-            "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict"
+            "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com"
           );
 		  return res.status(403).json({ error: "Invalid cookie" });
         }
@@ -94,7 +97,7 @@ export default async function handler(req, res) {
 
 		  res.setHeader(
 			"Set-Cookie",
-			`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=Strict`
+			`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; HttpOnly; SameSite=None; Domain=dissentbot.com`
 		  );
 		}
 	}
