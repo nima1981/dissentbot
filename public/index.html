@@ -843,7 +843,7 @@
 	});
 	});
 	
-	let longWaitTimer1, longWaitTimer2, longWaitTimer3;
+	let longWaitTimer1, longWaitTimer2, longWaitTimer3, longWaitTimer4;
 
 	async function sendMessage() {
 	  const input = document.getElementById('userInput');
@@ -874,7 +874,10 @@
 		  longWaitTimer3 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Finalizing response ...";
 		  }, 30000);
-
+		  // ✅ SET MESSAGE AFTER 30s
+		  longWaitTimer4 = setTimeout(() => {
+			document.getElementById('loading-message').textContent = "Sorry for the delay ...";
+		  }, 40000);
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
 		let authData = {};
@@ -897,6 +900,7 @@
 		clearTimeout(longWaitTimer1);
 		clearTimeout(longWaitTimer2);
 		clearTimeout(longWaitTimer3);
+		clearTimeout(longWaitTimer4);
 		loadingMessage.textContent = "Thinking...";
 		document.getElementById('loading').style.display = 'none';
 
@@ -959,6 +963,7 @@
 	    clearTimeout(longWaitTimer1);
 		clearTimeout(longWaitTimer2);
 		clearTimeout(longWaitTimer3);
+		clearTimeout(longWaitTimer4);
 		console.error("Chat error:", error);
 		console.error("Chat error:", error.message);
 		document.getElementById('walletMessage').textContent = '';
