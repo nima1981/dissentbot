@@ -972,15 +972,32 @@
 		document.getElementById('loading').style.display = 'none';
 	  }
 	}
-  // Clear conversation
-  function clearConversation() {
-    conversationHistory = [];
-    localStorage.removeItem('conversationHistory');
-    renderConversation();
-    document.getElementById('response').innerHTML = '';
-	document.getElementById('walletMessage').innerHTML = '';
-    console.log("Conversation cleared");
-  }
+	// Clear conversation
+	function clearConversation() {
+		conversationHistory = [];
+		localStorage.removeItem('conversationHistory');
+		renderConversation();
+		document.getElementById('response').innerHTML = '';
+		document.getElementById('walletMessage').innerHTML = '';
+		console.log("Conversation cleared");
+	}
+	  
+	// ✅ CLEAR localStorage IF COOKIE IS NOT PRESENT
+	function syncLocalStorageWithCookie() {
+	  const cookies = document.cookie.split("; ").reduce((acc, cookie) => {
+		const [key, value] = cookie.split("=");
+		acc[key.trim()] = value.trim();
+		return acc;
+	  }, {});
+
+	  const isStaked = cookies.isStaked;
+
+	  if (!isStaked) {
+		// ✅ CLEAR localStorage IF COOKIE IS GONE
+		localStorage.removeItem("sessionToken");
+		localStorage.removeItem("walletAddress");
+	  }
+	}
 
   // Handle Enter key
   document.getElementById('userInput').addEventListener('keydown', (event) => {
@@ -993,6 +1010,7 @@
   });
 
   document.getElementById('morpheus-stake-trigger').addEventListener('click', () => {
+	  syncLocalStorageWithCookie();
 	  document.getElementById('stake-modal').style.display = 'flex';
 	
 	  // ✅ CHECK FOR isStaked COOKIE
