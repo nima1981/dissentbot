@@ -145,7 +145,7 @@ export default async function handler(req, res) {
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
-      topK: 15,
+      topK: process.env.MAX_CONTEXT_PARAGRAPHS,
       includeMetadata: true
     });
   
