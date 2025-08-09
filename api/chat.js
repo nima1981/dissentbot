@@ -180,7 +180,7 @@ export default async function handler(req, res) {
 
 	// ✅ RETRY 3 TIMES ON 500 ERROR
 	let retries = 0;
-	const maxRetries = 3;
+	const maxRetries = 5;
 	let apiError = null;
 
 	while (retries <= maxRetries) {
