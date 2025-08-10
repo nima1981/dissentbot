@@ -143,7 +143,7 @@ export default async function handler(req, res) {
 
 	const today = new Date();
 	
-	let startDate new Date(2019, 1, 1, 0, 0, 0, 0);
+	let startDate = new Date(2019, 1, 1, 0, 0, 0, 0);
 	console.log("Start Date", startDate);
 
 	let endDate = today;
