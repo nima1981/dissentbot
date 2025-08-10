@@ -143,10 +143,10 @@ export default async function handler(req, res) {
 
 	const today = new Date();
 	
-	let startDate = new Date(2019, 1, 1, 0, 0, 0, 0);
+	let startDate = new Date(2019, 1, 1, 0, 0, 0, 0).getTime();
 	console.log("Start Date", startDate);
 
-	let endDate = today;
+	let endDate = today.getTime();
 	console.log("End Date", endDate);	
 
     const queryEmbedding = await getEmbedding(text + "\n\nContext: The current date and time is " + today + ".");
@@ -156,7 +156,7 @@ export default async function handler(req, res) {
       topK: process.env.MAX_CONTEXT_PARAGRAPHS,
       includeMetadata: true,
 	  filter: {
-		timestamp: { $gte: startDate, $lte: endDate },
+		date: { $gte: startDate, $lte: endDate },
 	  },
     });
   
