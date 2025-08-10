@@ -140,14 +140,10 @@ export default async function handler(req, res) {
         throw new Error("Pinecone init failed: " + (error.message || "Unknown"));
       }
     };
-	
-	filter: {
-    timestamp: { $gte: startDate, $lte: endDate },
-	},
 
 	const today = new Date();
 	
-	let startDate = '2019-01-01 00:00:00';
+	let startDate new Date(2019, 1, 1, 0, 0, 0, 0);
 	console.log("Start Date", startDate);
 
 	let endDate = today;
