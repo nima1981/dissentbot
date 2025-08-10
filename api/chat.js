@@ -140,8 +140,9 @@ export default async function handler(req, res) {
         throw new Error("Pinecone init failed: " + (error.message || "Unknown"));
       }
     };
-
-    const queryEmbedding = await getEmbedding(text);
+	
+	const today = new Date();
+    const queryEmbedding = await getEmbedding(text + "\n\nContext: The current date and time is " + today + ".");
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
@@ -162,8 +163,6 @@ export default async function handler(req, res) {
 		' )'
 		|| '')
       .join("\n\n");
-
-    const today = new Date();
 	
     const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + "." },
@@ -178,7 +177,7 @@ export default async function handler(req, res) {
     console.log("API Request Payload:", JSON.stringify(messages, null, 2));
 	console.log("MAX_TOKENS: ", maxTokens);
 
-	// ✅ RETRY 3 TIMES ON 500 ERROR
+	// ✅ RETRY 5 TIMES ON 500 ERROR
 	let retries = 0;
 	const maxRetries = 5;
 	let apiError = null;
