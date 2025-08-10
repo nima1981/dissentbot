@@ -147,7 +147,7 @@ export default async function handler(req, res) {
 
 	const today = new Date();
 	
-	let startDate = '2019-01-01 00:00:00'
+	let startDate = '2019-01-01 00:00:00';
 	console.log("Start Date", startDate);
 
 	let endDate = today;
