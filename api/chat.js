@@ -161,16 +161,13 @@ export default async function handler(req, res) {
     });
   
     const context = results.matches
-      .map(match => match.metadata?.content + 
-		' (Title: ' + match.metadata?.title + '; ' +
-		'Date & Time: ' + match.metadata?.date + '; ' + 
-	    'Sources: ' + 
-		'Primary URL ' + match.metadata?.dissentwatch_url + ', ' +
-	    'Archive URL ' + match.metadata?.archive_url + ', ' +
-		'Original URL ' + match.metadata?.source_url + ', ' +
-		'Author ' + match.metadata?.author + 
-		(match.metadata?.nostr_event_id ? ', NOSTR Discussion URL https://primal.net/e/' + match.metadata?.nostr_event_id : '') +
-		' )'
+      .map(match => 
+		'Title: ' + match.metadata?.title + "\n" +
+		'Author: ' + match.metadata?.author + "\n" +
+		'Content: ' + match.metadata?.content + "\n" + 
+		'Date & Time: ' + match.metadata?.date + "\n" +
+		'Primary URL: ' + match.metadata?.dissentwatch_url +
+		(match.metadata?.nostr_event_id ? "\nNOSTR URL: https://primal.net/e/" + match.metadata?.nostr_event_id : '')
 		|| '')
       .join("\n\n");
 	
