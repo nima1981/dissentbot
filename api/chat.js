@@ -141,13 +141,27 @@ export default async function handler(req, res) {
       }
     };
 	
+	filter: {
+    timestamp: { $gte: startDate, $lte: endDate },
+	},
+
 	const today = new Date();
+	
+	let startDate = '2019-01-01 00:00:00'
+	console.log("Start Date", startDate);
+
+	let endDate = today;
+	console.log("End Date", endDate);	
+
     const queryEmbedding = await getEmbedding(text + "\n\nContext: The current date and time is " + today + ".");
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
       topK: process.env.MAX_CONTEXT_PARAGRAPHS,
-      includeMetadata: true
+      includeMetadata: true,
+	  filter: {
+		timestamp: { $gte: startDate, $lte: endDate },
+	  },
     });
   
     const context = results.matches
