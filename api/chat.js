@@ -173,7 +173,7 @@ export default async function handler(req, res) {
 	
     const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + "." },
-      { role: 'system', content: 'Context: \n\n' + context },
+      { role: 'system', content: 'When formulating your answer you absolutely must reference every single applicable paragraph in the following provided Context: \n\n' + context },
       ...history.map(msg => ({ role: msg.role, content: msg.content /*.replace(/<[^>]*>?/gm, '')*/ })),
     ];
 	
