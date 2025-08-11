@@ -175,7 +175,7 @@ export default async function handler(req, res) {
 	
     const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + "." },
-      { role: 'system', content: 'What follows is a list of online posts that are relevant to this conversation, also known as Context. Each Context paragraph consists of Title, Author, Content, Date, Primary URL, and optionally NOSTR URL. When formulating your answer you should incorporate every single applicable paragraph from the following Context: \n\n' + context },
+      { role: 'system', content: 'What follows is a list of online posts that are relevant to this conversation, also known as Context. Each Context paragraph consists of Title, Author, Content, Date, Primary URL, and optionally NOSTR URL. When formulating your answer you must incorporate Title, Author, Content, Primary URL (, and the NOSTR URL when provided) from every single paragraph from the following Context: \n\n' + context },
       ...history.map(msg => ({ role: msg.role, content: msg.content /*.replace(/<[^>]*>?/gm, '')*/ })),
     ];
 	
