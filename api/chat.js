@@ -148,8 +148,10 @@ export default async function handler(req, res) {
 
 	let endDate = today.getTime();
 	console.log("End Date", endDate);	
+	
+	//text += "\n\nContext: The current date and time is " + today + ".";
 
-    const queryEmbedding = await getEmbedding(text + "\n\nContext: The current date and time is " + today + ".");
+    const queryEmbedding = await getEmbedding(text);
     const pineconeIndex = await initPinecone();
     const results = await pineconeIndex.query({
       vector: queryEmbedding,
