@@ -143,10 +143,12 @@ export default async function handler(req, res) {
 
 	const today = new Date();
 	
-	let startDate = new Date(2019, 1, 1, 0, 0, 0, 0).getTime();
+	let startDateMilliseconds = new Date(2019, 1, 1, 0, 0, 0, 0).getTime();
+	const startDate = Math.floor(startDateMilliseconds / 1000);
 	console.log("Start Date", startDate);
 
-	let endDate = today.getTime();
+	let endDateMilliseconds = today.getTime();
+	const endDate = Math.floor(endDateMilliseconds / 1000);
 	console.log("End Date", endDate);	
 	
 	//text += "\n\nContext: The current date and time is " + today + ".";
