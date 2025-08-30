@@ -969,7 +969,7 @@
 
 		// ✅ HANDLE SUCCESS CASE
 		const sanitizedAnswer = marked.parse(data.answer)
-		  .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+		  .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"').replace("[REF]","").replace("[/REF]","");
 		const sanitizedContext = marked.parse(data.context || "No context");
 
 		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
