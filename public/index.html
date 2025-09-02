@@ -966,6 +966,9 @@
 		  document.getElementById('walletMessage').innerHTML = '';
 		  return;
 		}
+		
+		console.log("Answer:", data.answer);
+		console.log("Answer after replace:", data.answer.replace("[REF]","").replace("[/REF]",""));
 
 		// ✅ HANDLE SUCCESS CASE
 		const sanitizedAnswer = marked.parse(data.answer.replace("[REF]","").replace("[/REF]",""))
