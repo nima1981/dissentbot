@@ -176,9 +176,9 @@ export default async function handler(req, res) {
       .join("\n\n");
 	
     const messages = [
-      { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + "." },
+      { role: 'system', content: process.env.INSTRUCTIONS + " When you formulate your response please bear in mind that today's date and time is " + today + "." },
       //{ role: 'system', content: 'What follows is a set of paragraphs representing online posts that are relevant to this conversation, also known as Context. They are ordered by relevance from more to less relevant. Each Context paragraph consists of Title, Author, Content, Date, Primary URL, and optionally NOSTR URL. When formulating your answer you must incorporate the Content and use the standard markdown formatting outlined before to reference Title, Author, Primary URL (and the NOSTR URL if and only if provided) from every single paragraph from the following Context: \n\n' + context },
-	  { role: 'system', content: 'Context:\n\n' + context },
+	  { role: 'system', content: 'Here is the Context that you need to exhaustively incorporate in your response:\n\n' + context },
       ...history.map(msg => ({ role: msg.role, content: msg.content /*.replace(/<[^>]*>?/gm, '')*/ })),
     ];
 	
