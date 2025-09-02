@@ -211,12 +211,15 @@ export default async function handler(req, res) {
 			responseType: "json"
 		  }
 		);
+		
+		console.log("answer:", apiResponse.data.choices[0].message.content);
 
 		// ✅ SUCCESS — BREAK RETRY LOOP
 		res.status(200).json({
 		  answer: apiResponse.data.choices[0].message.content,
 		  context
 		});
+		
 		break;
 
 	  } catch (error) {
