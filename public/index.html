@@ -968,7 +968,7 @@
 		}
 		
 		console.log("Answer:", data.answer);
-		console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '');
+		console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''));
 
 		// ✅ HANDLE SUCCESS CASE
 		const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''))
