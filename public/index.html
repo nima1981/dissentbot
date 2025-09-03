@@ -746,7 +746,7 @@
       const conversationDiv = document.getElementById('conversation');
       conversationDiv.innerHTML = conversationHistory.map(message => 
         `<div class="message ${message.role}">
-          <div class="message-content ${message.role}">${message.content.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '')}</div>
+          <div class="message-content ${message.role}">${message.content}</div>
         </div>`
       ).join('');
 
@@ -755,7 +755,7 @@
         // Convert Markdown to HTML
         const sanitizedContent = marked.parse(conversationHistory[index].content);
 		console.log('sanitizedContend after marked: ', sanitizedContent);
-        contentDiv.innerHTML = sanitizedContent;
+        contentDiv.innerHTML = sanitizedContent.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '');
       });
 
       // Scroll to the bottom of the conversation
