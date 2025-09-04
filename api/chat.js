@@ -1,5 +1,6 @@
 import { Pinecone } from "@pinecone-database/pinecone";
-import { HfInference } from "@huggingface/inference";
+//import { HfInference } from "@huggingface/inference";
+import { InferenceClient } from "@huggingface/inference";
 import axios from "axios";
 import { ethers } from "ethers";
 import jwt from "jsonwebtoken";
@@ -120,7 +121,7 @@ export default async function handler(req, res) {
 
     const getEmbedding = async (text) => {
       try {
-        const hf = new HfInference(process.env.HF_API_TOKEN);
+        const hf = new InferenceClient(process.env.HF_API_TOKEN);
         return await hf.featureExtraction({
           model: "sentence-transformers/all-MiniLM-L6-v2",
           inputs: text
