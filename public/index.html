@@ -10,6 +10,25 @@
 
   gtag('config', 'AW-17558178554');
 </script>
+<!-- Event snippet for Page view conversion page
+In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+<script>
+function gtag_report_conversion(url) {
+  var callback = function () {
+    if (typeof(url) != 'undefined') {
+      window.location = url;
+    }
+  };
+  gtag('event', 'conversion', {
+      'send_to': 'AW-17558178554/8WT1CJzM0ZobEPqVsrRB',
+      'value': 1.0,
+      'currency': 'USD',
+      'event_callback': callback
+  });
+  return false;
+}
+</script>
+
   <meta charset="UTF-8">
   
   <link rel="manifest" href="/manifest.json">
@@ -883,6 +902,8 @@
 	  const text = input.value.trim();
 
 	  if (!text) return alert("Enter a question");
+	  
+	  gtag_report_conversion('https://dissentbot.com');
 	  
 	  // Add user message to conversation history
       conversationHistory.push({ role: 'user', content: text });
