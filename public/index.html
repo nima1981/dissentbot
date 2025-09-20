@@ -647,6 +647,19 @@ function gtag_report_conversion(url) {
       </svg>
     </button>
    </div>
+   
+   <div>
+    <label for="timeframe">Search in</label>
+
+	<select name="timeframe" id="timeframe">
+	  <option value="all" selected="selected">All News</option>
+	  <option value="day">Today's News</option>
+	  <option value="week">Past Week's News</option>
+	  <option value="month">Past Month's News</option>
+	  <option value="year">Past Year's News</option>
+	</select>
+   </div>
+   
 	<div id="walletMessage"></div>
   </div>
   <div id="response"></div>
@@ -909,6 +922,9 @@ function gtag_report_conversion(url) {
 	async function sendMessage() {
 	  const input = document.getElementById('userInput');
 	  const text = input.value.trim();
+	  
+	  const timeframe = document.getElementById('timeframe');
+	  const timeframeValue = timeframe.value;
 
 	  if (!text) return alert("Enter a question");
 	  
@@ -954,7 +970,7 @@ function gtag_report_conversion(url) {
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ text, history: conversationHistory, ...authData })
+		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, ...authData })
 		});
 		
 		// ✅ CLEAR TIMER
