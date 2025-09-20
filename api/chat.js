@@ -27,6 +27,8 @@ export default async function handler(req, res) {
 	
 	let verifiedAddress = null;
 
+	console.log("Timeframe", timeframe);
+
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.SESSION_SECRET);
