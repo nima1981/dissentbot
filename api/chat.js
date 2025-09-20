@@ -160,9 +160,9 @@ export default async function handler(req, res) {
       vector: queryEmbedding,
       topK: process.env.MAX_CONTEXT_PARAGRAPHS,
       includeMetadata: true,
-	/*  filter: {
+	  filter: {
 		timestamp: { $gte: startDate, $lte: endDate },
-	  },*/
+	  },
     });
   
     const context = results.matches
