@@ -148,6 +148,22 @@ export default async function handler(req, res) {
 	const today = new Date();
 	
 	let startDateMilliseconds = new Date(2019, 1, 1, 0, 0, 0, 0).getTime();
+	const nowInMilliseconds = Date.now();
+	
+	if(timeframe == "day"){
+		const millisecondsIn24Hours = 24 * 60 * 60 * 1000;
+		startDateMilliseconds = nowInMilliseconds - millisecondsIn24Hours;
+	} else if(timeframe == "week"){
+		const millisecondsInWeek = 7 * 24 * 60 * 60 * 1000;
+		startDateMilliseconds = nowInMilliseconds - millisecondsInWeek;
+	} else if(timeframe == "month"){
+		const millisecondsInMonth = 31 * 24 * 60 * 60 * 1000;
+		startDateMilliseconds = nowInMilliseconds - millisecondsInMonth;
+	} else if(timeframe == "year"){
+		const millisecondsInYear = 366 * 24 * 60 * 60 * 1000;
+		startDateMilliseconds = nowInMilliseconds - millisecondsInYear;
+	}
+	
 	const startDate = Math.floor(startDateMilliseconds / 1000);
 	console.log("Start Date", startDate);
 
