@@ -170,7 +170,7 @@ export default async function handler(req, res) {
 		'Title: ' + match.metadata?.title + "\n" +
 		'Author: ' + match.metadata?.author + "\n" +
 		'Content: ' + match.metadata?.content + "\n" + 
-		'Date & Time: ' + match.metadata?.date + "\n" +
+		'Date: ' + match.metadata?.date + "\n" +
 		'Primary URL: https://dissentwatch.com/boost/?boost_post_id=' + match.metadata?.post_id +
 		(match.metadata?.nostr_event_id ? "\nNOSTR URL: https://primal.net/e/" + match.metadata?.nostr_event_id : '')
 		|| '')
