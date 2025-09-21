@@ -993,19 +993,19 @@ function gtag_report_conversion(url) {
 		 // ✅ SET MESSAGE AFTER 10s
 		  longWaitTimer1 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Thinking more ...";
-		  }, 10000);
+		  }, 20000);
 		  // ✅ SET MESSAGE AFTER 20s
 		  longWaitTimer2 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Almost there ...";
-		  }, 20000);
+		  }, 40000);
 		  // ✅ SET MESSAGE AFTER 20s
 		  longWaitTimer3 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Finalizing response ...";
-		  }, 30000);
+		  }, 60000);
 		  // ✅ SET MESSAGE AFTER 30s
 		  longWaitTimer4 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Sorry for the delay ...";
-		  }, 40000);
+		  }, 80000);
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
 		let authData = {};
