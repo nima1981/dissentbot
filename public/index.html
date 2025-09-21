@@ -1242,6 +1242,26 @@ function gtag_report_conversion(url) {
         // Add an event listener to save the selection when it changes
         document.getElementById('modelDropdown').addEventListener('change', saveSelectedModelId);
     </script>
+	
+	<script>
+	        // Function to set the selected option for the timeframe dropdown
+        function setTimeframeSelection() {
+            const timeframeDropdown = document.getElementById('timeframe');
+            const selectedTimeframe = localStorage.getItem('selectedTimeframe') || 'all';
+            timeframeDropdown.value = selectedTimeframe;
+        }
+
+        // Function to save the selected timeframe to localStorage
+        function saveSelectedTimeframe() {
+            const timeframeDropdown = document.getElementById('timeframe');
+            localStorage.setItem('selectedTimeframe', timeframeDropdown.value);
+        }
+		
+		document.getElementById('timeframe').addEventListener('change', saveSelectedTimeframe);
+		
+		setTimeframeSelection();
+
+	</script>
 
 </body>
 </html>
