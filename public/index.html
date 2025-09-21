@@ -1070,7 +1070,7 @@ function gtag_report_conversion(url) {
 		//console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''));
 
 		// ✅ HANDLE SUCCESS CASE
-		const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''))
+		const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think">').replace("</think>",'</div>'))
 		  .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 		const sanitizedContext = marked.parse(data.context || "No context");
 
