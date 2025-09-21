@@ -162,6 +162,12 @@ export default async function handler(req, res) {
 	} else if(timeframe == "year"){
 		const millisecondsInYear = 366 * 24 * 60 * 60 * 1000;
 		startDateMilliseconds = nowInMilliseconds - millisecondsInYear;
+	} else if(timeframe == "two-year"){
+		const millisecondsInYear = 2 * 366 * 24 * 60 * 60 * 1000;
+		startDateMilliseconds = nowInMilliseconds - millisecondsInYear;
+	} else if(timeframe == "four-year"){
+		const millisecondsInYear = 4* 366 * 24 * 60 * 60 * 1000;
+		startDateMilliseconds = nowInMilliseconds - millisecondsInYear;
 	}
 	
 	const startDate = Math.floor(startDateMilliseconds / 1000);
