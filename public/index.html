@@ -668,8 +668,8 @@ function gtag_report_conversion(url) {
    </div>
    
    <div id="timeframeContainer">
-    <label for="timeframe">Timeframe</label>
-
+   
+    <label id="timeframe-label" for="timeframe">Timeframe</label>
 	<select name="timeframe" id="timeframe">
 	  <option value="all" selected="selected">All News</option>
 	  <option value="day">Past 24 Hours</option>
@@ -679,6 +679,12 @@ function gtag_report_conversion(url) {
 	  <option value="two-year">Past Two Years</option>
 	  <option value="four-year">Past Four Years</option>
 	</select>
+	
+	<label id="model-label" for="modelDropdown">Model</label>
+	<select id="modelDropdown">
+        <option value="">Select a model</option>
+    </select>
+	
    </div>
    
 	<div id="walletMessage"></div>
@@ -806,7 +812,8 @@ function gtag_report_conversion(url) {
 		  + '">Arbitrum</a> or just connect/reconnect your wallet if you\'ve already staked. '
 		  + 'You can <a target="_blank" href="'+ UNISWAP_MORPHEUS_URL + '">buy MOR on Uniswap</a> and '
 		  + '<a target="_blank" href="https://dashboard.mor.org/#/capital?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1&network=mainnet">learn about Morpheus AI here</a>.';
-		  
+  const MODELS_API_URL = "https://api.venice.ai/api/v1/models";	  
+	
    if (walletAddress) {
 		isAuthenticated = true;
 		document.getElementById('walletMessage').innerHTML = '';
@@ -1171,6 +1178,39 @@ function gtag_report_conversion(url) {
   // Initial render
   renderConversation();
 </script>
+
+  <script>
+        // Function to fetch models from the API
+        async function fetchModels() {
+            try {
+                const response = await fetch(MODELS_API_URL);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                return data.data; // Accessing the 'data' array from the response
+            } catch (error) {
+                console.error('Error fetching models:', error);
+                return [];
+            }
+        }
+
+        // Function to populate the dropdown
+        function populateDropdown(models) {
+            const dropdown = document.getElementById('modelDropdown');
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = model.model_spec.name;
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Fetch models and populate the dropdown
+        fetchModels().then(models => {
+            populateDropdown(models);
+        });
+    </script>
 
 </body>
 </html>
