@@ -968,6 +968,9 @@ function gtag_report_conversion(url) {
 	  
 	  const timeframe = document.getElementById('timeframe');
 	  const timeframeValue = timeframe.value;
+	  
+	  const modelDropdown = document.getElementById('modelDropdown');
+	  const model = modelDropdown.value;
 
 	  if (!text) return alert("Enter a question");
 	  
@@ -1013,7 +1016,7 @@ function gtag_report_conversion(url) {
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, ...authData })
+		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, model: model, ...authData })
 		});
 		
 		// ✅ CLEAR TIMER

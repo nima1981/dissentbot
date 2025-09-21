@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       text,
       history,
 	  timeframe,
+	  model,
       walletAddress,
       signature,
       message,
@@ -28,6 +29,8 @@ export default async function handler(req, res) {
 	let verifiedAddress = null;
 
 	console.log("Timeframe", timeframe);
+	
+	console.log("Model", model);
 
     if (token) {
       try {
@@ -225,7 +228,7 @@ export default async function handler(req, res) {
 		const apiResponse = await axios.post(
 		  process.env.API_URL_CHAT_COMPLETION,
 		  {
-			model: process.env.MODEL_ID,
+			model: model,
 			messages: messages,
 			max_tokens: maxTokens
 		  },
