@@ -1197,7 +1197,7 @@ function gtag_report_conversion(url) {
   renderConversation();
 </script>
 
-  <script>
+ <script>
         // Function to fetch models from the API
         async function fetchModels() {
             try {
@@ -1220,17 +1220,27 @@ function gtag_report_conversion(url) {
                 const option = document.createElement('option');
                 option.value = model.id;
                 option.textContent = model.model_spec.name;
-                if (model.id === DEFAULT_MODEL) {
-                    option.selected = true;
-                }
                 dropdown.appendChild(option);
             });
+
+            // Set the selected option based on localStorage or default to 'venice-uncensored'
+            const selectedModelId = localStorage.getItem('selectedModelId') || DEFAULT_MODEL;
+            dropdown.value = selectedModelId;
+        }
+
+        // Function to save the selected model id to localStorage
+        function saveSelectedModelId() {
+            const dropdown = document.getElementById('modelDropdown');
+            localStorage.setItem('selectedModelId', dropdown.value);
         }
 
         // Fetch models and populate the dropdown
         fetchModels().then(models => {
             populateDropdown(models);
         });
+
+        // Add an event listener to save the selection when it changes
+        document.getElementById('modelDropdown').addEventListener('change', saveSelectedModelId);
     </script>
 
 </body>
