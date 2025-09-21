@@ -679,13 +679,16 @@ function gtag_report_conversion(url) {
 	  <option value="two-year">Past Two Years</option>
 	  <option value="four-year">Past Four Years</option>
 	</select>
+	</div>
 	
-	<label id="model-label" for="modelDropdown">Model</label>
-	<select id="modelDropdown">
-        <option value="">Select a model</option>
-    </select>
+	<div id="modelSelectContainer">
+	  <label id="model-label" for="modelDropdown">Model</label>
+	  <select id="modelDropdown">
+      
+      </select>
+	</div>
 	
-   </div>
+
    
 	<div id="walletMessage"></div>
   </div>
@@ -812,7 +815,8 @@ function gtag_report_conversion(url) {
 		  + '">Arbitrum</a> or just connect/reconnect your wallet if you\'ve already staked. '
 		  + 'You can <a target="_blank" href="'+ UNISWAP_MORPHEUS_URL + '">buy MOR on Uniswap</a> and '
 		  + '<a target="_blank" href="https://dashboard.mor.org/#/capital?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1&network=mainnet">learn about Morpheus AI here</a>.';
-  const MODELS_API_URL = "https://api.venice.ai/api/v1/models";	  
+  const MODELS_API_URL = "https://api.venice.ai/api/v1/models";	
+  const DEFAULT_MODEL = "venice-uncensored";  
 	
    if (walletAddress) {
 		isAuthenticated = true;
@@ -1202,6 +1206,9 @@ function gtag_report_conversion(url) {
                 const option = document.createElement('option');
                 option.value = model.id;
                 option.textContent = model.model_spec.name;
+                if (model.id === DEFAULT_MODEL) {
+                    option.selected = true;
+                }
                 dropdown.appendChild(option);
             });
         }
