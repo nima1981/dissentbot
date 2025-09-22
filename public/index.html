@@ -994,22 +994,22 @@ function gtag_report_conversion(url) {
 
 		// ✅ SHOW MESSAGE AFTER 10s
 		  const loadingMessage = document.getElementById('loading-message');
-		 // ✅ SET MESSAGE AFTER 10s
+		 // ✅ SET MESSAGE AFTER 20s
 		  longWaitTimer1 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Thinking more ...";
 		  }, 20000);
-		  // ✅ SET MESSAGE AFTER 20s
+		  // ✅ SET MESSAGE AFTER 40s
 		  longWaitTimer2 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Almost there ...";
 		  }, 40000);
-		  // ✅ SET MESSAGE AFTER 20s
+		  // ✅ SET MESSAGE AFTER 60s
 		  longWaitTimer3 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Finalizing response ...";
 		  }, 60000);
-		  // ✅ SET MESSAGE AFTER 30s
+		  // ✅ SET MESSAGE AFTER 80s
 		  longWaitTimer4 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Sorry for the delay ...";
-		  }, 80000);
+		  }, 500000);
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
 		let authData = {};
