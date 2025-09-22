@@ -1009,7 +1009,7 @@ function gtag_report_conversion(url) {
 		  // ✅ SET MESSAGE AFTER 80s
 		  longWaitTimer4 = setTimeout(() => {
 			document.getElementById('loading-message').textContent = "Sorry for the delay ...";
-		  }, 500000);
+		  }, 80000);
 		const sessionToken = localStorage.getItem('sessionToken');
 		const wallet = localStorage.getItem('walletAddress');
 		let authData = {};
