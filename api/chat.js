@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       text,
       history,
 	  timeframe,
+	  api,
 	  model,
       walletAddress,
       signature,
@@ -31,6 +32,8 @@ export default async function handler(req, res) {
 	console.log("Timeframe", timeframe);
 	
 	console.log("Model", model);
+	
+	console.log("API", api);
 
     if (token) {
       try {

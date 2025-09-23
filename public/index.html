@@ -702,9 +702,15 @@ function gtag_report_conversion(url) {
 	</div>
 	
 	<div id="modelSelectContainer">
+	  
+	  <label id="api-label" for="apiDropdown">Model</label>
+	  <select id="apiDropdown">
+	    <option value="venice" selected="selected">Venice</option>
+	    <option value="morpheus">Morpheus</option>
+      </select>
+	
 	  <label id="model-label" for="modelDropdown">Model</label>
 	  <select id="modelDropdown">
-      
       </select>
 	</div>
 	
@@ -837,6 +843,9 @@ function gtag_report_conversion(url) {
 		  + '<a target="_blank" href="https://dashboard.mor.org/#/capital?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1&network=mainnet">learn about Morpheus AI here</a>.';
   const MODELS_API_URL = "https://api.venice.ai/api/v1/models";	
   const DEFAULT_MODEL = "venice-uncensored";  
+  
+  const VENICE_MODELS_API_URL = "https://api.venice.ai/api/v1/models";
+  const MORPHEUS_MODELS_API_URL = "https://api.mor.org/api/v1/models";
 	
    if (walletAddress) {
 		isAuthenticated = true;
@@ -980,6 +989,9 @@ function gtag_report_conversion(url) {
 	  
 	  const modelDropdown = document.getElementById('modelDropdown');
 	  const model = modelDropdown.value;
+	  
+	  const apiDropdown = document.getElementById('apiDropdown');
+	  const api = apiDropdown.value;
 
 	  if (!text) return alert("Enter a question");
 	  
@@ -1025,7 +1037,7 @@ function gtag_report_conversion(url) {
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, model: model, ...authData })
+		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, api: api, model: model, ...authData })
 		});
 		
 		// ✅ CLEAR TIMER
