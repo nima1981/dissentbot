@@ -1226,8 +1226,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to fetch models from the API
     async function fetchModels(api) {
         const apiUrls = {
-            Venice: VENICE_MODELS_API_URL,
-            Morpheus: MORPHEUS_MODELS_API_URL
+            Venice: 'https://api.venice.ai/api/v1/models',
+            Morpheus: 'https://api.mor.org/api/v1/models'
         };
         const url = apiUrls[api];
         try {
@@ -1244,12 +1244,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to populate the model dropdown
-    function populateModelDropdown(models) {
+    function populateModelDropdown(models, api) {
         modelDropdown.innerHTML = ''; // Clear existing options
         models.forEach(model => {
             const option = document.createElement('option');
             option.value = model.id;
-            option.textContent = model.model_spec.name;
+            if (api === 'Venice') {
+                option.textContent = model.model_spec.name;
+            } else {
+                option.textContent = model.id;
+            }
             modelDropdown.appendChild(option);
         });
 
@@ -1279,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedApi = apiDropdown.value;
         localStorage.setItem('selectedApi', selectedApi);
         fetchModels(selectedApi).then(models => {
-            populateModelDropdown(models);
+            populateModelDropdown(models, selectedApi);
         });
     }
 
@@ -1289,7 +1293,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Fetch models and populate the model dropdown based on the initial API selection
     fetchModels(selectedApi).then(models => {
-        populateModelDropdown(models);
+        populateModelDropdown(models, selectedApi);
         setTimeframeSelection(); // Set the timeframe selection
     });
 
