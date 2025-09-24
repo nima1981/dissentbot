@@ -225,11 +225,19 @@ export default async function handler(req, res) {
 	let retries = 0;
 	const maxRetries = 5;
 	let apiError = null;
+	
+	let chatCompletionApiURL = process.env.VENICE_API_CHAT_COMPLETION;
+	let chatCompletionApiKey = process.env.VENICE_API_KEY;
+	
+	if (api == "Morpheus"){
+		chatCompletionApiURL = process.env.MORPHEUS_API_CHAT_COMPLETION;
+		chatCompletionApiKey = process.env.MORPHEUS_API_KEY;
+	}
 
 	while (retries <= maxRetries) {
 	  try {
 		const apiResponse = await axios.post(
-		  process.env.API_URL_CHAT_COMPLETION,
+		  chatCompletionApiURL,
 		  {
 			model: model,
 			messages: messages,
@@ -237,7 +245,7 @@ export default async function handler(req, res) {
 		  },
 		  {
 			headers: {
-			  "Authorization": `Bearer ${process.env.API_KEY}`,
+			  "Authorization": `Bearer ${chatCompletionApiKey}`,
 			  "Content-Type": "application/json"
 			},
 			responseType: "json"
@@ -259,7 +267,7 @@ export default async function handler(req, res) {
 		retries++;
 
 		// ✅ LOG RETRY
-		console.error(`API (${process.env.API_URL_CHAT_COMPLETION}) failed (attempt ${retries}/${maxRetries + 1})`, error.message);
+		console.error(`API (${chatCompletionApiURL}) failed (attempt ${retries}/${maxRetries + 1})`, error.message);
 
 		// ✅ ONLY RETRY ON 500-LEVEL ERRORS
 		if (
