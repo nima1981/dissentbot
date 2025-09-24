@@ -939,14 +939,20 @@ function gtag_report_conversion(url) {
 	  
 	  // ✅ MOBILE WALLET CONNECTION LOGIC
 	  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-	  if (isMobile) {
-		// ✅ USE METAMASK MOBILE DEEP LINK IF NO PROVIDER
-		if (typeof window.ethereum === 'undefined') {
-		  // ✅ REDIRECT TO METAMASK APP
-		  window.location.href = 'https://metamask.app.link/dapp/dissentbot.com';
-		  return;
+	  
+	  const isMetaMaskMobile = isMobile && (window.ethereum?.isMetaMask || /MetaMask/i.test(navigator.userAgent));
+	  
+	  if (isMetaMaskMobile) {
+		// ✅ STEP 1: Force MetaMask to initialize properly
+		try {
+		  // This triggers MetaMask's connection flow without requesting accounts
+		  await window.ethereum.request({ method: 'eth_chainId' });
+		} catch (e) {
+		  // Ignore - this is expected on first connection
 		}
+
+		// ✅ STEP 2: Wait for MetaMask's internal connection to complete
+		await new Promise(resolve => setTimeout(resolve, 2000));
 	  }
 
 	  // Connect logic
@@ -955,16 +961,42 @@ function gtag_report_conversion(url) {
 		return;
 	  }
 	  
-	  if (isMobile && window.ethereum.isMetaMask) {
-		// Give MetaMask Mobile time to process the connection
-		await new Promise(resolve => setTimeout(resolve, 1500));
-	  }
-
 	  try {
-		const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+		// ✅ STEP 3: Now request accounts with MetaMask Mobile-specific handling
+		let accounts;
+		if (isMetaMaskMobile) {
+		  // MetaMask Mobile requires this specific pattern
+		  accounts = await new Promise((resolve, reject) => {
+			window.ethereum
+			  .request({ method: 'eth_requestAccounts' })
+			  .then(resolve)
+			  .catch(async (error) => {
+				// ✅ CRITICAL: MetaMask Mobile often returns false error
+				if (error.code === 4001 || error.message.includes('user denied')) {
+				  // Wait for silent connection completion
+				  await new Promise(r => setTimeout(r, 1500));
+				  const connectedAccounts = await window.ethereum.request({ method: 'eth_accounts' });
+				  if (connectedAccounts.length > 0) {
+					resolve(connectedAccounts);
+					return;
+				  }
+				}
+				reject(error);
+			  });
+		  });
+		} else {
+		  // Standard connection for desktop
+		  accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+		}
+
+		if (!accounts || accounts.length === 0) {
+		  throw new Error("No accounts returned");
+		}
+
 		walletAddress = accounts[0];
 		localStorage.setItem('walletAddress', walletAddress);
 
+		// ✅ STEP 4: Always sign challenge (even if MetaMask Mobile gave false error)
 		const { message, signature } = await signChallenge(walletAddress);
 		const authResponse = await fetch('/api/auth', {
 		  method: 'POST',
@@ -979,14 +1011,32 @@ function gtag_report_conversion(url) {
 		const { token } = await authResponse.json();
 		localStorage.setItem('sessionToken', token);
 		isAuthenticated = true;
-		document.getElementById('walletMessage').innerHTML = ''; // Clear message after successful login
+		document.getElementById('walletMessage').innerHTML = '';
 
 		connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
 
 	  } catch (error) {
 		console.error("Wallet connection failed:", error);
+		
+		// ✅ STEP 5: Handle MetaMask Mobile's silent connection
+		if (isMetaMaskMobile) {
+		  try {
+			const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+			if (accounts.length > 0) {
+			  walletAddress = accounts[0];
+			  localStorage.setItem('walletAddress', walletAddress);
+			  
+			  // Force refresh to complete connection
+			  window.location.reload();
+			  return;
+			}
+		  } catch (e) {}
+		}
+		
 		alert("Failed to connect wallet. Please try again.");
 	  }
+	 
+
 	});
 	});
 	
