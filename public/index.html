@@ -308,13 +308,13 @@ function gtag_report_conversion(url) {
 	
 	#timeframeContainer select{
 	  font-family: Arial, sans-serif;
-	  font-size: 1em;
+	  font-size: .8em;
 	  border-radius: .3em;
 	}
 	
 	#modelSelectContainer{
 	  font-family: Arial, sans-serif;
-	  font-size: 1em;
+	  font-size: .8em;
 	  margin-top: .5em;
 	  
 	}
@@ -324,7 +324,14 @@ function gtag_report_conversion(url) {
 	  font-size: 1em;
 	  border-radius: .3em;
 	}
+	
+	#apiDropdown{
+		max-width: 6em;
+	}
 
+    #modelDropdown{
+		max-width: 10em;
+	}
 
     #response {
       padding: 16px;
@@ -703,9 +710,10 @@ function gtag_report_conversion(url) {
 	
 	<div id="modelSelectContainer">
 	  
+	  <label id="api-label" for="apiDropdown">API</label>
 	  <select id="apiDropdown">
-	    <option value="Venice" selected="selected">Venice API</option>
-	    <option value="Morpheus">Morpheus API</option>
+	    <option value="Venice" selected="selected">Venice</option>
+	    <option value="Morpheus">Morpheus</option>
       </select>
 	
 	  <label id="model-label" for="modelDropdown">Model</label>
@@ -1072,7 +1080,7 @@ function gtag_report_conversion(url) {
 			return;
 		}
 		
-		// ✅ HANDLE FORBIDDEN
+		// ✅ HANDLE 500 ERROR
 		if (response.status === 500) {
 			document.getElementById('walletMessage').innerHTML = 'Apologies, the AI network returned a temporary error. Please try again now or choose a different API/model if issues persist!';
 			return;
