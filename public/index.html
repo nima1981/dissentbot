@@ -989,18 +989,22 @@ function gtag_report_conversion(url) {
 
 		const message = document.createElement('p');
 		message.innerHTML = `
-		  <span style="font-size: 18px; line-height: 1.5;">
-			To connect your wallet:
-		  </span><br><br>
-		  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px;">
-			1. Tap the <b>⋯ or ⋮</b> menu in your browser<br>
+		  <span style="font-size: 18px; line-height: 1.5; display: block; margin-bottom: 16px;">
+			Connecting to MetaMask...
+		  </span>
+		  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px; margin-bottom: 16px;">
+			You'll be redirected to MetaMask automatically.<br>
+			If nothing happens, use your browser's menu:
+		  </span><br>
+		  <span style="background: #252525; padding: 10px; border-radius: 10px; display: inline-block; width: 100%; font-size: 15px; color: #aaa;">
+			1. Tap the <b>⋯ or ⋮</b> menu<br>
 			2. Select <b>"Share" → "Open in MetaMask"</b>
 		  </span><br><br>
-		  <span style="color: #ff6b6b; font-size: 15px; display: block; margin-top: 10px;">
-			⚠️ Automatic redirects are blocked by your browser for security
+		  <span style="color: #4da8da; font-size: 15px; display: block;">
+			(This only takes 3 seconds)
 		  </span>
 		`;
-		message.style.margin = '0 0 24px 0';
+		message.style.margin = '0';
 
 		const button = document.createElement('button');
 		button.textContent = 'I UNDERSTAND';
