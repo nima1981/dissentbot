@@ -253,6 +253,7 @@ export default async function handler(req, res) {
 		);
 		
 		console.log("answer:", apiResponse.data.choices[0].message.content);
+		console.log("FULL API RESPONSE OBJECT:", apiResponse.data);
 
 		// ✅ SUCCESS — BREAK RETRY LOOP
 		res.status(200).json({
@@ -286,32 +287,6 @@ export default async function handler(req, res) {
 		return;
 	  }
 	}
-
-/*
-	const apiResponse = await axios.post(
-	  process.env.API_URL_CHAT_COMPLETION,
-	  {
-		model: process.env.MODEL_ID,
-		messages: messages,
-		max_tokens: maxTokens 
-	  },
-	  {
-		headers: {
-		  'Authorization': `Bearer ${process.env.API_KEY}`,
-		  'Content-Type': 'application/json'
-		},
-        responseType: 'json'
-	  }
-	);
-	
-	console.log("Answer:", apiResponse.data.choices[0].message.content);
-	
-    res.status(200).json({
-      answer: apiResponse.data.choices[0].message.content,
-      context
-    });
-	
-*/
 
   } catch (error) {
     console.error("Server error:", error.message);
