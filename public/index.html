@@ -1074,7 +1074,7 @@ function gtag_report_conversion(url) {
 		
 		// ✅ HANDLE FORBIDDEN
 		if (response.status === 500) {
-			document.getElementById('walletMessage').innerHTML = 'Apologies, the AI network returned a temporary error. Please try again now!';
+			document.getElementById('walletMessage').innerHTML = 'Apologies, the AI network returned a temporary error. Please try again now or choose a different API/model if issues persist!';
 			return;
 		}
 
