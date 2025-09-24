@@ -954,6 +954,11 @@ function gtag_report_conversion(url) {
 		alert('Please install MetaMask or another Web3 wallet!');
 		return;
 	  }
+	  
+	  if (isMobile && window.ethereum.isMetaMask) {
+		// Give MetaMask Mobile time to process the connection
+		await new Promise(resolve => setTimeout(resolve, 1500));
+	  }
 
 	  try {
 		const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
