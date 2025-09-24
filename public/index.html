@@ -1290,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleApiDropdownChange() {
         const selectedApi = apiDropdown.value;
         localStorage.setItem('selectedApi', selectedApi);
+		localStorage.removeItem('selectedModelId');
         fetchModels(selectedApi).then(models => {
             populateModelDropdown(models, selectedApi);
         });
