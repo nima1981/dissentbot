@@ -703,9 +703,9 @@ function gtag_report_conversion(url) {
 	
 	<div id="modelSelectContainer">
 	  
-	  <select id="apiDropdown" style="display: none;">
-	    <option value="venice" selected="selected">Venice API</option>
-	    <option value="morpheus">Morpheus API</option>
+	  <select id="apiDropdown">
+	    <option value="Venice" selected="selected">Venice API</option>
+	    <option value="Morpheus">Morpheus API</option>
       </select>
 	
 	  <label id="model-label" for="modelDropdown">Model</label>
@@ -1217,71 +1217,88 @@ function gtag_report_conversion(url) {
   renderConversation();
 </script>
 
- <script>
-        // Function to fetch models from the API
-        async function fetchModels() {
-            try {
-                const response = await fetch(MODELS_API_URL);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                return data.data; // Accessing the 'data' array from the response
-            } catch (error) {
-                console.error('Error fetching models:', error);
-                return [];
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const apiDropdown = document.getElementById('apiDropdown');
+    const modelDropdown = document.getElementById('modelDropdown');
+    const timeframeDropdown = document.getElementById('timeframe');
+
+    // Function to fetch models from the API
+    async function fetchModels(api) {
+        const apiUrls = {
+            Venice: VENICE_MODELS_API_URL,
+            Morpheus: MORPHEUS_MODELS_API_URL
+        };
+        const url = apiUrls[api];
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+            const data = await response.json();
+            return data.data; // Accessing the 'data' array from the response
+        } catch (error) {
+            console.error('Error fetching models:', error);
+            return [];
         }
+    }
 
-        // Function to populate the dropdown
-        function populateDropdown(models) {
-            const dropdown = document.getElementById('modelDropdown');
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model.id;
-                option.textContent = model.model_spec.name;
-                dropdown.appendChild(option);
-            });
-
-            // Set the selected option based on localStorage or default to 'venice-uncensored'
-            const selectedModelId = localStorage.getItem('selectedModelId') || DEFAULT_MODEL;
-            dropdown.value = selectedModelId;
-        }
-
-        // Function to save the selected model id to localStorage
-        function saveSelectedModelId() {
-            const dropdown = document.getElementById('modelDropdown');
-            localStorage.setItem('selectedModelId', dropdown.value);
-        }
-
-        // Fetch models and populate the dropdown
-        fetchModels().then(models => {
-            populateDropdown(models);
+    // Function to populate the model dropdown
+    function populateModelDropdown(models) {
+        modelDropdown.innerHTML = ''; // Clear existing options
+        models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.model_spec.name;
+            modelDropdown.appendChild(option);
         });
 
-        // Add an event listener to save the selection when it changes
-        document.getElementById('modelDropdown').addEventListener('change', saveSelectedModelId);
-    </script>
-	
-	<script>
-	        // Function to set the selected option for the timeframe dropdown
-        function setTimeframeSelection() {
-            const timeframeDropdown = document.getElementById('timeframe');
-            const selectedTimeframe = localStorage.getItem('selectedTimeframe') || 'all';
-            timeframeDropdown.value = selectedTimeframe;
-        }
+        // Set the selected option based on localStorage or default to 'venice-uncensored'
+        const selectedModelId = localStorage.getItem('selectedModelId') || 'venice-uncensored';
+        modelDropdown.value = selectedModelId;
+    }
 
-        // Function to save the selected timeframe to localStorage
-        function saveSelectedTimeframe() {
-            const timeframeDropdown = document.getElementById('timeframe');
-            localStorage.setItem('selectedTimeframe', timeframeDropdown.value);
-        }
-		
-		document.getElementById('timeframe').addEventListener('change', saveSelectedTimeframe);
-		
-		setTimeframeSelection();
+    // Function to save the selected model id to localStorage
+    function saveSelectedModelId() {
+        localStorage.setItem('selectedModelId', modelDropdown.value);
+    }
 
-	</script>
+    // Function to set the selected option for the timeframe dropdown
+    function setTimeframeSelection() {
+        const selectedTimeframe = localStorage.getItem('selectedTimeframe') || 'all';
+        timeframeDropdown.value = selectedTimeframe;
+    }
+
+    // Function to save the selected timeframe to localStorage
+    function saveSelectedTimeframe() {
+        localStorage.setItem('selectedTimeframe', timeframeDropdown.value);
+    }
+
+    // Function to handle API dropdown change
+    function handleApiDropdownChange() {
+        const selectedApi = apiDropdown.value;
+        localStorage.setItem('selectedApi', selectedApi);
+        fetchModels(selectedApi).then(models => {
+            populateModelDropdown(models);
+        });
+    }
+
+    // Set the initial API selection from localStorage or default to 'Venice'
+    const selectedApi = localStorage.getItem('selectedApi') || 'Venice';
+    apiDropdown.value = selectedApi;
+
+    // Fetch models and populate the model dropdown based on the initial API selection
+    fetchModels(selectedApi).then(models => {
+        populateModelDropdown(models);
+        setTimeframeSelection(); // Set the timeframe selection
+    });
+
+    // Add event listeners to save the selections when they change
+    modelDropdown.addEventListener('change', saveSelectedModelId);
+    timeframeDropdown.addEventListener('change', saveSelectedTimeframe);
+    apiDropdown.addEventListener('change', handleApiDropdownChange);
+});
+</script>
 
 </body>
 </html>
