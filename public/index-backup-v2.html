@@ -920,7 +920,7 @@ function gtag_report_conversion(url) {
 	  if (storedAddress || storedSessionToken) {
 		
 		if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
-		  return; // Exit if user cancels
+			return; // Exit if user cancels
 		}
 		
 		localStorage.removeItem('walletAddress');
@@ -937,118 +937,21 @@ function gtag_report_conversion(url) {
 		return;
 	  }
 	  
-	  // ✅ UNIVERSAL MOBILE HANDLING - WORKS ON ALL DEVICES/BROWSERS
-	  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-	  const hasEthereumProvider = typeof window.ethereum !== 'undefined';
-	  const isBrave = navigator.brave !== undefined && navigator.brave.isBrave instanceof Function;
-
-	  // MOBILE WITHOUT PROVIDER - SHOW INSTRUCTIONS
-	  if (isMobile && !hasEthereumProvider) {
-		// Prevent duplicate modals
-		if (document.getElementById('mobile-instructions')) return;
-		
-		// Create persistent instruction overlay
-		const modal = document.createElement('div');
-		modal.id = 'mobile-instructions';
-		modal.style.cssText = `
-		  position: fixed;
-		  top: 0;
-		  left: 0;
-		  width: 100%;
-		  height: 100%;
-		  background: rgba(0,0,0,0.92);
-		  display: flex;
-		  flex-direction: column;
-		  justify-content: center;
-		  align-items: center;
-		  z-index: 99999;
-		  color: white;
-		  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		  padding: 20px;
-		  box-sizing: border-box;
-		  text-align: center;
-		`;
-
-		const content = document.createElement('div');
-		content.style.cssText = `
-		  max-width: 90%;
-		  background: #121212;
-		  padding: 28px;
-		  border-radius: 20px;
-		  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-		`;
-
-		const title = document.createElement('h3');
-		title.textContent = 'Connect with MetaMask';
-		title.style.cssText = `
-		  margin: 0 0 16px 0;
-		  font-size: 28px;
-		  color: #00C3FF;
-		  font-weight: 600;
-		`;
-
-		const message = document.createElement('p');
-		message.innerHTML = `
-		  <span style="font-size: 18px; line-height: 1.5;">
-			To connect your wallet:
-		  </span><br><br>
-		  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px;">
-			1. Tap the <b>⋯ or ⋮</b> menu in your browser<br>
-			2. Select <b>"Share" → "Open in MetaMask"</b>
-		  </span><br><br>
-		  <span style="color: #ff6b6b; font-size: 15px; display: block; margin-top: 10px;">
-			⚠️ Automatic redirects are blocked by your browser for security
-		  </span>
-		`;
-		message.style.margin = '0 0 24px 0';
-
-		const button = document.createElement('button');
-		button.textContent = 'I UNDERSTAND';
-		button.style.cssText = `
-		  background: linear-gradient(135deg, #00C3FF 0%, #0062FF 100%);
-		  color: white;
-		  border: none;
-		  padding: 16px 36px;
-		  font-size: 18px;
-		  border-radius: 14px;
-		  cursor: pointer;
-		  font-weight: bold;
-		  letter-spacing: 0.5px;
-		  transition: all 0.3s ease;
-		  box-shadow: 0 4px 20px rgba(0, 98, 255, 0.3);
-		`;
-		
-		button.addEventListener('click', () => {
-		  document.body.removeChild(modal);
-		  
-		  // Store that we've shown instructions
-		  localStorage.setItem('mobileInstructionsShown', 'true');
-		  
-		  // Try redirect after user interaction (works on some browsers)
-		  setTimeout(() => {
-			window.location.href = 'https://metamask.app.link/dapp/dissentbot.com';
-		  }, 500);
-		});
-
-		content.appendChild(title);
-		content.appendChild(message);
-		content.appendChild(button);
-		modal.appendChild(content);
-		document.body.appendChild(modal);
-		
-		return;
-	  }
-
-	  // ✅ MOBILE WITH PROVIDER - META MASK MOBILE CONNECTION FLOW
-	  if (isMobile && hasEthereumProvider) {
-		// Force MetaMask to initialize properly
+	  // ✅ MOBILE WALLET CONNECTION LOGIC
+	  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+	  
+	  const isMetaMaskMobile = isMobile && (window.ethereum?.isMetaMask || /MetaMask/i.test(navigator.userAgent));
+	  
+	  if (isMetaMaskMobile) {
+		// ✅ STEP 1: Force MetaMask to initialize properly
 		try {
+		  // This triggers MetaMask's connection flow without requesting accounts
 		  await window.ethereum.request({ method: 'eth_chainId' });
 		} catch (e) {
-		  // Ignore - expected on first connection
+		  // Ignore - this is expected on first connection
 		}
 
-		// Wait for MetaMask's internal connection to complete
+		// ✅ STEP 2: Wait for MetaMask's internal connection to complete
 		await new Promise(resolve => setTimeout(resolve, 2000));
 	  }
 
@@ -1057,20 +960,20 @@ function gtag_report_conversion(url) {
 		alert('Please install MetaMask or another Web3 wallet!');
 		return;
 	  }
-
+	  
 	  try {
+		// ✅ STEP 3: Now request accounts with MetaMask Mobile-specific handling
 		let accounts;
-		const isMetaMaskMobile = isMobile && (window.ethereum?.isMetaMask || /MetaMask/i.test(navigator.userAgent));
-
-		// MetaMask Mobile requires special handling
 		if (isMetaMaskMobile) {
+		  // MetaMask Mobile requires this specific pattern
 		  accounts = await new Promise((resolve, reject) => {
 			window.ethereum
 			  .request({ method: 'eth_requestAccounts' })
 			  .then(resolve)
 			  .catch(async (error) => {
-				// Handle false negatives in MetaMask Mobile
+				// ✅ CRITICAL: MetaMask Mobile often returns false error
 				if (error.code === 4001 || error.message.includes('user denied')) {
+				  // Wait for silent connection completion
 				  await new Promise(r => setTimeout(r, 1500));
 				  const connectedAccounts = await window.ethereum.request({ method: 'eth_accounts' });
 				  if (connectedAccounts.length > 0) {
@@ -1093,7 +996,7 @@ function gtag_report_conversion(url) {
 		walletAddress = accounts[0];
 		localStorage.setItem('walletAddress', walletAddress);
 
-		// Always sign challenge
+		// ✅ STEP 4: Always sign challenge (even if MetaMask Mobile gave false error)
 		const { message, signature } = await signChallenge(walletAddress);
 		const authResponse = await fetch('/api/auth', {
 		  method: 'POST',
@@ -1115,8 +1018,8 @@ function gtag_report_conversion(url) {
 	  } catch (error) {
 		console.error("Wallet connection failed:", error);
 		
-		// Handle MetaMask Mobile's silent connection
-		if (isMobile && typeof window.ethereum !== 'undefined') {
+		// ✅ STEP 5: Handle MetaMask Mobile's silent connection
+		if (isMetaMaskMobile) {
 		  try {
 			const accounts = await window.ethereum.request({ method: 'eth_accounts' });
 			if (accounts.length > 0) {
@@ -1130,11 +1033,12 @@ function gtag_report_conversion(url) {
 		  } catch (e) {}
 		}
 		
-		// Show user-friendly error
-		alert("Failed to connect wallet. Please use the 'Open in MetaMask' option from your browser menu.");
+		alert("Failed to connect wallet. Please try again.");
 	  }
-	});  
-  });
+	 
+
+	});
+	});
 	
 	let longWaitTimer1, longWaitTimer2, longWaitTimer3, longWaitTimer4;
 
