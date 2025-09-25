@@ -973,7 +973,7 @@ function gtag_report_conversion(url) {
 				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/metamask.svg',
 				// CRITICAL FIX: MetaMask requires ?url= parameter format
 				getDeepLink: () => {
-				  const encodedUrl = encodeURIComponent(window.location.href);
+				  const encodedUrl = encodeURIComponent(window.location.hostname);
 				  return `https://metamask.app.link/dapp/${encodedUrl}`;
 				},
 				installUrl: 'https://metamask.app.link/download'
