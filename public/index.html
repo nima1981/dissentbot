@@ -1376,7 +1376,7 @@ function gtag_report_conversion(url) {
 
 		const sanitizedContext = marked.parse(data.context || "No context");
 		
-		console.log("web_search_citations", data.web_search_citations);
+		console.log("response data:", data);
 
 		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
