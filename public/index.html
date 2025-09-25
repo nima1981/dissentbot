@@ -940,7 +940,7 @@ function gtag_report_conversion(url) {
 		  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 		  
 		  // MOBILE WALLET SELECTION MODAL
-		  if (isMobile) {
+		  if (isMobile && typeof window.ethereum === 'undefined') {
 			// Prevent duplicate modals
 			if (document.getElementById('wallet-selection-modal')) return;
 			
@@ -971,7 +971,7 @@ function gtag_report_conversion(url) {
 				id: 'metamask',
 				name: 'MetaMask',
 				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/metamask.svg',
-				// CRITICAL FIX: MetaMask requires ?url= parameter format
+				
 				getDeepLink: () => {
 				  const encodedUrl = encodeURIComponent(window.location.hostname);
 				  return `https://metamask.app.link/dapp/${encodedUrl}`;
