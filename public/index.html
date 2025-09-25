@@ -937,6 +937,20 @@ function gtag_report_conversion(url) {
 			  return; // Exit if user cancels
 			}
 			
+			// Coinbase-specific disconnect
+		  if (window.ethereum?.isCoinbaseWallet) {
+			try {
+			  await window.ethereum.request({
+				method: 'wallet_revokePermissions',
+				params: [{
+				  eth_accounts: {}
+				}]
+			  });
+			} catch (e) {
+			  console.log("Coinbase revoke permissions failed (non-critical)");
+			}
+		  }
+			
 			localStorage.removeItem('walletAddress');
 			localStorage.removeItem('sessionToken');
 			localStorage.removeItem('conversationHistory');
@@ -1359,9 +1373,23 @@ function gtag_report_conversion(url) {
 		clearTimeout(longWaitTimer3);
 		clearTimeout(longWaitTimer4);
 		console.error("Chat error:", error);
-		console.error("Chat error:", error.message);
-		document.getElementById('walletMessage').textContent = '';
-		//document.getElementById('walletMessage').textContent = `⚠️ ${error.message}`;
+		console.error("Chat error details:", error.message, error.stack);
+		// Show meaningful error to user
+		let errorMessage = "Failed to get response from AI network";
+		
+		  // Coinbase-specific error handling
+		if (window.ethereum?.isCoinbaseWallet) {
+			errorMessage = "Coinbase Wallet requires additional permissions. Please try disconnecting and reconnecting your wallet.";
+		}
+		
+		// Show error in UI
+		document.getElementById('walletMessage').innerHTML = `<span style="color: #dc3545">${errorMessage}</span>`;
+		
+		// Optional: Auto-open stake modal for specific errors
+		if (error.message.includes("Invalid cookie") || error.message.includes("stake")) {
+			document.getElementById('stake-modal').style.display = 'flex';
+		}
+  
 	  } finally {
 		document.getElementById('loading').style.display = 'none';
 	  }
