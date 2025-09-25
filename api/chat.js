@@ -21,16 +21,48 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // ✅ CRITICAL FIX #1: PROPER ASYNC VERIFY FUNCTION
-  const verifySignature = async (address, msg, sig) => {
-    try {
-      const recovered = ethers.utils.verifyMessage(msg, sig);
-      return recovered.toLowerCase() === address.toLowerCase();
-    } catch (error) {
-      console.error("Signature verification error:", error);
-      return false;
-    }
-  };
+	const verifySignature = async (address, msg, sig) => {
+	  try {
+		// Standard verification for personal_sign
+		const recovered = ethers.utils.verifyMessage(msg, sig);
+		return recovered.toLowerCase() === address.toLowerCase();
+	  } catch (error) {
+		console.error("Standard verification failed:", error);
+		
+		try {
+		  // Handle Coinbase Wallet WebAuthn response
+		  if (sig.startsWith('0x') && sig.includes('"type":"webauthn.get"')) {
+			try {
+			  const sigStr = sig.substring(2); // Remove '0x'
+			  const jsonStart = sigStr.indexOf('{');
+			  const jsonEnd = sigStr.lastIndexOf('}') + 1;
+			  
+			  if (jsonStart !== -1 && jsonEnd !== -1) {
+				const jsonData = JSON.parse(sigStr.substring(jsonStart, jsonEnd));
+				
+				if (jsonData.signature) {
+				  // Extract and verify the actual Ethereum signature
+				  return await verifySignature(address, msg, jsonData.signature);
+				}
+			  }
+			} catch (e) {
+			  console.error("Failed to parse WebAuthn response:", e);
+			}
+		  }
+		  
+		  // Handle Coinbase Wallet's non-standard v values (0/1 instead of 27/28)
+		  let sigObj = ethers.utils.splitSignature(sig);
+		  if (sigObj.v < 27) sigObj.v += 27;
+		  const normalizedSig = ethers.utils.joinSignature(sigObj);
+		  
+		  const recovered = ethers.utils.verifyMessage(msg, normalizedSig);
+		  return recovered.toLowerCase() === address.toLowerCase();
+		} catch (e) {
+		  console.error("Fallback verification failed:", e);
+		  return false;
+		}
+	  }
+	};
   
   try {
     const {

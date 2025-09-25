@@ -901,12 +901,27 @@ function gtag_report_conversion(url) {
 		async function signChallenge(address) {
 		  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 		  
-		  const signature = await window.ethereum.request({
-			method: 'personal_sign',
-			params: [message, address] // CORRECT - message should be a plain string
-		  });
-		  
-		  return { message, signature };
+		  try {
+			// For Coinbase Wallet mobile, use eth_sign instead of personal_sign
+			if (window.ethereum.isCoinbaseWallet && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+			  const msgHash = ethers.utils.hashMessage(message);
+			  const signature = await window.ethereum.request({
+				method: 'eth_sign',
+				params: [address, msgHash]
+			  });
+			  return { message, signature };
+			}
+			
+			// Standard approach for other wallets
+			const signature = await window.ethereum.request({
+			  method: 'personal_sign',
+			  params: [message, address]
+			});
+			return { message, signature };
+		  } catch (error) {
+			console.error("Signature error:", error);
+			throw error;
+		  }
 		}
 
 	  // Handle wallet connection
