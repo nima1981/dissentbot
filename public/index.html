@@ -1334,6 +1334,9 @@ function gtag_report_conversion(url) {
 		  data = { answer: bodyText, context: "" };
 		}
 		
+		console.log("testing");
+		console.log("response data:", data);
+		
 		// ✅ HANDLE FORBIDDEN
 		if (response.status === 403) {
 			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
@@ -1375,8 +1378,6 @@ function gtag_report_conversion(url) {
 				.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 
 		const sanitizedContext = marked.parse(data.context || "No context");
-		
-		console.log("response data:", data);
 
 		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
