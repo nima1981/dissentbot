@@ -23,24 +23,26 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    // ✅ Signature verification
-	// ✅ COINBASE-SPECIFIC SIGNATURE NORMALIZATION
-	const normalizeSignature = (signature) => {
-	  try {
-		let sig = ethers.utils.splitSignature(signature);
-		// Coinbase Wallet returns v=0/1 instead of 27/28
-		if (sig.v < 27) sig.v += 27;
-		return ethers.utils.joinSignature(sig);
-	  } catch (e) {
-		return signature; // Fallback to original if normalization fails
-	  }
-	};
-
-	const normalizedSignature = normalizeSignature(signature);
-	const recoveredAddress = ethers.utils.verifyMessage(message, normalizedSignature);
-	
-    if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      return res.status(401).json({ error: "Invalid wallet signature" });
+	// ✅ CORRECT SIGNATURE VERIFICATION
+    try {
+      const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+      if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+        return res.status(401).json({ error: "Invalid wallet signature" });
+      }
+    } catch (error) {
+      // ✅ COINBASE-SPECIFIC FIX: Handle non-standard v values
+      try {
+        let sig = ethers.utils.splitSignature(signature);
+        if (sig.v < 27) sig.v += 27;
+        const normalizedSignature = ethers.utils.joinSignature(sig);
+        const recoveredAddress = ethers.utils.verifyMessage(message, normalizedSignature);
+        
+        if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+          return res.status(401).json({ error: "Invalid wallet signature" });
+        }
+      } catch (e) {
+        return res.status(401).json({ error: "Invalid signature format" });
+      }
     }
 
     // ✅ Verify staking status

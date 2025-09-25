@@ -898,22 +898,16 @@ function gtag_report_conversion(url) {
 	  
     }
 
-	async function signChallenge(address) {
-	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
-	  
-	  try {
-		// Coinbase Wallet requires explicit message hashing in some contexts
-		const signature = await window.ethereum.request({
-		  method: 'personal_sign',
-		  params: [ethers.utils.toUtf8Bytes(message), address]
-		});
-		
-		return { message, signature };
-	  } catch (error) {
-		console.error("Signature error:", error);
-		throw error;
-	  }
-	}
+		async function signChallenge(address) {
+		  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
+		  
+		  const signature = await window.ethereum.request({
+			method: 'personal_sign',
+			params: [message, address] // CORRECT - message should be a plain string
+		  });
+		  
+		  return { message, signature };
+		}
 
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
@@ -1137,13 +1131,10 @@ function gtag_report_conversion(url) {
 		  }
 		  
 			// ✅ PLACE THE COINBASE-SPECIFIC HANDLER RIGHT HERE
-			// Coinbase Wallet needs explicit session refresh
 			if (isMobile && typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
 			  setTimeout(async () => {
 				try {
-				  // Force Coinbase to re-establish connection
 				  await window.ethereum.request({ method: 'eth_requestAccounts' });
-				  // Refresh UI state
 				  const connectButton = document.getElementById('connectWallet');
 				  const storedAddress = localStorage.getItem('walletAddress');
 				  
