@@ -909,355 +909,264 @@ function gtag_report_conversion(url) {
 	  return { message, signature };
 	}
 
-  // Handle wallet connection
-  document.addEventListener("DOMContentLoaded", function() {
-	document.getElementById('connectWallet').addEventListener('click', async () => {
-	
-		 // WALLET DETECTION UTILITY - UPDATED FOR DISSENTBOT.COM
-	const detectAvailableWallets = () => {
-	  const wallets = [];
-	  
-	  // Standard EIP-1193 provider detection
-	  if (window.ethereum) {
-		// Check for specific wallet identifiers
-		if (window.ethereum.isMetaMask) wallets.push({ 
-		  id: 'metamask', 
-		  name: 'MetaMask', 
-		  deepLink: 'https://metamask.app.link/dapp/?url=',  // CRITICAL FORMAT CHANGE
-		  requiresFullUrl: true 
-		});
-		if (window.ethereum.isCoinbaseWallet) wallets.push({ 
-		  id: 'coinbase', 
-		  name: 'Coinbase Wallet', 
-		  deepLink: 'https://go.cb-w.com/dapp?cb_url=',
-		  requiresFullUrl: true 
-		});
-		if (window.ethereum.isBraveWallet) wallets.push({ 
-		  id: 'brave', 
-		  name: 'Brave Wallet',
-		  requiresFullUrl: false 
-		});
-		if (window.ethereum.isTrust) wallets.push({ 
-		  id: 'trust', 
-		  name: 'Trust Wallet',
-		  deepLink: 'https://dissentbot.com',  // TRUST WANTS RAW URL
-		  requiresFullUrl: true 
-		});
-		if (window.ethereum.isPhantom) wallets.push({ 
-		  id: 'phantom', 
-		  name: 'Phantom',
-		  deepLink: 'https://phantom.app/wc?uri=',  // WALLETCONNECT FORMAT
-		  requiresFullUrl: false 
-		});
-		
-		// Generic fallback
-		if (wallets.length === 0) wallets.push({ 
-		  id: 'generic', 
-		  name: 'Web3 Wallet',
-		  deepLink: null,
-		  requiresFullUrl: true 
-		});
-	  }
-	  
-	  return wallets;
-	};
-		
-	  const connectButton = document.getElementById('connectWallet');
-	  const storedAddress = localStorage.getItem('walletAddress');
-	  let storedSessionToken = localStorage.getItem('sessionToken');
+	  // Handle wallet connection
+	  document.addEventListener("DOMContentLoaded", function() {
+		document.getElementById('connectWallet').addEventListener('click', async () => {
+		  const connectButton = document.getElementById('connectWallet');
+		  const storedAddress = localStorage.getItem('walletAddress');
+		  let storedSessionToken = localStorage.getItem('sessionToken');
 
-	  // DISCONNECT BLOCK
-	  if (storedAddress || storedSessionToken) {
-		
-		if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
-		  return; // Exit if user cancels
-		}
-		
-		localStorage.removeItem('walletAddress');
-		localStorage.removeItem('sessionToken');
-		localStorage.removeItem('conversationHistory');
-		walletAddress = null;
-		conversationHistory = [];
-		isAuthenticated = false;
-		connectButton.innerHTML = '<span id="connectAction">[CONNECT]</span>';
-		document.getElementById('walletMessage').textContent = '';
-		// ✅ Clear stakeStatus cookie
-		document.cookie = "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict";
-		renderConversation();
-		return;
-	  }
-	  
-	  // ✅ UNIVERSAL MOBILE HANDLING - WORKS ON ALL DEVICES/BROWSERS
-	  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-	  const hasEthereumProvider = typeof window.ethereum !== 'undefined';
-	  const isBrave = navigator.brave !== undefined && navigator.brave.isBrave instanceof Function;
-
-		// MOBILE WITHOUT PROVIDER - SHOW INSTRUCTIONS
-		if (isMobile && !hasEthereumProvider) {
-		  // Prevent duplicate modals
-		  if (document.getElementById('mobile-instructions')) return;
-		  
-		  // Detect available wallets (for instructions)
-		  const availableWallets = detectAvailableWallets();
-		  const hasMultipleWallets = availableWallets.length > 1;
-		  const hasAnyWallet = availableWallets.length > 0;
-		  
-		  // Create persistent instruction overlay
-		  const modal = document.createElement('div');
-		  modal.id = 'mobile-instructions';
-		  modal.style.cssText = `
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: rgba(0,0,0,0.92);
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			z-index: 99999;
-			color: white;
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			padding: 20px;
-			box-sizing: border-box;
-			text-align: center;
-		  `;
-
-		  const content = document.createElement('div');
-		  content.style.cssText = `
-			max-width: 90%;
-			background: #121212;
-			padding: 28px;
-			border-radius: 20px;
-			box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-		  `;
-
-		  const title = document.createElement('h3');
-		  title.textContent = hasAnyWallet 
-			? `Connect with ${availableWallets[0].name}`
-			: 'Connect with Web3 Wallet';
-		  title.style.cssText = `
-			margin: 0 0 16px 0;
-			font-size: 28px;
-			color: #00C3FF;
-			font-weight: 600;
-		  `;
-
-		  const message = document.createElement('p');
-		  
-		  // Build wallet-specific instructions
-		  let instructionsHTML = '';
-		  
-		  if (hasAnyWallet) {
-			const wallet = availableWallets[0];
-			
-			instructionsHTML = `
-			  <span style="font-size: 18px; line-height: 1.5; display: block; margin-bottom: 16px;">
-				Connecting to ${wallet.name}...
-			  </span>
-			  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px; margin-bottom: 16px;">
-				You'll be redirected to ${wallet.name} automatically.<br>
-				If nothing happens, use your browser's menu:
-			  </span><br>
-			  <span style="background: #252525; padding: 10px; border-radius: 10px; display: inline-block; width: 100%; font-size: 15px; color: #aaa;">
-				1. Tap the <b>⋯ or ⋮</b> menu<br>
-				2. Select <b>"Share" → "Open in ${wallet.name}"</b>
-			  </span>`;
-			  
-			if (hasMultipleWallets) {
-			  instructionsHTML += `<br><br>
-			  <span style="color: #4da8da; font-size: 14px; display: block; text-align: left; margin-top: 10px;">
-				Multiple wallets detected. Using ${wallet.name} as default.
-			  </span>`;
+		  // DISCONNECT BLOCK
+		  if (storedAddress || storedSessionToken) {
+			if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
+			  return; // Exit if user cancels
 			}
-		  } else {
-			instructionsHTML = `
-			  <span style="font-size: 18px; line-height: 1.5; display: block; margin-bottom: 16px;">
-				No wallet detected
-			  </span>
-			  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px; margin-bottom: 16px;">
-				Please install a Web3 wallet to connect:
-			  </span><br>
-			  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 16px;">
-				<a href="https://metamask.app.link" target="_blank" style="background: #e07021; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">MetaMask</a>
-				<a href="https://www.coinbase.com/wallet" target="_blank" style="background: #0052ff; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">Coinbase Wallet</a>
-				<a href="https://trustwallet.com" target="_blank" style="background: #3375bb; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">Trust Wallet</a>
-				<a href="https://phantom.app" target="_blank" style="background: #9c5aff; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">Phantom</a>
+			
+			localStorage.removeItem('walletAddress');
+			localStorage.removeItem('sessionToken');
+			localStorage.removeItem('conversationHistory');
+			walletAddress = null;
+			conversationHistory = [];
+			isAuthenticated = false;
+			connectButton.innerHTML = '<span id="connectAction">[CONNECT]</span>';
+			document.getElementById('walletMessage').textContent = '';
+			// Clear stakeStatus cookie
+			document.cookie = "isStaked=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict";
+			renderConversation();
+			return;
+		  }
+		  
+		  // WALLET DETECTION UTILITY (MOBILE-SPECIFIC)
+		  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+		  
+		  // MOBILE WALLET SELECTION MODAL
+		  if (isMobile) {
+			// Prevent duplicate modals
+			if (document.getElementById('wallet-selection-modal')) return;
+			
+			// Create modal overlay
+			const modal = document.createElement('div');
+			modal.id = 'wallet-selection-modal';
+			modal.style.cssText = `
+			  position: fixed;
+			  top: 0;
+			  left: 0;
+			  width: 100%;
+			  height: 100%;
+			  background: rgba(0,0,0,0.92);
+			  display: flex;
+			  flex-direction: column;
+			  justify-content: center;
+			  align-items: center;
+			  z-index: 99999;
+			  color: white;
+			  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			  padding: 20px;
+			  box-sizing: border-box;
+			`;
+
+			// Wallet options configuration
+			const wallets = [
+			  {
+				id: 'metamask',
+				name: 'MetaMask',
+				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/metamask.svg',
+				deepLink: 'https://metamask.app.link/dapp/',
+				installUrl: 'https://metamask.app.link/download'
+			  },
+			  {
+				id: 'coinbase',
+				name: 'Coinbase Wallet',
+				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/coinbase.svg',
+				deepLink: 'https://go.cb-w.com/dapp?cb_url=',
+				installUrl: 'https://www.coinbase.com/wallet'
+			  },
+			  {
+				id: 'trust',
+				name: 'Trust Wallet',
+				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/trust.svg',
+				deepLink: 'https://link.trustwallet.com/open_url?coin_id=60&url=',
+				installUrl: 'https://trustwallet.com/download'
+			  },
+			  {
+				id: 'phantom',
+				name: 'Phantom',
+				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/phantom.svg',
+				deepLink: 'https://phantom.app/ul/browse/',
+				installUrl: 'https://phantom.app/download'
+			  }
+			];
+
+			// Build wallet options HTML
+			let walletOptionsHTML = '';
+			wallets.forEach(wallet => {
+			  walletOptionsHTML += `
+				<div class="wallet-option" data-wallet="${wallet.id}" style="
+				  display: flex;
+				  align-items: center;
+				  padding: 15px;
+				  margin: 10px 0;
+				  background: #1e1e1e;
+				  border-radius: 12px;
+				  cursor: pointer;
+				  transition: all 0.2s;
+				">
+				  <img src="${wallet.icon}" style="
+					width: 40px;
+					height: 40px;
+					border-radius: 50%;
+					margin-right: 15px;
+					background: white;
+					padding: 3px;
+				  ">
+				  <div style="
+					flex: 1;
+					text-align: left;
+				  ">
+					<div style="
+					  font-weight: 600;
+					  font-size: 17px;
+					  color: white;
+					">${wallet.name}</div>
+					<div style="
+					  font-size: 14px;
+					  color: #aaa;
+					">Connect or install</div>
+				  </div>
+				</div>
+			  `;
+			});
+
+			// Modal content
+			modal.innerHTML = `
+			  <div style="
+				background: #121212;
+				padding: 25px;
+				border-radius: 20px;
+				width: 100%;
+				max-width: 500px;
+				box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+			  ">
+				<h3 style="
+				  margin: 0 0 20px 0;
+				  font-size: 24px;
+				  color: #00C3FF;
+				  text-align: center;
+				  font-weight: 600;
+				">Choose Your Wallet</h3>
+				
+				<div style="
+				  max-height: 50vh;
+				  overflow-y: auto;
+				  -webkit-overflow-scrolling: touch;
+				">
+				  ${walletOptionsHTML}
+				</div>
+				
+				<div style="
+				  margin-top: 20px;
+				  text-align: center;
+				  color: #777;
+				  font-size: 14px;
+				  line-height: 1.4;
+				">
+				  <div>1. Select your wallet</div>
+				  <div>2. You'll be redirected to the app</div>
+				  <div>3. Complete connection in the wallet</div>
+				</div>
+				
+				<button id="modalClose" style="
+				  background: #333;
+				  color: white;
+				  border: none;
+				  padding: 14px;
+				  border-radius: 12px;
+				  width: 100%;
+				  margin-top: 25px;
+				  font-size: 16px;
+				  cursor: pointer;
+				  transition: all 0.2s;
+				">Cancel</button>
 			  </div>
-			  <span style="color: #ff6b6b; font-size: 15px; display: block;">
-				⚠️ Install a wallet first, then return to this page
-			  </span>`;
-		  }
+			`;
 
-		  message.innerHTML = instructionsHTML;
-		  message.style.margin = '0';
-
-		  const button = document.createElement('button');
-		  button.textContent = hasAnyWallet ? 'I UNDERSTAND' : 'VIEW WALLETS';
-		  button.style.cssText = `
-			background: ${hasAnyWallet ? 'linear-gradient(135deg, #00C3FF 0%, #0062FF 100%)' : '#555'};
-			color: white;
-			border: none;
-			padding: 16px 36px;
-			font-size: 18px;
-			border-radius: 14px;
-			cursor: pointer;
-			font-weight: bold;
-			letter-spacing: 0.5px;
-			transition: all 0.3s ease;
-			box-shadow: ${hasAnyWallet ? '0 4px 20px rgba(0, 98, 255, 0.3)' : 'none'};
-			margin-top: 20px;
-		  `;
-		  
-		button.addEventListener('click', () => {
-		  document.body.removeChild(modal);
-		  
-		  if (hasAnyWallet) {
-			// Store that we've shown instructions
-			localStorage.setItem('mobileInstructionsShown', 'true');
+			// Add modal to page
+			document.body.appendChild(modal);
 			
-			const wallet = availableWallets[0];
-			const currentUrl = window.location.href;
-			
-			// CRITICAL: Special handling for DISSENTBOT.COM
-			if (wallet.id === 'metamask') {
-			  // MetaMask requires EXACTLY this format for dissentbot.com
-			  window.location.href = `https://metamask.app.link/dapp/?url=${encodeURIComponent(currentUrl)}`;
-			} 
-			else if (wallet.id === 'coinbase') {
-			  // Coinbase requires URL encoding
-			  window.location.href = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
-			}
-			else if (wallet.id === 'trust') {
-			  // Trust Wallet needs special handling for dissentbot.com
-			  // Must use universal link format
-			  window.location.href = `https://dissentbot.com`;
-			}
-			else if (wallet.id === 'brave') {
-			  // Brave Wallet works differently on dissentbot.com
-			  // Must trigger connection manually
-			  setTimeout(() => {
-				window.ethereum?.request({ method: 'eth_requestAccounts' });
-			  }, 300);
-			}
-			else if (wallet.id === 'phantom') {
-			  // Phantom requires WalletConnect for dissentbot.com
-			  const wcUri = `wc:dissentbot-com:1?relay-protocol=irn&symKey=...`; // Simplified
-			  window.location.href = `https://phantom.app/wc?uri=${encodeURIComponent(wcUri)}`;
-			}
-			else {
-			  // Generic fallback for dissentbot.com
-			  window.location.href = `https://metamask.app.link/dapp/?url=${encodeURIComponent(currentUrl)}`;
-			}
-		  }
-		});
-
-		  content.appendChild(title);
-		  content.appendChild(message);
-		  content.appendChild(button);
-		  modal.appendChild(content);
-		  document.body.appendChild(modal);
-		  
-		  return;
-		}
-
-	  // ✅ MOBILE WITH PROVIDER - META MASK MOBILE CONNECTION FLOW
-	  if (isMobile && hasEthereumProvider) {
-		// Force MetaMask to initialize properly
-		try {
-		  await window.ethereum.request({ method: 'eth_chainId' });
-		} catch (e) {
-		  // Ignore - expected on first connection
-		}
-
-		// Wait for MetaMask's internal connection to complete
-		await new Promise(resolve => setTimeout(resolve, 2000));
-	  }
-
-	  // Connect logic
-	  if (typeof window.ethereum === 'undefined') {
-		alert('Please install MetaMask or another Web3 wallet!');
-		return;
-	  }
-
-	  try {
-		let accounts;
-		const isMetaMaskMobile = isMobile && (window.ethereum?.isMetaMask || /MetaMask/i.test(navigator.userAgent));
-
-		// MetaMask Mobile requires special handling
-		if (isMetaMaskMobile) {
-		  accounts = await new Promise((resolve, reject) => {
-			window.ethereum
-			  .request({ method: 'eth_requestAccounts' })
-			  .then(resolve)
-			  .catch(async (error) => {
-				// Handle false negatives in MetaMask Mobile
-				if (error.code === 4001 || error.message.includes('user denied')) {
-				  await new Promise(r => setTimeout(r, 1500));
-				  const connectedAccounts = await window.ethereum.request({ method: 'eth_accounts' });
-				  if (connectedAccounts.length > 0) {
-					resolve(connectedAccounts);
-					return;
-				  }
-				}
-				reject(error);
+			// Handle wallet selection
+			document.querySelectorAll('.wallet-option').forEach(option => {
+			  option.addEventListener('click', () => {
+				const walletId = option.getAttribute('data-wallet');
+				const wallet = wallets.find(w => w.id === walletId);
+				
+				// THIS IS THE KEY: User-triggered redirect works on all mobile browsers
+				const encodedUrl = encodeURIComponent(window.location.href);
+				window.location.href = wallet.deepLink + encodedUrl;
 			  });
-		  });
-		} else {
-		  // Standard connection for desktop
-		  accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-		}
+			});
+			
+			// Handle modal close
+			document.getElementById('modalClose').addEventListener('click', () => {
+			  document.body.removeChild(modal);
+			});
+			
+			return;
+		  }
 
-		if (!accounts || accounts.length === 0) {
-		  throw new Error("No accounts returned");
-		}
+		  // DESKTOP CONNECTION LOGIC
+		  if (typeof window.ethereum === 'undefined') {
+			alert('Please install MetaMask or another Web3 wallet!');
+			return;
+		  }
 
-		walletAddress = accounts[0];
-		localStorage.setItem('walletAddress', walletAddress);
-
-		// Always sign challenge
-		const { message, signature } = await signChallenge(walletAddress);
-		const authResponse = await fetch('/api/auth', {
-		  method: 'POST',
-		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ walletAddress, signature, message })
-		});
-
-		if (!authResponse.ok) {
-		  throw new Error("Authentication failed");
-		}
-
-		const { token } = await authResponse.json();
-		localStorage.setItem('sessionToken', token);
-		isAuthenticated = true;
-		document.getElementById('walletMessage').innerHTML = '';
-
-		connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-
-	  } catch (error) {
-		console.error("Wallet connection failed:", error);
-		
-		// Handle MetaMask Mobile's silent connection
-		if (isMobile && typeof window.ethereum !== 'undefined') {
 		  try {
-			const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-			if (accounts.length > 0) {
-			  walletAddress = accounts[0];
-			  localStorage.setItem('walletAddress', walletAddress);
-			  
-			  // Force refresh to complete connection
-			  window.location.reload();
+			// Request account access
+			const accounts = await window.ethereum.request({ 
+			  method: 'eth_requestAccounts' 
+			});
+
+			if (!accounts || accounts.length === 0) {
+			  throw new Error("No accounts returned");
+			}
+
+			walletAddress = accounts[0];
+			localStorage.setItem('walletAddress', walletAddress);
+
+			// Sign challenge for authentication
+			const { message, signature } = await signChallenge(walletAddress);
+			const authResponse = await fetch('/api/auth', {
+			  method: 'POST',
+			  headers: { 'Content-Type': 'application/json' },
+			  body: JSON.stringify({ walletAddress, signature, message })
+			});
+
+			if (!authResponse.ok) {
+			  throw new Error("Authentication failed");
+			}
+
+			const { token } = await authResponse.json();
+			localStorage.setItem('sessionToken', token);
+			isAuthenticated = true;
+			document.getElementById('walletMessage').innerHTML = '';
+
+			connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+
+		  } catch (error) {
+			console.error("Wallet connection failed:", error);
+			
+			// Handle user denying connection
+			if (error.code === 4001) {
+			  document.getElementById('walletMessage').textContent = 'Connection request denied';
+			  setTimeout(() => {
+				document.getElementById('walletMessage').textContent = '';
+			  }, 3000);
 			  return;
 			}
-		  } catch (e) {}
-		}
-		
-		// Show user-friendly error
-		alert("Failed to connect wallet. Please use the 'Open in MetaMask' option from your browser menu.");
-	  }
-	});  
-  });
+			
+			alert("Failed to connect wallet: " + error.message);
+		  }
+		}); 
+	  });
 	
 	let longWaitTimer1, longWaitTimer2, longWaitTimer3, longWaitTimer4;
 
