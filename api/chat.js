@@ -21,12 +21,13 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // ✅ FIX: MOVE THIS FUNCTION TO THE TOP
-  const verifySignature = (address, msg, sig) => {
+  // ✅ CRITICAL FIX #1: PROPER ASYNC VERIFY FUNCTION
+  const verifySignature = async (address, msg, sig) => {
     try {
       const recovered = ethers.utils.verifyMessage(msg, sig);
       return recovered.toLowerCase() === address.toLowerCase();
     } catch (error) {
+      console.error("Signature verification error:", error);
       return false;
     }
   };
@@ -67,6 +68,18 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Invalid wallet signature" });
       }
       verifiedAddress = walletAddress.toLowerCase();
+    }
+	
+	// ✅ PLACE THE COINBASE SESSION CLEANUP CODE RIGHT HERE
+    // CRITICAL FIX #2: COINBASE SESSION CLEANUP
+    if (verifiedAddress && !token) {
+      // Coinbase often connects without proper session token
+      // Force token generation for subsequent requests
+      const newToken = jwt.sign({ address: verifiedAddress }, process.env.SESSION_SECRET, {
+        expiresIn: "30d"
+      });
+      
+      res.setHeader("X-Coinbase-Token", newToken);
     }
 
     // ✅ INSERT STEP 2 CODE HERE — VERIFY SIGNED COOKIE

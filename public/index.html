@@ -1129,6 +1129,28 @@ function gtag_report_conversion(url) {
 			
 			return;
 		  }
+		  
+			// ✅ PLACE THE COINBASE-SPECIFIC HANDLER RIGHT HERE
+			// Coinbase Wallet needs explicit session refresh
+			if (isMobile && typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
+			  setTimeout(async () => {
+				try {
+				  // Force Coinbase to re-establish connection
+				  await window.ethereum.request({ method: 'eth_requestAccounts' });
+				  // Refresh UI state
+				  const connectButton = document.getElementById('connectWallet');
+				  const storedAddress = localStorage.getItem('walletAddress');
+				  
+				  if (storedAddress) {
+					connectButton.innerHTML = `<span id="connectAction">[x]</span>[${storedAddress.slice(0,4)}...${storedAddress.slice(-4)}]`;
+					document.getElementById('walletMessage').textContent = '';
+				  }
+				} catch (e) {
+				  console.log("Coinbase session refresh attempted");
+				}
+			  }, 500);
+			}
+
 
 		  // DESKTOP CONNECTION LOGIC
 		  if (typeof window.ethereum === 'undefined') {
