@@ -12,6 +12,16 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
+  // ✅ FIX: MOVE THIS FUNCTION TO THE TOP
+  const verifySignature = (address, msg, sig) => {
+    try {
+      const recovered = ethers.utils.verifyMessage(msg, sig);
+      return recovered.toLowerCase() === address.toLowerCase();
+    } catch (error) {
+      return false;
+    }
+  };
+  
   try {
     const {
       text,
@@ -112,21 +122,6 @@ export default async function handler(req, res) {
 		}
 	}
 	
-/*
-    if (verifiedAddress && !isStaked) {
-      return res.status(403).json({
-        error: "Need 10+ MOR tokens staked"
-      });
-    }
-*/
-    const verifySignature = (address, msg, sig) => {
-      try {
-        const recovered = ethers.utils.verifyMessage(msg, sig);
-        return recovered.toLowerCase() === address.toLowerCase();
-      } catch (error) {
-        return false;
-      }
-    };
 
     const getEmbedding = async (text) => {
       try {
