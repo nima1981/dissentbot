@@ -8,6 +8,13 @@ export default async function handler(req, res) {
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  // Handle preflight requests
+  if (method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
   try {
     const { walletAddress, signature, message } = req.body;
@@ -17,7 +24,21 @@ export default async function handler(req, res) {
     }
 
     // ✅ Signature verification
-    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+	// ✅ COINBASE-SPECIFIC SIGNATURE NORMALIZATION
+	const normalizeSignature = (signature) => {
+	  try {
+		let sig = ethers.utils.splitSignature(signature);
+		// Coinbase Wallet returns v=0/1 instead of 27/28
+		if (sig.v < 27) sig.v += 27;
+		return ethers.utils.joinSignature(sig);
+	  } catch (e) {
+		return signature; // Fallback to original if normalization fails
+	  }
+	};
+
+	const normalizedSignature = normalizeSignature(signature);
+	const recoveredAddress = ethers.utils.verifyMessage(message, normalizedSignature);
+	
     if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
       return res.status(401).json({ error: "Invalid wallet signature" });
     }
@@ -26,17 +47,19 @@ export default async function handler(req, res) {
     const isStaked = await verifyMorpheusStake(walletAddress);
 
 	if (isStaked) {
-	  const signedCookie = jwt.sign(
-		{ staked: true },
-		process.env.SESSION_SECRET,
-		{ expiresIn: "30d" }
-	  );
+      const signedCookie = jwt.sign(
+        { staked: true, wallet: walletAddress.toLowerCase() },
+        process.env.SESSION_SECRET,
+        { expiresIn: "30d" }
+      );
 
-	  res.setHeader(
-		"Set-Cookie",
-		`isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; SameSite=None; Domain=.dissentbot.com`
-	  );
-	}
+      res.setHeader(
+        "Set-Cookie",
+        `isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; SameSite=None; Domain=.dissentbot.com`
+      );
+    }
+	
+	
     // ✅ JWT token generation
     const token = jwt.sign({ address: walletAddress }, process.env.SESSION_SECRET, {
       expiresIn: "30d"
@@ -44,6 +67,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ token, address: walletAddress });
   } catch (error) {
+	console.error("Auth error:", error);
     res.status(500).json({ error: error.message });
   }
 }
