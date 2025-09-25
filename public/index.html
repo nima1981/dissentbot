@@ -937,9 +937,22 @@ function gtag_report_conversion(url) {
 			  return; // Exit if user cancels
 			}
 			
-			// Coinbase-specific disconnect
+		  // Base App-specific disconnect (critical fix)
 		  if (window.ethereum?.isCoinbaseWallet) {
 			try {
+			  // Clear all Base App connection data from localStorage
+			  for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i);
+				if (key.includes('coinbase') || key.includes('base')) {
+				  localStorage.removeItem(key);
+				  i--; // Adjust index after removal
+				}
+			  }
+			  
+			  // Force clear session storage too
+			  sessionStorage.clear();
+			  
+			  // Attempt standard revocation
 			  await window.ethereum.request({
 				method: 'wallet_revokePermissions',
 				params: [{
@@ -947,8 +960,15 @@ function gtag_report_conversion(url) {
 				}]
 			  });
 			} catch (e) {
-			  console.log("Coinbase revoke permissions failed (non-critical)");
+			  console.log("Base App disconnect cleanup (non-critical):", e);
 			}
+			
+			// Force refresh to clear persistent connection
+			setTimeout(() => {
+			  window.location.reload();
+			}, 300);
+			
+			return;
 		  }
 			
 			localStorage.removeItem('walletAddress');
@@ -1377,10 +1397,32 @@ function gtag_report_conversion(url) {
 		// Show meaningful error to user
 		let errorMessage = "Failed to get response from AI network";
 		
-		  // Coinbase-specific error handling
-		if (window.ethereum?.isCoinbaseWallet) {
-			errorMessage = "Coinbase Wallet requires additional permissions. Please try disconnecting and reconnecting your wallet.";
-		}
+		  if (window.ethereum?.isCoinbaseWallet) {
+			errorMessage = "⚠️ Base App connection issue. Please disconnect and reconnect your wallet.";
+			
+			// Prevent UI from clearing by not resetting conversation
+			// Keep user's message visible for troubleshooting
+			if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length-1].role === 'user') {
+			  conversationHistory.pop(); // Only remove the last user message if it's the one that failed
+			}
+			
+			// Show persistent error message
+			document.getElementById('walletMessage').innerHTML = `
+			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+				${errorMessage}<br>
+				<small style="display: block; margin-top: 5px; opacity: 0.8;">Tip: Disconnect from wallet menu, then reconnect</small>
+			  </div>
+			`;
+			
+			// Auto-open stake modal for specific errors
+			if (error.message.includes("Invalid cookie") || error.message.includes("stake")) {
+			  setTimeout(() => {
+				document.getElementById('stake-modal').style.display = 'flex';
+			  }, 1500);
+			}
+			
+			return; // Prevent further UI reset
+		  }
 		
 		// Show error in UI
 		document.getElementById('walletMessage').innerHTML = `<span style="color: #dc3545">${errorMessage}</span>`;
@@ -1392,6 +1434,11 @@ function gtag_report_conversion(url) {
   
 	  } finally {
 		document.getElementById('loading').style.display = 'none';
+		 
+		// Only render conversation if we didn't return early from Base App error
+		if (!window.ethereum?.isCoinbaseWallet || !error) {
+			renderConversation();
+		}
 	  }
 	  gtag_report_conversion('https://dissentbot.com');
 	}
