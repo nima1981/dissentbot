@@ -912,6 +912,28 @@ function gtag_report_conversion(url) {
   // Handle wallet connection
   document.addEventListener("DOMContentLoaded", function() {
 	document.getElementById('connectWallet').addEventListener('click', async () => {
+	
+	  // WALLET DETECTION UTILITY
+	  const detectAvailableWallets = () => {
+		const wallets = [];
+		  
+		// Standard EIP-1193 provider detection
+		if (window.ethereum) {
+		  // Check for specific wallet identifiers
+		  if (window.ethereum.isMetaMask) wallets.push({ id: 'metamask', name: 'MetaMask', deepLink: 'https://metamask.app.link/dapp/' });
+		  if (window.ethereum.isCoinbaseWallet) wallets.push({ id: 'coinbase', name: 'Coinbase Wallet', deepLink: 'https://go.cb-w.com/dapp?cb_url=' });
+		  if (window.ethereum.isBraveWallet) wallets.push({ id: 'brave', name: 'Brave Wallet', deepLink: 'brave://wallet/' });
+		  if (window.ethereum.isTrust) wallets.push({ id: 'trust', name: 'Trust Wallet', deepLink: 'trust://' });
+		  if (window.ethereum.isPhantom) wallets.push({ id: 'phantom', name: 'Phantom', deepLink: 'phantom://app/' });
+			
+		  // Generic fallback
+		  if (wallets.length === 0) wallets.push({ id: 'generic', name: 'Web3 Wallet', deepLink: null });
+		}
+		
+		return wallets;
+		
+		};
+		
 	  const connectButton = document.getElementById('connectWallet');
 	  const storedAddress = localStorage.getItem('walletAddress');
 	  let storedSessionToken = localStorage.getItem('sessionToken');
@@ -942,106 +964,151 @@ function gtag_report_conversion(url) {
 	  const hasEthereumProvider = typeof window.ethereum !== 'undefined';
 	  const isBrave = navigator.brave !== undefined && navigator.brave.isBrave instanceof Function;
 
-	  // MOBILE WITHOUT PROVIDER - SHOW INSTRUCTIONS
-	  if (isMobile && !hasEthereumProvider) {
-		// Prevent duplicate modals
-		if (document.getElementById('mobile-instructions')) return;
-		
-		// Create persistent instruction overlay
-		const modal = document.createElement('div');
-		modal.id = 'mobile-instructions';
-		modal.style.cssText = `
-		  position: fixed;
-		  top: 0;
-		  left: 0;
-		  width: 100%;
-		  height: 100%;
-		  background: rgba(0,0,0,0.92);
-		  display: flex;
-		  flex-direction: column;
-		  justify-content: center;
-		  align-items: center;
-		  z-index: 99999;
-		  color: white;
-		  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		  padding: 20px;
-		  box-sizing: border-box;
-		  text-align: center;
-		`;
-
-		const content = document.createElement('div');
-		content.style.cssText = `
-		  max-width: 90%;
-		  background: #121212;
-		  padding: 28px;
-		  border-radius: 20px;
-		  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-		`;
-
-		const title = document.createElement('h3');
-		title.textContent = 'Connect with MetaMask';
-		title.style.cssText = `
-		  margin: 0 0 16px 0;
-		  font-size: 28px;
-		  color: #00C3FF;
-		  font-weight: 600;
-		`;
-
-		const message = document.createElement('p');
-		message.innerHTML = `
-		  <span style="font-size: 18px; line-height: 1.5; display: block; margin-bottom: 16px;">
-			Connecting to MetaMask...
-		  </span>
-		  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px; margin-bottom: 16px;">
-			You'll be redirected to MetaMask automatically.<br>
-			If nothing happens, use your browser's menu:
-		  </span><br>
-		  <span style="background: #252525; padding: 10px; border-radius: 10px; display: inline-block; width: 100%; font-size: 15px; color: #aaa;">
-			1. Tap the <b>⋯ or ⋮</b> menu<br>
-			2. Select <b>"Share" → "Open in MetaMask"</b>
-		  </span><br><br>
-		  <span style="color: #4da8da; font-size: 15px; display: block;">
-			(This only takes 3 seconds)
-		  </span>
-		`;
-		message.style.margin = '0';
-
-		const button = document.createElement('button');
-		button.textContent = 'I UNDERSTAND';
-		button.style.cssText = `
-		  background: linear-gradient(135deg, #00C3FF 0%, #0062FF 100%);
-		  color: white;
-		  border: none;
-		  padding: 16px 36px;
-		  font-size: 18px;
-		  border-radius: 14px;
-		  cursor: pointer;
-		  font-weight: bold;
-		  letter-spacing: 0.5px;
-		  transition: all 0.3s ease;
-		  box-shadow: 0 4px 20px rgba(0, 98, 255, 0.3);
-		`;
-		
-		button.addEventListener('click', () => {
-		  document.body.removeChild(modal);
+		// MOBILE WITHOUT PROVIDER - SHOW INSTRUCTIONS
+		if (isMobile && !hasEthereumProvider) {
+		  // Prevent duplicate modals
+		  if (document.getElementById('mobile-instructions')) return;
 		  
-		  // Store that we've shown instructions
-		  localStorage.setItem('mobileInstructionsShown', 'true');
+		  // Detect available wallets (for instructions)
+		  const availableWallets = detectAvailableWallets();
+		  const hasMultipleWallets = availableWallets.length > 1;
+		  const hasAnyWallet = availableWallets.length > 0;
 		  
-		  // Try redirect after user interaction (works on some browsers)
-		  setTimeout(() => {
-			window.location.href = 'https://metamask.app.link/dapp/dissentbot.com';
-		  }, 500);
-		});
+		  // Create persistent instruction overlay
+		  const modal = document.createElement('div');
+		  modal.id = 'mobile-instructions';
+		  modal.style.cssText = `
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0,0,0,0.92);
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 99999;
+			color: white;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			padding: 20px;
+			box-sizing: border-box;
+			text-align: center;
+		  `;
 
-		content.appendChild(title);
-		content.appendChild(message);
-		content.appendChild(button);
-		modal.appendChild(content);
-		document.body.appendChild(modal);
-		
-		return;
-	  }
+		  const content = document.createElement('div');
+		  content.style.cssText = `
+			max-width: 90%;
+			background: #121212;
+			padding: 28px;
+			border-radius: 20px;
+			box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+		  `;
+
+		  const title = document.createElement('h3');
+		  title.textContent = hasAnyWallet 
+			? `Connect with ${availableWallets[0].name}`
+			: 'Connect with Web3 Wallet';
+		  title.style.cssText = `
+			margin: 0 0 16px 0;
+			font-size: 28px;
+			color: #00C3FF;
+			font-weight: 600;
+		  `;
+
+		  const message = document.createElement('p');
+		  
+		  // Build wallet-specific instructions
+		  let instructionsHTML = '';
+		  
+		  if (hasAnyWallet) {
+			const wallet = availableWallets[0];
+			
+			instructionsHTML = `
+			  <span style="font-size: 18px; line-height: 1.5; display: block; margin-bottom: 16px;">
+				Connecting to ${wallet.name}...
+			  </span>
+			  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px; margin-bottom: 16px;">
+				You'll be redirected to ${wallet.name} automatically.<br>
+				If nothing happens, use your browser's menu:
+			  </span><br>
+			  <span style="background: #252525; padding: 10px; border-radius: 10px; display: inline-block; width: 100%; font-size: 15px; color: #aaa;">
+				1. Tap the <b>⋯ or ⋮</b> menu<br>
+				2. Select <b>"Share" → "Open in ${wallet.name}"</b>
+			  </span>`;
+			  
+			if (hasMultipleWallets) {
+			  instructionsHTML += `<br><br>
+			  <span style="color: #4da8da; font-size: 14px; display: block; text-align: left; margin-top: 10px;">
+				Multiple wallets detected. Using ${wallet.name} as default.
+			  </span>`;
+			}
+		  } else {
+			instructionsHTML = `
+			  <span style="font-size: 18px; line-height: 1.5; display: block; margin-bottom: 16px;">
+				No wallet detected
+			  </span>
+			  <span style="background: #1e1e1e; padding: 12px; border-radius: 12px; display: inline-block; width: 100%; font-size: 16px; margin-bottom: 16px;">
+				Please install a Web3 wallet to connect:
+			  </span><br>
+			  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 16px;">
+				<a href="https://metamask.app.link" target="_blank" style="background: #e07021; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">MetaMask</a>
+				<a href="https://www.coinbase.com/wallet" target="_blank" style="background: #0052ff; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">Coinbase Wallet</a>
+				<a href="https://trustwallet.com" target="_blank" style="background: #3375bb; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">Trust Wallet</a>
+				<a href="https://phantom.app" target="_blank" style="background: #9c5aff; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 14px;">Phantom</a>
+			  </div>
+			  <span style="color: #ff6b6b; font-size: 15px; display: block;">
+				⚠️ Install a wallet first, then return to this page
+			  </span>`;
+		  }
+
+		  message.innerHTML = instructionsHTML;
+		  message.style.margin = '0';
+
+		  const button = document.createElement('button');
+		  button.textContent = hasAnyWallet ? 'I UNDERSTAND' : 'VIEW WALLETS';
+		  button.style.cssText = `
+			background: ${hasAnyWallet ? 'linear-gradient(135deg, #00C3FF 0%, #0062FF 100%)' : '#555'};
+			color: white;
+			border: none;
+			padding: 16px 36px;
+			font-size: 18px;
+			border-radius: 14px;
+			cursor: pointer;
+			font-weight: bold;
+			letter-spacing: 0.5px;
+			transition: all 0.3s ease;
+			box-shadow: ${hasAnyWallet ? '0 4px 20px rgba(0, 98, 255, 0.3)' : 'none'};
+			margin-top: 20px;
+		  `;
+		  
+		  button.addEventListener('click', () => {
+			document.body.removeChild(modal);
+			
+			if (hasAnyWallet) {
+			  // Store that we've shown instructions
+			  localStorage.setItem('mobileInstructionsShown', 'true');
+			  
+			  // Redirect to detected wallet
+			  const wallet = availableWallets[0];
+			  if (wallet.deepLink) {
+				const encodedUrl = encodeURIComponent(window.location.href);
+				window.location.href = wallet.deepLink + (wallet.deepLink.includes('?') ? '&' : '?') + 'dapp_url=' + encodedUrl;
+			  } else {
+				// Generic WalletConnect flow
+				window.open('https://walletconnect.com', '_blank');
+			  }
+			}
+		  });
+
+		  content.appendChild(title);
+		  content.appendChild(message);
+		  content.appendChild(button);
+		  modal.appendChild(content);
+		  document.body.appendChild(modal);
+		  
+		  return;
+		}
 
 	  // ✅ MOBILE WITH PROVIDER - META MASK MOBILE CONNECTION FLOW
 	  if (isMobile && hasEthereumProvider) {
