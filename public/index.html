@@ -1375,6 +1375,8 @@ function gtag_report_conversion(url) {
 				.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 
 		const sanitizedContext = marked.parse(data.context || "No context");
+		
+		console.log("web_search_citations", data.web_search_citations);
 
 		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));

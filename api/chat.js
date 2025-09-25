@@ -307,7 +307,8 @@ export default async function handler(req, res) {
 		// ✅ SUCCESS — BREAK RETRY LOOP
 		res.status(200).json({
 		  answer: apiResponse.data.choices[0].message.content,
-		  context
+		  context,
+		  web_search_citations: apiResponse.data?.venice_parameters?.web_search_citations
 		});
 		
 		break;
