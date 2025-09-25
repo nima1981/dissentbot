@@ -913,26 +913,54 @@ function gtag_report_conversion(url) {
   document.addEventListener("DOMContentLoaded", function() {
 	document.getElementById('connectWallet').addEventListener('click', async () => {
 	
-	  // WALLET DETECTION UTILITY
-	  const detectAvailableWallets = () => {
-		const wallets = [];
-		  
-		// Standard EIP-1193 provider detection
-		if (window.ethereum) {
-		  // Check for specific wallet identifiers
-		  if (window.ethereum.isMetaMask) wallets.push({ id: 'metamask', name: 'MetaMask', deepLink: 'https://metamask.app.link/dapp/' });
-		  if (window.ethereum.isCoinbaseWallet) wallets.push({ id: 'coinbase', name: 'Coinbase Wallet', deepLink: 'https://go.cb-w.com/dapp?cb_url=' });
-		  if (window.ethereum.isBraveWallet) wallets.push({ id: 'brave', name: 'Brave Wallet', deepLink: 'brave://wallet/' });
-		  if (window.ethereum.isTrust) wallets.push({ id: 'trust', name: 'Trust Wallet', deepLink: 'trust://' });
-		  if (window.ethereum.isPhantom) wallets.push({ id: 'phantom', name: 'Phantom', deepLink: 'phantom://app/' });
-			
-		  // Generic fallback
-		  if (wallets.length === 0) wallets.push({ id: 'generic', name: 'Web3 Wallet', deepLink: null });
-		}
+		 // WALLET DETECTION UTILITY - UPDATED FOR DISSENTBOT.COM
+	const detectAvailableWallets = () => {
+	  const wallets = [];
+	  
+	  // Standard EIP-1193 provider detection
+	  if (window.ethereum) {
+		// Check for specific wallet identifiers
+		if (window.ethereum.isMetaMask) wallets.push({ 
+		  id: 'metamask', 
+		  name: 'MetaMask', 
+		  deepLink: 'https://metamask.app.link/dapp/?url=',  // CRITICAL FORMAT CHANGE
+		  requiresFullUrl: true 
+		});
+		if (window.ethereum.isCoinbaseWallet) wallets.push({ 
+		  id: 'coinbase', 
+		  name: 'Coinbase Wallet', 
+		  deepLink: 'https://go.cb-w.com/dapp?cb_url=',
+		  requiresFullUrl: true 
+		});
+		if (window.ethereum.isBraveWallet) wallets.push({ 
+		  id: 'brave', 
+		  name: 'Brave Wallet',
+		  requiresFullUrl: false 
+		});
+		if (window.ethereum.isTrust) wallets.push({ 
+		  id: 'trust', 
+		  name: 'Trust Wallet',
+		  deepLink: 'https://dissentbot.com',  // TRUST WANTS RAW URL
+		  requiresFullUrl: true 
+		});
+		if (window.ethereum.isPhantom) wallets.push({ 
+		  id: 'phantom', 
+		  name: 'Phantom',
+		  deepLink: 'https://phantom.app/wc?uri=',  // WALLETCONNECT FORMAT
+		  requiresFullUrl: false 
+		});
 		
-		return wallets;
-		
-		};
+		// Generic fallback
+		if (wallets.length === 0) wallets.push({ 
+		  id: 'generic', 
+		  name: 'Web3 Wallet',
+		  deepLink: null,
+		  requiresFullUrl: true 
+		});
+	  }
+	  
+	  return wallets;
+	};
 		
 	  const connectButton = document.getElementById('connectWallet');
 	  const storedAddress = localStorage.getItem('walletAddress');
@@ -1082,24 +1110,48 @@ function gtag_report_conversion(url) {
 			margin-top: 20px;
 		  `;
 		  
-		  button.addEventListener('click', () => {
-			document.body.removeChild(modal);
+		button.addEventListener('click', () => {
+		  document.body.removeChild(modal);
+		  
+		  if (hasAnyWallet) {
+			// Store that we've shown instructions
+			localStorage.setItem('mobileInstructionsShown', 'true');
 			
-			if (hasAnyWallet) {
-			  // Store that we've shown instructions
-			  localStorage.setItem('mobileInstructionsShown', 'true');
-			  
-			  // Redirect to detected wallet
-			  const wallet = availableWallets[0];
-			  if (wallet.deepLink) {
-				const encodedUrl = encodeURIComponent(window.location.href);
-				window.location.href = wallet.deepLink + (wallet.deepLink.includes('?') ? '&' : '?') + 'dapp_url=' + encodedUrl;
-			  } else {
-				// Generic WalletConnect flow
-				window.open('https://walletconnect.com', '_blank');
-			  }
+			const wallet = availableWallets[0];
+			const currentUrl = window.location.href;
+			
+			// CRITICAL: Special handling for DISSENTBOT.COM
+			if (wallet.id === 'metamask') {
+			  // MetaMask requires EXACTLY this format for dissentbot.com
+			  window.location.href = `https://metamask.app.link/dapp/?url=${encodeURIComponent(currentUrl)}`;
+			} 
+			else if (wallet.id === 'coinbase') {
+			  // Coinbase requires URL encoding
+			  window.location.href = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(currentUrl)}`;
 			}
-		  });
+			else if (wallet.id === 'trust') {
+			  // Trust Wallet needs special handling for dissentbot.com
+			  // Must use universal link format
+			  window.location.href = `https://dissentbot.com`;
+			}
+			else if (wallet.id === 'brave') {
+			  // Brave Wallet works differently on dissentbot.com
+			  // Must trigger connection manually
+			  setTimeout(() => {
+				window.ethereum?.request({ method: 'eth_requestAccounts' });
+			  }, 300);
+			}
+			else if (wallet.id === 'phantom') {
+			  // Phantom requires WalletConnect for dissentbot.com
+			  const wcUri = `wc:dissentbot-com:1?relay-protocol=irn&symKey=...`; // Simplified
+			  window.location.href = `https://phantom.app/wc?uri=${encodeURIComponent(wcUri)}`;
+			}
+			else {
+			  // Generic fallback for dissentbot.com
+			  window.location.href = `https://metamask.app.link/dapp/?url=${encodeURIComponent(currentUrl)}`;
+			}
+		  }
+		});
 
 		  content.appendChild(title);
 		  content.appendChild(message);
