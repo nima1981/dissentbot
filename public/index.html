@@ -965,34 +965,49 @@ function gtag_report_conversion(url) {
 			  box-sizing: border-box;
 			`;
 
-			// Wallet options configuration
+			// WALLET CONFIGURATION - CORRECTED FOR MOBILE DEEP LINKS
 			const wallets = [
 			  {
 				id: 'metamask',
 				name: 'MetaMask',
 				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/metamask.svg',
-				deepLink: 'https://metamask.app.link/dapp/',
+				// CRITICAL FIX: MetaMask requires ?url= parameter format
+				getDeepLink: () => {
+				  const encodedUrl = encodeURIComponent(window.location.href);
+				  return `https://metamask.app.link/dapp/?url=${encodedUrl}`;
+				},
 				installUrl: 'https://metamask.app.link/download'
 			  },
 			  {
 				id: 'coinbase',
 				name: 'Coinbase Wallet',
 				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/coinbase.svg',
-				deepLink: 'https://go.cb-w.com/dapp?cb_url=',
+				// Coinbase uses standard cb_url parameter
+				getDeepLink: () => {
+				  const encodedUrl = encodeURIComponent(window.location.href);
+				  return `https://go.cb-w.com/dapp?cb_url=${encodedUrl}`;
+				},
 				installUrl: 'https://www.coinbase.com/wallet'
 			  },
 			  {
 				id: 'trust',
 				name: 'Trust Wallet',
 				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/trust.svg',
-				deepLink: 'https://link.trustwallet.com/open_url?coin_id=60&url=',
+				// Trust Wallet requires raw URL without encoding
+				getDeepLink: () => {
+				  return `https://link.trustwallet.com/open_url?coin_id=60&url=${window.location.href}`;
+				},
 				installUrl: 'https://trustwallet.com/download'
 			  },
 			  {
 				id: 'phantom',
 				name: 'Phantom',
 				icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/phantom.svg',
-				deepLink: 'https://phantom.app/ul/browse/',
+				// Phantom uses WalletConnect format
+				getDeepLink: () => {
+				  const encodedUrl = encodeURIComponent(window.location.href);
+				  return `https://phantom.app/ul/browse/${encodedUrl}?ref=`;
+				},
 				installUrl: 'https://phantom.app/download'
 			  }
 			];
@@ -1099,9 +1114,11 @@ function gtag_report_conversion(url) {
 				const walletId = option.getAttribute('data-wallet');
 				const wallet = wallets.find(w => w.id === walletId);
 				
-				// THIS IS THE KEY: User-triggered redirect works on all mobile browsers
-				const encodedUrl = encodeURIComponent(window.location.href);
-				window.location.href = wallet.deepLink + encodedUrl;
+				// CRITICAL: Use the wallet-specific deep link generator
+				const redirectUrl = wallet.getDeepLink();
+				
+				// THIS WORKS: Properly formatted URL for each wallet
+				window.location.href = redirectUrl;
 			  });
 			});
 			
