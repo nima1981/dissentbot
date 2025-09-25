@@ -974,7 +974,7 @@ function gtag_report_conversion(url) {
 				// CRITICAL FIX: MetaMask requires ?url= parameter format
 				getDeepLink: () => {
 				  const encodedUrl = encodeURIComponent(window.location.href);
-				  return `https://metamask.app.link/dapp/?url=${encodedUrl}`;
+				  return `https://metamask.app.link/dapp/${encodedUrl}`;
 				},
 				installUrl: 'https://metamask.app.link/download'
 			  },
