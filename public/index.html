@@ -1334,8 +1334,8 @@ function gtag_report_conversion(url) {
 		  data = { answer: bodyText, context: "" };
 		}
 		
-		console.log("testing");
-		console.log("data.web_search_citations", JSON.stringify(data.web_search_citations));
+		//console.log("testing");
+		//console.log("data.web_search_citations", JSON.stringify(data.web_search_citations));
 		
 		// ✅ HANDLE FORBIDDEN
 		if (response.status === 403) {
@@ -1378,8 +1378,14 @@ function gtag_report_conversion(url) {
 				.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 
 		const sanitizedContext = marked.parse(data.context || "No context");
+		
+		let counter = 0;
+		const appendix = web_search_citations.map(citation => {
+			'[' + counter + '] <a href="' + citation.url + '" target="_blank">' + citation.title + '</a>';
+			counter++;
+		}).join('<br>');
 
-		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer });
+		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer + '<p class="appendix"><b>References</b><br>' + appendix + '</p>' });
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		renderConversation();
 
