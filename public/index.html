@@ -950,12 +950,6 @@ function gtag_report_conversion(url) {
 		  
 		  const isBaseApp = window.ethereum?.isCoinbaseWallet && 
 			(window.ethereum?.isBase || window.ethereum?.isBaseApp);
-
-		  // DISCONNECT BLOCK
-		  if (storedAddress || storedSessionToken) {
-			if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
-			  return; // Exit if user cancels
-			}
 			
 		  // DISCONNECT BLOCK - COMPLETELY REWRITTEN FOR BASE APP
 		  if ((storedAddress || storedSessionToken) && !isBaseApp) {
