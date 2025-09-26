@@ -1370,7 +1370,7 @@ function gtag_report_conversion(url) {
 
 		// ✅ HANDLE SUCCESS CASE
 		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
-		const sanitizedAnswer = marked.parse(
+		let sanitizedAnswer = marked.parse(
 			data.answer
 				.replace(/\[REF\]/g, ' [REF]')
 				.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
@@ -1379,13 +1379,19 @@ function gtag_report_conversion(url) {
 
 		const sanitizedContext = marked.parse(data.context || "No context");
 		
-		let counter = 0;
-		const appendix = web_search_citations.map(citation => {
-			'[' + counter + '] <a href="' + citation.url + '" target="_blank">' + citation.title + '</a>';
-			counter++;
-		}).join('<br>');
-
-		conversationHistory.push({ role: 'assistant', content: sanitizedAnswer + '<p class="appendix"><b>References</b><br>' + appendix + '</p>' });
+		const appendix = data.web_search_citations.map((citation, index) => 
+			`[${index}] <a href="${citation.url}" target="_blank">${citation.title}</a>`
+		).join('<br>');
+		
+		if (appendix){
+			sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + appendix + '</p>'
+		}
+		
+		conversationHistory.push({ 
+			role: 'assistant', 
+			content: sanitizedAnswer 
+		});
+	
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		renderConversation();
 
