@@ -23,34 +23,6 @@ export default async function handler(req, res) {
       message,
       baseSessionToken  // NEW PARAMETER
     } = req.body;
-	
-	    // First check if this is a Base App session
-    if (baseSessionToken) {
-      try {
-        // Verify with Base App's session API
-        const sessionResponse = await fetch('https://session.base.org/verify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.BASE_SESSION_SECRET}`
-          },
-          body: JSON.stringify({
-            token: baseSessionToken,
-            dappUrl: req.headers.origin
-          })
-        });
-
-        if (sessionResponse.ok) {
-          const sessionData = await sessionResponse.json();
-          if (sessionData.valid && sessionData.address.toLowerCase() === walletAddress.toLowerCase()) {
-            // Session is valid - skip signature verification
-            // Continue with staking verification and token generation
-          }
-        }
-      } catch (e) {
-        console.error("Base session verification failed:", e);
-      }
-    }
 
     if (!walletAddress || !signature || !message) {
       return res.status(401).json({ error: "Authentication required" });
