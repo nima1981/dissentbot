@@ -1380,7 +1380,7 @@ function gtag_report_conversion(url) {
 		const sanitizedContext = marked.parse(data.context || "No context");
 		
 		const appendix = data.web_search_citations.map((citation, index) => 
-			`[${index}] <a href="${citation.url}" target="_blank">${citation.title}</a>`
+			`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
 		).join('<br>');
 		
 		if (appendix){
