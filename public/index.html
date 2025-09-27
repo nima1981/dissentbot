@@ -1005,9 +1005,12 @@ function gtag_report_conversion(url) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ walletAddress, signature, message })
 			  });
-
+			  
 			  if (!authResponse.ok) {
-				throw new Error("Authentication failed");
+				  console.error("❌ Server rejected wallet signature");
+				  localStorage.removeItem('walletAddress');
+				  localStorage.removeItem('sessionToken');
+				  throw new Error("Authentication failed");
 			  }
 
 			  const { token } = await authResponse.json();

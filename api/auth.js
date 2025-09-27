@@ -29,29 +29,38 @@ export default async function handler(req, res) {
     }
 
 	// ✅ CORRECT SIGNATURE VERIFICATION
-	try {
-	  let recoveredAddress;
+		try {
+		  console.log("🔐 Incoming auth request");
+		  console.log("walletAddress:", walletAddress);
+		  console.log("message:", message);
+		  console.log("signature:", signature);
 
-	  try {
-		// Standard EIP-191 signature verification
-		recoveredAddress = ethers.utils.verifyMessage(message, signature);
-	  } catch (err) {
-		// Fallback for Coinbase Android eth_sign (signs the hash)
-		const msgHash = ethers.utils.hashMessage(message);
-		recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
-	  }
+		  let recoveredAddress;
 
-	if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-	  console.error("Signature failed", {
-		walletAddress,
-		message,
-		signature,
-		recoveredAddress
-	  });
-	  return res.status(401).json({ error: "Invalid wallet signature" });
-	}
+		  try {
+			// Try standard signature verification
+			recoveredAddress = ethers.utils.verifyMessage(message, signature);
+			console.log("✅ verifyMessage recovered:", recoveredAddress);
+		  } catch (err) {
+			console.warn("⚠️ verifyMessage failed, trying recoverAddress fallback:", err.message);
+			const msgHash = ethers.utils.hashMessage(message);
+			recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
+			console.log("✅ recoverAddress recovered:", recoveredAddress);
+		  }
 
-	} catch (error) {
+		  if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+			console.error("❌ Signature does not match wallet address");
+			console.error("Expected:", walletAddress.toLowerCase());
+			console.error("Got:", recoveredAddress.toLowerCase());
+			return res.status(401).json({ error: "Invalid wallet signature" });
+		  }
+
+		  console.log("✅ Signature verified successfully");
+		} catch (error) {
+		  console.error("❌ Signature verification error:", error);
+		  return res.status(500).json({ error: error.message });
+		}
+
 
       // ✅ COINBASE-SPECIFIC FIX: Handle non-standard v values
       try {
