@@ -29,18 +29,44 @@ export default async function handler(req, res) {
     }
 
 	// ✅ CORRECT SIGNATURE VERIFICATION
-    try {
-      const recoveredAddress = ethers.utils.verifyMessage(message, signature);
-      if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-        return res.status(401).json({ error: "Invalid wallet signature" });
-      }
-    } catch (error) {
+	try {
+	  let recoveredAddress;
+
+	  try {
+		// Standard EIP-191 signature verification
+		recoveredAddress = ethers.utils.verifyMessage(message, signature);
+	  } catch (err) {
+		// Fallback for Coinbase Android eth_sign (signs the hash)
+		const msgHash = ethers.utils.hashMessage(message);
+		recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
+	  }
+
+	if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+	  console.error("Signature failed", {
+		walletAddress,
+		message,
+		signature,
+		recoveredAddress
+	  });
+	  return res.status(401).json({ error: "Invalid wallet signature" });
+	}
+
+	} catch (error) {
+
       // ✅ COINBASE-SPECIFIC FIX: Handle non-standard v values
       try {
         let sig = ethers.utils.splitSignature(signature);
         if (sig.v < 27) sig.v += 27;
         const normalizedSignature = ethers.utils.joinSignature(sig);
-        const recoveredAddress = ethers.utils.verifyMessage(message, normalizedSignature);
+        let recoveredAddress;
+
+		try {
+		  recoveredAddress = ethers.utils.verifyMessage(message, normalizedSignature);
+		} catch (err) {
+		  const msgHash = ethers.utils.hashMessage(message);
+		  recoveredAddress = ethers.utils.recoverAddress(msgHash, normalizedSignature);
+		}
+
         
         if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
           return res.status(401).json({ error: "Invalid wallet signature" });
