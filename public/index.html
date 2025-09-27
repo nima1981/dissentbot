@@ -670,6 +670,7 @@ function gtag_report_conversion(url) {
 		  <div class="dot"></div>
 		  <div class="dot"></div>
 		  <div class="dot"></div>
+		  <div class="dot"></div>
 		</div>
 		<p id="loading-message">Thinking...</p>
 	  </div>
@@ -950,8 +951,97 @@ function gtag_report_conversion(url) {
 
 		  // DISCONNECT BLOCK (simplified and working)
 		  if (storedAddress || storedSessionToken) {
-			if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
-			  return;
+			// REPLACE THIS:
+			// if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
+			//   return;
+			// }
+
+			// WITH THIS BASE APP-SPECIFIC HANDLER:
+			if (isBaseApp) {
+			  // Base app blocks standard confirm dialogs
+			  const disconnectModal = document.createElement('div');
+			  disconnectModal.style.cssText = `
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0,0,0,0.7);
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				z-index: 99999;
+				color: white;
+				padding: 20px;
+			  `;
+			  
+			  disconnectModal.innerHTML = `
+				<div style="
+				  background: #1e1e1e;
+				  padding: 20px;
+				  border-radius: 12px;
+				  width: 80%;
+				  max-width: 400px;
+				  text-align: center;
+				">
+				  <h3 style="margin: 0 0 15px 0; color: #fff;">Disconnect Wallet</h3>
+				  <p style="margin: 0 0 20px 0; color: #ccc;">
+					Are you sure you want to disconnect your wallet?<br>
+					Your session will be cleared.
+				  </p>
+				  <div style="display: flex; gap: 10px; justify-content: center;">
+					<button id="disconnectCancel" style="
+					  background: #333;
+					  color: white;
+					  border: none;
+					  padding: 10px 20px;
+					  border-radius: 6px;
+					  cursor: pointer;
+					">Cancel</button>
+					<button id="disconnectConfirm" style="
+					  background: #dc3545;
+					  color: white;
+					  border: none;
+					  padding: 10px 20px;
+					  border-radius: 6px;
+					  cursor: pointer;
+					">Disconnect</button>
+				  </div>
+				</div>
+			  `;
+			  
+			  document.body.appendChild(disconnectModal);
+			  
+			  // Handle modal interactions
+			  document.getElementById('disconnectCancel').addEventListener('click', () => {
+				document.body.removeChild(disconnectModal);
+			  });
+			  
+			  document.getElementById('disconnectConfirm').addEventListener('click', () => {
+				document.body.removeChild(disconnectModal);
+				// Continue with disconnect process
+			  });
+			  
+			  // Wait for user to make a choice
+			  await new Promise((resolve) => {
+				const checkModal = setInterval(() => {
+				  if (!document.body.contains(disconnectModal)) {
+					clearInterval(checkModal);
+					resolve();
+				  }
+				}, 100);
+			  });
+			  
+			  // If user clicked cancel, exit
+			  if (document.body.contains(disconnectModal)) {
+				return;
+			  }
+			} else {
+			  // Standard confirm dialog for non-Base app
+			  if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
+				return;
+			  }
 			}
 			
 			// Proper Base app cleanup (verified)
