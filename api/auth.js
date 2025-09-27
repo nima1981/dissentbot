@@ -29,39 +29,36 @@ export default async function handler(req, res) {
     }
 
 	// ✅ CORRECT SIGNATURE VERIFICATION
-		try {
-		  console.log("🔐 Incoming auth request");
-		  console.log("walletAddress:", walletAddress);
-		  console.log("message:", message);
-		  console.log("signature:", signature);
+	try {
+			
+	  console.log("🔐 Incoming auth request");
+	  console.log("walletAddress:", walletAddress);
+	  console.log("message:", message);
+	  console.log("signature:", signature);
+	  let recoveredAddress;
 
-		  let recoveredAddress;
+	  try {
+		// Standard EIP-191 signature verification
+		recoveredAddress = ethers.utils.verifyMessage(message, signature);
+		console.log("✅ verifyMessage recovered:", recoveredAddress);
+	  } catch (err) {
+		  console.warn("⚠️ verifyMessage failed, trying recoverAddress fallback:", err.message);
+		// Fallback for Coinbase Android eth_sign (signs the hash)
+		const msgHash = ethers.utils.hashMessage(message);
+		recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
+		console.log("✅ recoverAddress recovered:", recoveredAddress);
+	  }
 
-		  try {
-			// Try standard signature verification
-			recoveredAddress = ethers.utils.verifyMessage(message, signature);
-			console.log("✅ verifyMessage recovered:", recoveredAddress);
-		  } catch (err) {
-			console.warn("⚠️ verifyMessage failed, trying recoverAddress fallback:", err.message);
-			const msgHash = ethers.utils.hashMessage(message);
-			recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
-			console.log("✅ recoverAddress recovered:", recoveredAddress);
-		  }
+	if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+		console.error("❌ Signature does not match wallet address");
+		console.error("Expected:", walletAddress.toLowerCase());
+		console.error("Got:", recoveredAddress.toLowerCase());
 
-		  if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-			console.error("❌ Signature does not match wallet address");
-			console.error("Expected:", walletAddress.toLowerCase());
-			console.error("Got:", recoveredAddress.toLowerCase());
-			return res.status(401).json({ error: "Invalid wallet signature" });
-		  }
-
-		  console.log("✅ Signature verified successfully");
-		} catch (error) {
-		  console.error("❌ Signature verification error:", error);
-		  return res.status(500).json({ error: error.message });
-		}
-
-
+	  return res.status(401).json({ error: "Invalid wallet signature" });
+	}
+	console.log("✅ Signature verified successfully");
+	} catch (error) {
+		console.error("❌ Signature verification error:", error);
       // ✅ COINBASE-SPECIFIC FIX: Handle non-standard v values
       try {
         let sig = ethers.utils.splitSignature(signature);
@@ -72,15 +69,18 @@ export default async function handler(req, res) {
 		try {
 		  recoveredAddress = ethers.utils.verifyMessage(message, normalizedSignature);
 		} catch (err) {
+			console.error("ethers.utils.verifyMessage(message, normalizedSignature) failure:", err);
 		  const msgHash = ethers.utils.hashMessage(message);
 		  recoveredAddress = ethers.utils.recoverAddress(msgHash, normalizedSignature);
 		}
 
         
         if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+		  console.error("recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()");
           return res.status(401).json({ error: "Invalid wallet signature" });
         }
       } catch (e) {
+		  console.error("Invalid wallet signature format", e);
         return res.status(401).json({ error: "Invalid signature format" });
       }
     }
