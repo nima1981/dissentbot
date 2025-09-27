@@ -1698,23 +1698,7 @@ function gtag_report_conversion(url) {
 
   // Initial render
   renderConversation();
-  
-	// ADD THE DISCONNECT FIX RIGHT HERE
-	document.addEventListener('DOMContentLoaded', () => {
-	  document.getElementById('wallet-status').addEventListener('click', (e) => {
-		if (!walletAddress) return;
-		
-		const isClickOnWalletAddress = 
-		  e.target.closest('#connectAction') || 
-		  e.target.id === 'connectAction' ||
-		  (e.target.parentElement && e.target.parentElement.id === 'connectAction');
-		
-		if (isClickOnWalletAddress) {
-		  document.getElementById('connectWallet').click();
-		}
-	  });
-	});
-  
+    
 </script>
 
 <script>
