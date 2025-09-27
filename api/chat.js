@@ -30,33 +30,69 @@ export default async function handler(req, res) {
 		console.error("Standard verification failed:", error);
 		
 		try {
-		  // Handle Coinbase Wallet WebAuthn response
-		  if (sig.startsWith('0x') && sig.includes('"type":"webauthn.get"')) {
+		  // Handle Coinbase Wallet WebAuthn response (ANDROID FIX)
+		  if (sig && typeof sig === 'string' && sig.startsWith('0x')) {
 			try {
-			  const sigStr = sig.substring(2); // Remove '0x'
-			  const jsonStart = sigStr.indexOf('{');
-			  const jsonEnd = sigStr.lastIndexOf('}') + 1;
+			  const sigWithout0x = sig.substring(2);
 			  
-			  if (jsonStart !== -1 && jsonEnd !== -1) {
-				const jsonData = JSON.parse(sigStr.substring(jsonStart, jsonEnd));
+			  // NEW: Handle malformed WebAuthn responses from Android
+			  if (sigWithout0x.includes('webauthn') || sigWithout0x.includes('{"type"')) {
+				// Attempt 1: Find JSON within the hex string (common Android format)
+				let jsonStart = sigWithout0x.indexOf('{');
+				let jsonEnd = sigWithout0x.lastIndexOf('}') + 1;
 				
-				if (jsonData.signature) {
-				  // Extract and verify the actual Ethereum signature
-				  return await verifySignature(address, msg, jsonData.signature);
+				// Special handling for Android's malformed JSON
+				if (jsonStart === -1) {
+				  // Sometimes Android puts JSON at the end of the string
+				  jsonStart = sigWithout0x.length - 200; // Look at last 200 chars
+				  jsonEnd = sigWithout0x.length;
+				}
+				
+				if (jsonStart !== -1 && jsonEnd > jsonStart) {
+				  const jsonString = sigWithout0x.substring(jsonStart, jsonEnd);
+				  
+				  try {
+					const jsonData = JSON.parse(jsonString);
+					if (jsonData.signature) {
+					  // Extract and verify the actual Ethereum signature
+					  return await verifySignature(address, msg, jsonData.signature);
+					}
+				  } catch (e) {
+					console.log("Failed to parse JSON, trying raw extraction");
+					
+					// Attempt 2: Raw extraction for Android's weird format
+					const sigMatch = jsonString.match(/"signature":"(0x[0-9a-fA-F]+)"/);
+					if (sigMatch && sigMatch[1]) {
+					  return await verifySignature(address, msg, sigMatch[1]);
+					}
+				  }
 				}
 			  }
+			  
+			  // Handle Coinbase Wallet's non-standard v values (0/1 instead of 27/28)
+			  let sigObj = ethers.utils.splitSignature(sig);
+			  if (sigObj.v < 27) sigObj.v += 27;
+			  const normalizedSig = ethers.utils.joinSignature(sigObj);
+			  
+			  const recovered = ethers.utils.verifyMessage(msg, normalizedSig);
+			  return recovered.toLowerCase() === address.toLowerCase();
 			} catch (e) {
-			  console.error("Failed to parse WebAuthn response:", e);
+			  console.error("Fallback parsing failed:", e);
+			  
+			  // FINAL FALLBACK: Try direct v value fix
+			  if (sig.length === 132) { // 0x + 65 bytes (130 chars)
+				const sigBytes = ethers.utils.arrayify(sig);
+				if (sigBytes[64] < 27) {
+				  sigBytes[64] += 27;
+				  const fixedSig = ethers.utils.hexlify(sigBytes);
+				  const recovered = ethers.utils.verifyMessage(msg, fixedSig);
+				  return recovered.toLowerCase() === address.toLowerCase();
+				}
+			  }
 			}
 		  }
 		  
-		  // Handle Coinbase Wallet's non-standard v values (0/1 instead of 27/28)
-		  let sigObj = ethers.utils.splitSignature(sig);
-		  if (sigObj.v < 27) sigObj.v += 27;
-		  const normalizedSig = ethers.utils.joinSignature(sigObj);
-		  
-		  const recovered = ethers.utils.verifyMessage(msg, normalizedSig);
-		  return recovered.toLowerCase() === address.toLowerCase();
+		  return false;
 		} catch (e) {
 		  console.error("Fallback verification failed:", e);
 		  return false;
