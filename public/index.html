@@ -1047,9 +1047,7 @@ function gtag_report_conversion(url) {
 			}
 			return;
 		  }
-		  
-		  // WALLET DETECTION UTILITY (MOBILE-SPECIFIC)
-			const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 			  
 			// MOBILE WALLET SELECTION MODAL
 			if (isMobile && typeof window.ethereum === 'undefined') {
