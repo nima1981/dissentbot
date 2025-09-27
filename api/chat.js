@@ -23,60 +23,73 @@ export default async function handler(req, res) {
 
 	const verifySignature = async (address, msg, sig) => {
 	  try {
-		// Standard verification
+		// 1. Try standard signature
 		const recovered = ethers.utils.verifyMessage(msg, sig);
 		return recovered.toLowerCase() === address.toLowerCase();
 	  } catch (error) {
 		try {
-		  // Handle Android's specific WebAuthn response format
-		  if (sig && typeof sig === 'string' && sig.startsWith('0x')) {
-			const sigWithout0x = sig.substring(2);
-			
-			// Android embeds JSON at the end of the signature
-			const jsonStart = sigWithout0x.indexOf('{');
-			const jsonEnd = sigWithout0x.lastIndexOf('}') + 1;
-			
-			if (jsonStart !== -1 && jsonEnd > jsonStart) {
-			  try {
-				const jsonString = sigWithout0x.substring(jsonStart, jsonEnd);
-				const webAuthnResponse = JSON.parse(jsonString);
-				
-				// Extract the actual signature if present
-				if (webAuthnResponse.signature) {
-				  const recovered = ethers.utils.verifyMessage(msg, webAuthnResponse.signature);
-				  return recovered.toLowerCase() === address.toLowerCase();
-				}
-				
-				// Alternative format check (Android sometimes puts signature elsewhere)
-				if (webAuthnResponse.response?.signature) {
-				  const recovered = ethers.utils.verifyMessage(msg, webAuthnResponse.response.signature);
-				  return recovered.toLowerCase() === address.toLowerCase();
-				}
-			  } catch (e) {
-				console.log("Failed to parse WebAuthn JSON, trying raw extraction");
-				
-				// Raw extraction fallback for Android's weird format
-				const sigMatch = jsonString.match(/"signature":"(0x[0-9a-fA-F]+)"/);
-				if (sigMatch && sigMatch[1]) {
-				  const recovered = ethers.utils.verifyMessage(msg, sigMatch[1]);
-				  return recovered.toLowerCase() === address.toLowerCase();
+		  // 2. Check if sig is JSON-encoded (Coinbase Android sometimes returns JSON)
+		  if (typeof sig === 'string') {
+			try {
+			  const parsed = JSON.parse(sig);
+			  const possibleSigs = [
+				parsed.signature,
+				parsed.response?.signature
+			  ].filter(Boolean);
+
+			  for (const s of possibleSigs) {
+				const recovered = ethers.utils.verifyMessage(msg, s);
+				if (recovered.toLowerCase() === address.toLowerCase()) return true;
+			  }
+			} catch (e) {
+			  // Not a JSON string — move on
+			}
+
+			// 3. Check for JSON embedded inside hex string
+			if (sig.startsWith('0x')) {
+			  const sigWithout0x = sig.slice(2);
+			  const jsonStart = sigWithout0x.indexOf('{');
+			  const jsonEnd = sigWithout0x.lastIndexOf('}') + 1;
+
+			  if (jsonStart !== -1 && jsonEnd > jsonStart) {
+				try {
+				  const jsonString = sigWithout0x.slice(jsonStart, jsonEnd);
+				  const webAuthnResponse = JSON.parse(jsonString);
+				  const nestedSigs = [
+					webAuthnResponse.signature,
+					webAuthnResponse.response?.signature
+				  ].filter(Boolean);
+
+				  for (const s of nestedSigs) {
+					const recovered = ethers.utils.verifyMessage(msg, s);
+					if (recovered.toLowerCase() === address.toLowerCase()) return true;
+				  }
+				} catch (e) {
+				  console.log("Failed to parse embedded JSON");
 				}
 			  }
+
+			  // 4. Normalize v values and try again
+			  let sigObj = ethers.utils.splitSignature(sig);
+			  if (sigObj.v < 27) sigObj.v += 27;
+			  const normalizedSig = ethers.utils.joinSignature(sigObj);
+			  const recovered = ethers.utils.verifyMessage(msg, normalizedSig);
+			  return recovered.toLowerCase() === address.toLowerCase();
 			}
 		  }
-		  
-		  // Handle Coinbase Wallet's non-standard v values
-		  let sigObj = ethers.utils.splitSignature(sig);
-		  if (sigObj.v < 27) sigObj.v += 27;
-		  const normalizedSig = ethers.utils.joinSignature(sigObj);
-		  
-		  const recovered = ethers.utils.verifyMessage(msg, normalizedSig);
+
+		  // 5. As last resort, try raw address recovery (for weirdly signed messages)
+		  const recovered = ethers.utils.recoverAddress(
+			ethers.utils.hashMessage(msg),
+			sig
+		  );
 		  return recovered.toLowerCase() === address.toLowerCase();
 		} catch (e) {
 		  return false;
 		}
 	  }
-	};	
+	};
+
 	
   try {
     const {
