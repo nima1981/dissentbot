@@ -1047,6 +1047,200 @@ function gtag_report_conversion(url) {
 			}
 			return;
 		  }
+		  
+		  // WALLET DETECTION UTILITY (MOBILE-SPECIFIC)
+			const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+			  
+			// MOBILE WALLET SELECTION MODAL
+			if (isMobile && typeof window.ethereum === 'undefined') {
+			  // Prevent duplicate modals
+			  if (document.getElementById('wallet-selection-modal')) return;
+			  
+			  // Create modal overlay
+			  const modal = document.createElement('div');
+			  modal.id = 'wallet-selection-modal';
+			  modal.style.cssText = `
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0,0,0,0.92);
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				z-index: 99999;
+				color: white;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+				padding: 20px;
+				box-sizing: border-box;
+			  `;
+
+			  // WALLET CONFIGURATION - CORRECTED FOR MOBILE DEEP LINKS
+			  const wallets = [
+				{
+				  id: 'metamask',
+				  name: 'MetaMask',
+				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/metamask.svg',
+				  
+				  getDeepLink: () => {
+					const encodedUrl = encodeURIComponent(window.location.hostname);
+					return `https://metamask.app.link/dapp/${encodedUrl}`;
+				  },
+				  installUrl: 'https://metamask.app.link/download'
+				},
+				{
+				  id: 'coinbase',
+				  name: 'Coinbase Wallet',
+				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/coinbase.svg',
+				  // Coinbase uses standard cb_url parameter
+				  getDeepLink: () => {
+					const encodedUrl = encodeURIComponent(window.location.href);
+					return `https://go.cb-w.com/dapp?cb_url=${encodedUrl}`;
+				  },
+				  installUrl: 'https://www.coinbase.com/wallet'
+				},
+				{
+				  id: 'trust',
+				  name: 'Trust Wallet',
+				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/trust.svg',
+				  // Trust Wallet requires raw URL without encoding
+				  getDeepLink: () => {
+					return `https://link.trustwallet.com/open_url?coin_id=60&url=${window.location.href}`;
+				  },
+				  installUrl: 'https://trustwallet.com/download'
+				},
+				{
+				  id: 'phantom',
+				  name: 'Phantom',
+				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/phantom.svg',
+				  // Phantom uses WalletConnect format
+				  getDeepLink: () => {
+					const encodedUrl = encodeURIComponent(window.location.href);
+					return `https://phantom.app/ul/browse/${encodedUrl}?ref=`;
+				  },
+				  installUrl: 'https://phantom.app/download'
+				}
+			  ];
+
+			  // Build wallet options HTML
+			  let walletOptionsHTML = '';
+			  wallets.forEach(wallet => {
+				walletOptionsHTML += `
+				  <div class="wallet-option" data-wallet="${wallet.id}" style="
+					display: flex;
+					align-items: center;
+					padding: 15px;
+					margin: 10px 0;
+					background: #1e1e1e;
+					border-radius: 12px;
+					cursor: pointer;
+					transition: all 0.2s;
+				  ">
+					<img src="${wallet.icon}" style="
+					  width: 40px;
+					  height: 40px;
+					  border-radius: 50%;
+					  margin-right: 15px;
+					  background: white;
+					  padding: 3px;
+					">
+					<div style="
+					  flex: 1;
+					  text-align: left;
+					">
+					  <div style="
+						font-weight: 600;
+						font-size: 17px;
+						color: white;
+					  ">${wallet.name}</div>
+					  <div style="
+						font-size: 14px;
+						color: #aaa;
+					  ">Connect or install</div>
+					</div>
+				  </div>
+				`;
+			  });
+
+			  // Modal content
+			  modal.innerHTML = `
+				<div style="
+				  background: #121212;
+				  padding: 25px;
+				  border-radius: 20px;
+				  width: 100%;
+				  max-width: 500px;
+				  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+				">
+				  <h3 style="
+					margin: 0 0 20px 0;
+					font-size: 24px;
+					color: #00C3FF;
+					text-align: center;
+					font-weight: 600;
+				  ">Choose Your Wallet</h3>
+				  
+				  <div style="
+					max-height: 50vh;
+					overflow-y: auto;
+					-webkit-overflow-scrolling: touch;
+				  ">
+					${walletOptionsHTML}
+				  </div>
+				  
+				  <div style="
+					margin-top: 20px;
+					text-align: center;
+					color: #777;
+					font-size: 14px;
+					line-height: 1.4;
+				  ">
+					<div>1. Select your wallet</div>
+					<div>2. You'll be redirected to the app</div>
+					<div>3. Complete connection in the wallet</div>
+				  </div>
+				  
+				  <button id="modalClose" style="
+					background: #333;
+					color: white;
+					border: none;
+					padding: 14px;
+					border-radius: 12px;
+					width: 100%;
+					margin-top: 25px;
+					font-size: 16px;
+					cursor: pointer;
+					transition: all 0.2s;
+				  ">Cancel</button>
+				</div>
+			  `;
+
+			  // Add modal to page
+			  document.body.appendChild(modal);
+			  
+			  // Handle wallet selection
+			  document.querySelectorAll('.wallet-option').forEach(option => {
+				option.addEventListener('click', () => {
+				  const walletId = option.getAttribute('data-wallet');
+				  const wallet = wallets.find(w => w.id === walletId);
+				  
+				  // CRITICAL: Use the wallet-specific deep link generator
+				  const redirectUrl = wallet.getDeepLink();
+				  
+				  // THIS WORKS: Properly formatted URL for each wallet
+				  window.location.href = redirectUrl;
+				});
+			  });
+			  
+			  // Handle modal close
+			  document.getElementById('modalClose').addEventListener('click', () => {
+				document.body.removeChild(modal);
+			  });
+			  
+			  return;
+			}
 
 		  // DESKTOP CONNECTION LOGIC (unchanged)
 		  if (typeof window.ethereum === 'undefined') {
