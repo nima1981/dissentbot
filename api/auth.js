@@ -1,77 +1,165 @@
-
-import { ethers } from "ethers";
+// pages/api/auth.js
 import jwt from "jsonwebtoken";
+import { ethers } from "ethers";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  const { method } = req;
+  if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { walletAddress, message, signature } = req.body;
-  console.info("🔐 Incoming auth request");
-  console.info("walletAddress:", walletAddress);
-  console.info("message:", message);
-  console.info("signature:", signature);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  let recoveredAddress = null;
+  if (method === "OPTIONS") return res.status(200).end();
 
   try {
-    // Attempt normal message verification
-    recoveredAddress = ethers.utils.verifyMessage(message, signature);
-    console.info("✅ Standard signature verified:", recoveredAddress);
-  } catch (err) {
-    console.warn("⚠️ verifyMessage failed:", err.message);
+    const { walletAddress, signature, message } = req.body;
 
+    if (!walletAddress || !signature || !message) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    console.log("🔐 Incoming auth request");
+    console.log("walletAddress:", walletAddress);
+    console.log("message:", message);
+    console.log("signature:", signature);
+
+    let recoveredAddress;
+
+    // Try standard verification
     try {
-      const sigWithout0x = signature.startsWith("0x") ? signature.slice(2) : signature;
-      const buf = Buffer.from(sigWithout0x, "hex");
+      recoveredAddress = ethers.utils.verifyMessage(message, signature);
+      console.log("✅ Standard verifyMessage succeeded:", recoveredAddress);
+    } catch (err) {
+      console.warn("⚠️ verifyMessage failed:", err.message);
 
-      const jsonStart = buf.indexOf("{".charCodeAt(0));
-      const jsonEnd = buf.lastIndexOf("}".charCodeAt(0)) + 1;
+      // Try parsing WebAuthn JSON from buffer
+      if (typeof signature === "string" && signature.startsWith("0x")) {
+        const sigWithout0x = signature.slice(2);
+        const buf = Buffer.from(sigWithout0x, "hex");
 
-      if (jsonStart !== -1 && jsonEnd > jsonStart) {
-        const jsonSlice = buf.slice(jsonStart, jsonEnd).toString("utf8");
-        const parsed = JSON.parse(jsonSlice);
-        console.info("✅ WebAuthn JSON extracted:", parsed);
+        const jsonStartIndex = buf.indexOf("{".charCodeAt(0));
+        const jsonEndIndex = buf.lastIndexOf("}".charCodeAt(0)) + 1;
 
-        // Try to extract a 65-byte signature right before the JSON blob
-        const sigCandidate = buf.slice(jsonStart - 65, jsonStart);
+        if (jsonStartIndex !== -1 && jsonEndIndex > jsonStartIndex) {
+          try {
+            const jsonSlice = buf.slice(jsonStartIndex, jsonEndIndex).toString("utf8");
+            const parsed = JSON.parse(jsonSlice);
+            console.log("✅ WebAuthn JSON extracted:", parsed);
 
-        try {
-          recoveredAddress = ethers.utils.verifyMessage(message, sigCandidate);
-          console.info("✅ Extracted pre-JSON signature verified:", recoveredAddress);
-        } catch (sigErr) {
-          console.error("❌ Fallback pre-JSON signature verification failed:", sigErr.message);
-          throw new Error("No valid embedded signature found");
+            // Try to recover address from signature immediately before the JSON
+            const sigCandidate = buf.slice(jsonStartIndex - 65, jsonStartIndex);
+
+            try {
+              recoveredAddress = ethers.utils.verifyMessage(message, sigCandidate);
+              console.log("✅ Extracted pre-JSON signature verified:", recoveredAddress);
+            } catch (sigErr) {
+              console.warn("❌ Pre-JSON signature invalid:", sigErr.message);
+              throw new Error("No valid embedded signature found");
+            }
+          } catch (jsonErr) {
+            console.error("❌ Failed to parse WebAuthn JSON:", jsonErr.message);
+            throw err; // rethrow to go to next fallback
+          }
+        } else {
+          // Try recoverAddress fallback
+          try {
+            const msgHash = ethers.utils.hashMessage(message);
+            recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
+            console.log("✅ recoverAddress fallback succeeded:", recoveredAddress);
+          } catch (recoverErr) {
+            console.error("❌ recoverAddress fallback failed:", recoverErr.message);
+            throw err;
+          }
         }
       } else {
-        throw new Error("WebAuthn JSON not found in signature");
+        throw err;
       }
-    } catch (err2) {
-      console.error("❌ Failed to parse WebAuthn JSON:", err2.message);
-      return res.status(401).json({ error: "Invalid wallet signature format" });
     }
+
+    // Verify final recovered address
+    /*if (!recoveredAddress || recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+      console.error("❌ Signature mismatch");
+      console.error("Expected:", walletAddress.toLowerCase());
+      console.error("Got:", recoveredAddress?.toLowerCase());
+      return res.status(401).json({ error: "Invalid wallet signature" });
+    }*/
+	
+	if (!recoveredAddress) {
+	  return res.status(401).json({ error: "Signature recovery failed" });
+	}
+
+	if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+	  console.warn("⚠️ Claimed address and recovered address mismatch.");
+	  console.warn("Claimed:", walletAddress.toLowerCase());
+	  console.warn("Recovered:", recoveredAddress.toLowerCase());
+	  // Optionally reject here if strict match required
+	  // return res.status(401).json({ error: "Signature mismatch" });
+	}
+	
+	const canonicalAddress = recoveredAddress.toLowerCase();
+
+    console.log("✅ Signature verified successfully");
+
+    // Optional staking check
+    const isStaked = await verifyMorpheusStake(canonicalAddress);
+
+    if (isStaked) {
+      const signedCookie = jwt.sign(
+        { staked: true, wallet: canonicalAddress.toLowerCase() },
+        process.env.SESSION_SECRET,
+        { expiresIn: "30d" }
+      );
+
+      res.setHeader(
+        "Set-Cookie",
+        `isStaked=${signedCookie}; Max-Age=2592000; Path=/; Secure; SameSite=None; Domain=.dissentbot.com`
+      );
+    }
+
+    const token = jwt.sign({ address: canonicalAddress }, process.env.SESSION_SECRET, {
+      expiresIn: "30d"
+    });
+
+    return res.status(200).json({ token, address: canonicalAddress });
+  } catch (error) {
+    console.error("Auth error:", error);
+    return res.status(500).json({ error: error.message });
   }
+}
 
-  if (!recoveredAddress) {
-    return res.status(401).json({ error: "Signature recovery failed" });
+async function verifyMorpheusStake(address) {
+  try {
+    const options = {
+      method: 'GET',
+      headers: {
+        'X-DUNE-API-KEY': process.env.DUNE_API_KEY
+      }
+    };
+
+    const queryParams = new URLSearchParams({
+      filters: `subnet_id = ${process.env.SUBNET_ID} AND wallet_address = ${address.toLowerCase()}`,
+      columns: "net_staked_tokens"
+    });
+
+    const url = `https://api.dune.com/api/v1/query/5112115/results?${queryParams}`;
+    const response = await fetch(url, options);
+
+    if (!response.ok) throw new Error('Dune API query failed.');
+
+    const data = await response.json();
+    console.log("Dune response row count:", data.result?.rows?.length || 0);
+
+    let stakedTokens = 0;
+    if (data.result.rows.length > 0) {
+      stakedTokens = parseFloat(data.result.rows[0].net_staked_tokens);
+    }
+
+    console.log("stakedTokens:", stakedTokens);
+    return stakedTokens >= process.env.MIN_STAKE;
+  } catch (error) {
+    console.error("Staking verification failed:", error.message);
+    return false;
   }
-
-  if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-    console.warn("⚠️ Claimed address and recovered address mismatch.");
-    console.warn("Claimed:", walletAddress.toLowerCase());
-    console.warn("Recovered:", recoveredAddress.toLowerCase());
-    // Continue anyway using recovered address
-  }
-
-  const canonicalAddress = recoveredAddress.toLowerCase();
-
-  const signedCookie = jwt.sign(
-    { staked: true, wallet: canonicalAddress },
-    process.env.SESSION_SECRET,
-    { expiresIn: "30d" }
-  );
-
-  res.setHeader("Set-Cookie", `session=${signedCookie}; HttpOnly; Path=/; Max-Age=2592000; SameSite=Lax`);
-  return res.status(200).json({ success: true, address: canonicalAddress });
 }
