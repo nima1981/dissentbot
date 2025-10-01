@@ -943,6 +943,13 @@ function gtag_report_conversion(url) {
 
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
+		  
+		  if (typeof WalletConnectProvider === 'undefined') {
+		    console.error("WalletConnect library failed to load!");
+		    // Handle error appropriately
+		    return;
+		  }
+		  
 		  document.getElementById('connectWallet').addEventListener('click', async () => {
 		  const connectButton = document.getElementById('connectWallet');
 		  const storedAddress = localStorage.getItem('walletAddress');
@@ -1116,7 +1123,7 @@ function gtag_report_conversion(url) {
 				  getDeepLink: async () => {
 					try {
 					  // Initialize WalletConnect provider with proper RPC config
-					  const provider = await WalletConnectEthereumProvider.default.init({
+					  const provider = await WalletConnectProvider.init({
 						projectId: '1c897dc3aa8727fec1077a8f67b467f1', // From walletconnect.com
 						chains: [1, 10, 42161, 8453], // Ethereum, Optimism, Arbitrum, Base
 						rpcMap: {
@@ -1297,7 +1304,7 @@ function gtag_report_conversion(url) {
 					if (walletId === 'walletconnect') {
 					  try {
 						// Initialize WalletConnect provider
-						const provider = await WalletConnectEthereumProvider.default.init({
+						const provider = await WalletConnectProvider.init({
 						  projectId: '1c897dc3aa8727fec1077a8f67b467f1', // Get from walletconnect.com
 						  chains: [1, 10, 42161, 8453], // Include chains you support
 						  rpcMap: {
