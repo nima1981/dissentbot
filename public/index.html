@@ -28,7 +28,8 @@ function gtag_report_conversion(url) {
 }
 </script>
 
-<script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.0/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+
 <script src="https://unpkg.com/@walletconnect/modal@2.6.0/dist/index.js"></script>
 
   <meta charset="UTF-8">
@@ -945,13 +946,7 @@ function gtag_report_conversion(url) {
 
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
-		  /*
-		  if (typeof WalletConnectProvider === 'undefined') {
-		    console.error("WalletConnect library failed to load!");
-		    // Handle error appropriately
-		    return;
-		  }
-		  */
+
 		  document.getElementById('connectWallet').addEventListener('click', async () => {
 		  const connectButton = document.getElementById('connectWallet');
 		  const storedAddress = localStorage.getItem('walletAddress');
@@ -1125,28 +1120,15 @@ function gtag_report_conversion(url) {
 				  getDeepLink: async () => {
 					try {
 					  // Initialize WalletConnect provider with proper RPC config
-					  const provider = await window.WalletConnectProvider.init({
-						projectId: '1c897dc3aa8727fec1077a8f67b467f1', // From walletconnect.com
-						chains: [1, 10, 42161, 8453], // Ethereum, Optimism, Arbitrum, Base
-						rpcMap: {
+					  const provider = new WalletConnectProvider.default({
+						rpc: {
 						  1: 'https://mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
 						  10: 'https://optimism-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
 						  42161: 'https://arbitrum-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
 						  8453: 'https://base-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b'
 						},
-						showQrModal: true,
-						qrModalOptions: {
-						  themeMode: 'dark',
-						  themeColor: '000000',
-						  enableExplorer: true,
-						  explorerExcludedWalletIds: 'ALL',
-						  explorerRecommendedWalletIds: 'c57ca95b47569778a828d19178114f4db188b89f7637bd1bd8c8ec6b444c3fb5,4622a2b2d6af1c98128bcc5a1543616a8078d4772133f1d190cc7e8976fc14ba',
-						  mobileWallets: [
-							{ id: 'metamask', name: 'MetaMask', links: { native: 'metamask:', universal: 'https://metamask.app.link' } },
-							{ id: 'coinbase_wallet', name: 'Coinbase Wallet', links: { native: 'cbwallet:', universal: 'https://go.cb-w.com' } },
-							{ id: 'trust', name: 'Trust Wallet', links: { native: 'trust:', universal: 'https://link.trustwallet.com' } }
-						  ]
-						}
+						chainId: 1,
+						qrcode: true
 					  });
 
 					  // Connect to the provider
@@ -1306,28 +1288,15 @@ function gtag_report_conversion(url) {
 					if (walletId === 'walletconnect') {
 					  try {
 						// Initialize WalletConnect provider
-						const provider = await window.WalletConnectProvider.init({
-						  projectId: '1c897dc3aa8727fec1077a8f67b467f1', // Get from walletconnect.com
-						  chains: [1, 10, 42161, 8453], // Include chains you support
-						  rpcMap: {
+						const provider = new WalletConnectProvider.default({
+						  rpc: {
 							1: 'https://mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
 							10: 'https://optimism-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
 							42161: 'https://arbitrum-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
 							8453: 'https://base-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b'
 						  },
-						  showQrModal: true,
-							qrModalOptions: {
-							  themeMode: 'dark',
-							  themeColor: '000000',
-							  enableExplorer: true,
-							  explorerExcludedWalletIds: 'ALL',
-							  explorerRecommendedWalletIds: 'c57ca95b47569778a828d19178114f4db188b89f7637bd1bd8c8ec6b444c3fb5,4622a2b2d6af1c98128bcc5a1543616a8078d4772133f1d190cc7e8976fc14ba',
-							  mobileWallets: [
-								{ id: 'metamask', name: 'MetaMask', links: { native: 'metamask:', universal: 'https://metamask.app.link' } },
-								{ id: 'coinbase_wallet', name: 'Coinbase Wallet', links: { native: 'cbwallet:', universal: 'https://go.cb-w.com' } },
-								{ id: 'trust', name: 'Trust Wallet', links: { native: 'trust:', universal: 'https://link.trustwallet.com' } }
-							  ]
-							}
+						  chainId: 1,
+						  qrcode: true
 						});
 
 						// Connect
