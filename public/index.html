@@ -823,6 +823,8 @@ function gtag_report_conversion(url) {
     console.log("marked.js is loaded successfully.");
   }
   
+  console.log("WalletConnectProvider available?", !!window.WalletConnectProvider);
+  
    // ✅ REGISTER SERVICE WORKER
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
