@@ -28,6 +28,9 @@ function gtag_report_conversion(url) {
 }
 </script>
 
+<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.1/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@walletconnect/modal@2.6.0/dist/index.js"></script>
+
   <meta charset="UTF-8">
   
   <link rel="manifest" href="/manifest.json">
@@ -1065,7 +1068,7 @@ function gtag_report_conversion(url) {
 				{
 				  id: 'metamask',
 				  name: 'MetaMask',
-				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/metamask.svg',
+				  icon: 'https://images.ctfassets.net/clixtyxoaeas/4rnpEzy1ATWRKVBOLxZ1Fm/a74dc1eed36d23d7ea6030383a4d5163/MetaMask-icon-fox.svg',
 				  
 				  getDeepLink: () => {
 					const encodedUrl = encodeURIComponent(window.location.hostname);
@@ -1076,7 +1079,7 @@ function gtag_report_conversion(url) {
 				{
 				  id: 'coinbase',
 				  name: 'Coinbase Wallet',
-				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/coinbase.svg',
+				  icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgJzE3esFDDQJwxXfIEQy-TlsXLnWvlEOyTQ&s',
 				  // Coinbase uses standard cb_url parameter
 				  getDeepLink: () => {
 					const encodedUrl = encodeURIComponent(window.location.href);
@@ -1087,7 +1090,7 @@ function gtag_report_conversion(url) {
 				{
 				  id: 'trust',
 				  name: 'Trust Wallet',
-				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/trust.svg',
+				  icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTV3nq5JLWqrzQFCKiD_qdGiQsVTzqbWoMKNdWIFedR1zWeSfFb09JP8L0&s',
 				  // Trust Wallet requires raw URL without encoding
 				  getDeepLink: () => {
 					return `https://link.trustwallet.com/open_url?coin_id=60&url=${window.location.href}`;
@@ -1097,13 +1100,24 @@ function gtag_report_conversion(url) {
 				{
 				  id: 'phantom',
 				  name: 'Phantom',
-				  icon: 'https://raw.githubusercontent.com/Despread/extension-icons/main/icons/phantom.svg',
+				  icon: 'https://mintlify.s3.us-west-1.amazonaws.com/phantom-e50e2e68/resources/images/Phantom_SVG_Icon.svg',
 				  // Phantom uses WalletConnect format
 				  getDeepLink: () => {
 					const encodedUrl = encodeURIComponent(window.location.href);
 					return `https://phantom.app/ul/browse/${encodedUrl}?ref=`;
 				  },
 				  installUrl: 'https://phantom.app/download'
+				},
+				{
+				  id: 'walletconnect',
+				  name: 'WalletConnect',
+				  icon: 'https://upload.wikimedia.org/wikipedia/commons/1/13/Walletconnect-logo.png',
+				  
+				  getDeepLink: () => {
+				    // WalletConnect requires special handling
+				    return null;
+				  },
+				  installUrl: 'https://walletconnect.com'
 				}
 			  ];
 
@@ -1205,9 +1219,45 @@ function gtag_report_conversion(url) {
 			  
 			  // Handle wallet selection
 			  document.querySelectorAll('.wallet-option').forEach(option => {
-				option.addEventListener('click', () => {
+				option.addEventListener('click', async () => {
 				  const walletId = option.getAttribute('data-wallet');
 				  const wallet = wallets.find(w => w.id === walletId);
+				  
+				      // Handle WalletConnect specially
+					if (walletId === 'walletconnect') {
+					  try {
+						// Initialize WalletConnect provider
+						const provider = new WalletConnectProvider.default({
+						  projectId: '1c897dc3aa8727fec1077a8f67b467f1', // Get from walletconnect.com
+						  chains: [1, 10, 100, 137, 42161, 8453], // Include chains you support
+						  showQrModal: true,
+						  qrModalOptions: {
+							themeMode: 'dark',
+							themeColor: '000000'
+						  }
+						});
+
+						// Connect
+						await provider.enable();
+						
+						// Get accounts
+						const accounts = await provider.request({ method: 'eth_accounts' });
+						
+						if (accounts && accounts.length > 0) {
+						  walletAddress = accounts[0];
+						  localStorage.setItem('walletAddress', walletAddress);
+						  
+						  // Continue with your authentication flow
+						  const { message, signature } = await signChallenge(walletAddress);
+						  // ... rest of your auth code
+						}
+						
+					  } catch (error) {
+						console.error("WalletConnect error:", error);
+						alert("Failed to connect via WalletConnect: " + error.message);
+					  }
+					  return;
+					}
 				  
 				  // CRITICAL: Use the wallet-specific deep link generator
 				  const redirectUrl = wallet.getDeepLink();
