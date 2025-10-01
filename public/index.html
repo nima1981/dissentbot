@@ -943,13 +943,13 @@ function gtag_report_conversion(url) {
 
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
-		  
+		  /*
 		  if (typeof WalletConnectProvider === 'undefined') {
 		    console.error("WalletConnect library failed to load!");
 		    // Handle error appropriately
 		    return;
 		  }
-		  
+		  */
 		  document.getElementById('connectWallet').addEventListener('click', async () => {
 		  const connectButton = document.getElementById('connectWallet');
 		  const storedAddress = localStorage.getItem('walletAddress');
