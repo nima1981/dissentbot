@@ -1169,6 +1169,14 @@ function gtag_report_conversion(url) {
 					  }
 					  
 					} catch (error) {
+					
+					  const message = error?.message || '';
+
+					  if (message.includes('User closed modal')) {
+						// No-op: user canceled intentionally
+						return;
+					  }
+					
 					  console.error("WalletConnect error:", error);
 					  document.getElementById('walletMessage').innerHTML = `
 						<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
@@ -1337,6 +1345,14 @@ function gtag_report_conversion(url) {
 						}
 						
 					  } catch (error) {
+					  
+					  	const message = error?.message || '';
+
+						if (message.includes('User closed modal')) {
+							// No-op: user canceled intentionally
+							return;
+						}
+					  
 						console.error("WalletConnect error:", error);
 						document.getElementById('walletMessage').innerHTML = `
 						  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
