@@ -1123,7 +1123,7 @@ function gtag_report_conversion(url) {
 				  getDeepLink: async () => {
 					try {
 					  // Initialize WalletConnect provider with proper RPC config
-					  const provider = await WalletConnectProvider.init({
+					  const provider = await window.WalletConnectProvider.init({
 						projectId: '1c897dc3aa8727fec1077a8f67b467f1', // From walletconnect.com
 						chains: [1, 10, 42161, 8453], // Ethereum, Optimism, Arbitrum, Base
 						rpcMap: {
@@ -1304,7 +1304,7 @@ function gtag_report_conversion(url) {
 					if (walletId === 'walletconnect') {
 					  try {
 						// Initialize WalletConnect provider
-						const provider = await WalletConnectProvider.init({
+						const provider = await window.WalletConnectProvider.init({
 						  projectId: '1c897dc3aa8727fec1077a8f67b467f1', // Get from walletconnect.com
 						  chains: [1, 10, 42161, 8453], // Include chains you support
 						  rpcMap: {
