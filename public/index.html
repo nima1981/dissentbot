@@ -28,7 +28,7 @@ function gtag_report_conversion(url) {
 }
 </script>
 
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.1/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.0/dist/umd/index.min.js"></script>
 <script src="https://unpkg.com/@walletconnect/modal@2.6.0/dist/index.js"></script>
 
   <meta charset="UTF-8">
@@ -1116,7 +1116,7 @@ function gtag_report_conversion(url) {
 				  getDeepLink: async () => {
 					try {
 					  // Initialize WalletConnect provider with proper RPC config
-					  const provider = new WalletConnectProvider.default({
+					  const provider = await WalletConnectProvider.default.init({
 						projectId: '1c897dc3aa8727fec1077a8f67b467f1', // From walletconnect.com
 						chains: [1, 10, 42161, 8453], // Ethereum, Optimism, Arbitrum, Base
 						rpcMap: {
@@ -1128,7 +1128,15 @@ function gtag_report_conversion(url) {
 						showQrModal: true,
 						qrModalOptions: {
 						  themeMode: 'dark',
-						  themeColor: '000000'
+						  themeColor: '000000',
+						  enableExplorer: true,
+						  explorerExcludedWalletIds: 'ALL',
+						  explorerRecommendedWalletIds: 'c57ca95b47569778a828d19178114f4db188b89f7637bd1bd8c8ec6b444c3fb5,4622a2b2d6af1c98128bcc5a1543616a8078d4772133f1d190cc7e8976fc14ba',
+						  mobileWallets: [
+							{ id: 'metamask', name: 'MetaMask', links: { native: 'metamask:', universal: 'https://metamask.app.link' } },
+							{ id: 'coinbase_wallet', name: 'Coinbase Wallet', links: { native: 'cbwallet:', universal: 'https://go.cb-w.com' } },
+							{ id: 'trust', name: 'Trust Wallet', links: { native: 'trust:', universal: 'https://link.trustwallet.com' } }
+						  ]
 						}
 					  });
 
@@ -1289,14 +1297,28 @@ function gtag_report_conversion(url) {
 					if (walletId === 'walletconnect') {
 					  try {
 						// Initialize WalletConnect provider
-						const provider = new WalletConnectProvider.default({
+						const provider = await WalletConnectProvider.default.init({
 						  projectId: '1c897dc3aa8727fec1077a8f67b467f1', // Get from walletconnect.com
-						  chains: [1, 10, 100, 137, 42161, 8453], // Include chains you support
+						  chains: [1, 10, 42161, 8453], // Include chains you support
+						  rpcMap: {
+							1: 'https://mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
+							10: 'https://optimism-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
+							42161: 'https://arbitrum-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
+							8453: 'https://base-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b'
+						  },
 						  showQrModal: true,
-						  qrModalOptions: {
-							themeMode: 'dark',
-							themeColor: '000000'
-						  }
+							qrModalOptions: {
+							  themeMode: 'dark',
+							  themeColor: '000000',
+							  enableExplorer: true,
+							  explorerExcludedWalletIds: 'ALL',
+							  explorerRecommendedWalletIds: 'c57ca95b47569778a828d19178114f4db188b89f7637bd1bd8c8ec6b444c3fb5,4622a2b2d6af1c98128bcc5a1543616a8078d4772133f1d190cc7e8976fc14ba',
+							  mobileWallets: [
+								{ id: 'metamask', name: 'MetaMask', links: { native: 'metamask:', universal: 'https://metamask.app.link' } },
+								{ id: 'coinbase_wallet', name: 'Coinbase Wallet', links: { native: 'cbwallet:', universal: 'https://go.cb-w.com' } },
+								{ id: 'trust', name: 'Trust Wallet', links: { native: 'trust:', universal: 'https://link.trustwallet.com' } }
+							  ]
+							}
 						});
 
 						// Connect
@@ -1311,12 +1333,39 @@ function gtag_report_conversion(url) {
 						  
 						  // Continue with your authentication flow
 						  const { message, signature } = await signChallenge(walletAddress);
-						  // ... rest of your auth code
+						  
+						  // Authenticate with backend
+						  const authResponse = await fetch('/api/auth', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ walletAddress, signature, message })
+						  });
+						  
+						  if (!authResponse.ok) {
+							throw new Error("Authentication failed");
+						  }
+
+						  const { token } = await authResponse.json();
+						  localStorage.setItem('sessionToken', token);
+						  isAuthenticated = true;
+						  
+						  // Update UI
+						  const connectButton = document.getElementById('connectWallet');
+						  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+						  document.getElementById('walletMessage').textContent = '';
+						  
+						  // Close the wallet modal
+						  document.body.removeChild(modal);
 						}
 						
 					  } catch (error) {
 						console.error("WalletConnect error:", error);
-						alert("Failed to connect via WalletConnect: " + error.message);
+						document.getElementById('walletMessage').innerHTML = `
+						  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+					        Connection failed: ${error.message}<br>
+							<small style="display: block; margin-top: 5px; opacity: 0.8;">Check your RPC configuration</small>
+						  </div>
+						`;
 					  }
 					  return;
 					}
