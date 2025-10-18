@@ -96,6 +96,7 @@ export default async function handler(req, res) {
       text,
       history,
 	  timeframe,
+	  type,
 	  api,
 	  model,
       walletAddress,
