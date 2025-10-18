@@ -1582,7 +1582,7 @@ function gtag_report_conversion(url) {
 
 		} else {
 		
-			let sanitizedAnswer = marked.parse(
+			sanitizedAnswer = marked.parse(
 				data.answer
 					.replace(/\[REF\]/g, ' [REF]')
 					.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
