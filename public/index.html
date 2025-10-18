@@ -1802,24 +1802,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
 
-    // Function to populate the model dropdown
-    function populateModelDropdown(models, api) {
-        modelDropdown.innerHTML = ''; // Clear existing options
-        models.forEach(model => {
-            const option = document.createElement('option');
-            option.value = model.id;
-            if (api === 'Venice') {
-                option.textContent = model.model_spec.name;
-            } else {
-                option.textContent = model.id;
-            }
-            modelDropdown.appendChild(option);
-        });
+	// Function to populate the model dropdown
+	function populateModelDropdown(models, api) {
+		modelDropdown.innerHTML = ''; // Clear existing options
+		models.forEach(model => {
+			const option = document.createElement('option');
+			option.value = model.id;
+			if (api === 'Venice') {
+				option.textContent = model.model_spec.name;
+			} else {
+				option.textContent = model.id;
+			}
+			modelDropdown.appendChild(option);
+		});
 
-        // Set the selected option based on localStorage or default to 'venice-uncensored'
-        const selectedModelId = localStorage.getItem('selectedModelId') || 'venice-uncensored';
-        modelDropdown.value = selectedModelId;
-    }
+		// Set the selected option based on localStorage or default to appropriate value
+		let selectedModelId = localStorage.getItem('selectedModelId');
+		
+		// Special case: if API is Venice, type is image, and no model saved, default to venice-sd35
+		if (api === 'Venice' && typeDropdown.value === 'image' && !selectedModelId) {
+			// Only set to venice-sd35 if it exists in the models list
+			const hasImageModel = models.some(model => model.id === 'venice-sd35');
+			if (hasImageModel) {
+				selectedModelId = 'venice-sd35';
+			}
+		} 
+		// Default for text models when no selection saved
+		else if (!selectedModelId) {
+			selectedModelId = 'venice-uncensored';
+		}
+		
+		// Make sure the selected model actually exists in the dropdown
+		if (selectedModelId && models.some(model => model.id === selectedModelId)) {
+			modelDropdown.value = selectedModelId;
+		} else if (models.length > 0) {
+			// Fallback to first model if saved model doesn't exist
+			modelDropdown.value = models[0].id;
+		}
+	}
 
      // Function to save the selected model id to localStorage
     function saveSelectedModelId() {
@@ -1870,11 +1890,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedApi = localStorage.getItem('selectedApi') || 'Venice';
     apiDropdown.value = selectedApi;
 
-    // Fetch models and populate the model dropdown based on the initial API selection
-    fetchModels(selectedApi).then(models => {
-        populateModelDropdown(models, selectedApi);
-        setTimeframeSelection(); // Set the timeframe selection
-    });
+	// Fetch models and populate the model dropdown based on the initial API selection
+	fetchModels(selectedApi).then(models => {
+		populateModelDropdown(models, selectedApi);
+		setTimeframeSelection(); // Set the timeframe selection
+	}).catch(error => {
+		console.error("Error fetching models on initial load:", error);
+		// Fallback to empty models array if there's an error
+		populateModelDropdown([], selectedApi);
+	});
 
     // Add event listeners to save the selections when they change
     modelDropdown.addEventListener('change', saveSelectedModelId);
