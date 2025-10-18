@@ -312,16 +312,30 @@ export default async function handler(req, res) {
 		chatCompletionApiURL = process.env.MORPHEUS_API_CHAT_COMPLETION;
 		chatCompletionApiKey = process.env.MORPHEUS_API_KEY;
 	}
+	
+	if (type == "image"){
+		chatCompletionApiURL = process.env.VENICE_API_GENERATE_IMAGE;
+	}
+	
+	let messageObject = {
+		model: model,
+		messages: messages,
+		max_tokens: maxTokens
+	};
+		  
+	if (type == 'image') {
+		messageObject = {
+			model: model,
+			prompt: text,
+			max_tokens: maxTokens
+		  }
+	}
 
 	while (retries <= maxRetries) {
 	  try {
 		const apiResponse = await axios.post(
 		  chatCompletionApiURL,
-		  {
-			model: model,
-			messages: messages,
-			max_tokens: maxTokens
-		  },
+		  messageObject,
 		  {
 			headers: {
 			  "Authorization": `Bearer ${chatCompletionApiKey}`,
@@ -333,13 +347,23 @@ export default async function handler(req, res) {
 		
 		console.log("answer:", apiResponse.data.choices[0].message.content);
 		console.log("FULL API RESPONSE OBJECT:", apiResponse.data);
-
-		// ✅ SUCCESS — BREAK RETRY LOOP
-		res.status(200).json({
-		  answer: apiResponse.data.choices[0].message.content,
-		  context,
-		  web_search_citations: apiResponse.data?.venice_parameters?.web_search_citations
-		});
+		
+		if (type == 'image') {
+			// ✅ SUCCESS — BREAK RETRY LOOP
+			res.status(200).json({
+			  answer: apiResponse.data.images[0],
+			  context
+			});
+			
+		} else {
+		
+			// ✅ SUCCESS — BREAK RETRY LOOP
+			res.status(200).json({
+			  answer: apiResponse.data.choices[0].message.content,
+			  context,
+			  web_search_citations: apiResponse.data?.venice_parameters?.web_search_citations
+			});
+		}
 		
 		break;
 
