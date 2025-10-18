@@ -1573,12 +1573,22 @@ function gtag_report_conversion(url) {
 
 		// ✅ HANDLE SUCCESS CASE
 		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
-		let sanitizedAnswer = marked.parse(
-			data.answer
-				.replace(/\[REF\]/g, ' [REF]')
-				.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
-				.replace("</think>",'</div>'))
-				.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+		
+		let sanitizedAnswer = "";
+		
+		if (type = "image"){
+		
+			sanitizedAnswer = "<img style='display:block; width:100px;height:100px;' id='base64image' src='data:image/webp;base64, " + data.answer + "' />";		
+
+		} else {
+		
+			let sanitizedAnswer = marked.parse(
+				data.answer
+					.replace(/\[REF\]/g, ' [REF]')
+					.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
+					.replace("</think>",'</div>'))
+					.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+		}
 
 		const sanitizedContext = marked.parse(data.context || "No context");
 		

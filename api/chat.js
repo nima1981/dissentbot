@@ -353,7 +353,8 @@ export default async function handler(req, res) {
 			// ✅ SUCCESS — BREAK RETRY LOOP
 			res.status(200).json({
 			  answer: apiResponse.data.images[0],
-			  context
+			  context,
+			  web_search_citations: []
 			});
 			
 		} else {
