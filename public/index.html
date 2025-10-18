@@ -652,6 +652,24 @@ function gtag_report_conversion(url) {
     #footer div {
       margin-right: 10px;
     }
+	
+	/* Image response styling */
+	.image-response {
+	  text-align: center;
+	  margin: 10px 0;
+	}
+
+	.image-response img {
+	  max-width: 100%;
+	  height: auto;
+	  border-radius: 8px;
+	  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+	  transition: transform 0.2s;
+	}
+
+	.image-response img:hover {
+	  transform: scale(1.02);
+	}
 
   </style>
 </head>
@@ -882,13 +900,19 @@ function gtag_report_conversion(url) {
         </div>`
       ).join('');
 
-      // Set innerHTML for message content
-      conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
-        // Convert Markdown to HTML
-        const sanitizedContent = marked.parse(conversationHistory[index].content);
-		console.log('sanitizedContend after marked: ', sanitizedContent);
-        contentDiv.innerHTML = sanitizedContent;
-      });
+	// Set innerHTML for message content
+	conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
+	  if (conversationHistory[index].isImage) {
+		// For images, use the content directly without Markdown parsing
+		contentDiv.innerHTML = conversationHistory[index].content;
+		contentDiv.style.padding = '0'; // Remove padding for images for better display
+	  } else {
+		// Convert Markdown to HTML for text responses
+		const sanitizedContent = marked.parse(conversationHistory[index].content);
+		console.log('sanitizedContent after marked: ', sanitizedContent);
+		contentDiv.innerHTML = sanitizedContent;
+	  }
+	});
 
       // Scroll to the bottom of the conversation
 	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
@@ -1572,29 +1596,44 @@ function gtag_report_conversion(url) {
 		//console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''));
 
 		// ✅ HANDLE SUCCESS CASE
-		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
-		let sanitizedAnswer = marked.parse(
-			data.answer
-				.replace(/\[REF\]/g, ' [REF]')
-				.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
-				.replace("</think>",'</div>'))
-				.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
-
-		const sanitizedContext = marked.parse(data.context || "No context");
-		
-		const appendix = data.web_search_citations.map((citation, index) => 
-			`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
-		).join('<br>');
-		
-		if (appendix){
-			sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + appendix + '</p>'
+		if (type === 'image') {
+			// Handle image response - assume data.answer contains base64 string
+			const imgSrc = data.answer.startsWith('data:image') ? 
+						   data.answer : 
+						   `data:image/png;base64,${data.answer}`;
+			
+			const imgHtml = `<div class="image-response">
+				<img src="${imgSrc}" 
+					 style="max-width: 100%; border-radius: 8px; margin: 10px 0;" 
+					 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgaGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4tIEltYWdlIEVycm9yIC08L3RleHQ+PC9zdmc+';" >
+			</div>`;
+			
+			conversationHistory.push({ 
+				role: 'assistant', 
+				content: imgHtml,
+				isImage: true
+			});
+		} else {
+			// Handle text response (current behavior)
+			let sanitizedAnswer = marked.parse(
+				data.answer
+					.replace(/$$REF$$/g, ' [REF]')
+					.replace("",' <b>Thought Process:</b> ')
+					.replace("",''))
+					.replace(/<a\b(?![^>]*target=)/gi, ' 
+				`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
+			).join('<br>');
+			
+			if (appendix){
+				sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + appendix + '</p>'
+			}
+			
+			conversationHistory.push({ 
+				role: 'assistant', 
+				content: sanitizedAnswer 
+			});
 		}
-		
-		conversationHistory.push({ 
-			role: 'assistant', 
-			content: sanitizedAnswer 
-		});
-	
+
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		renderConversation();
 
@@ -1662,12 +1701,19 @@ function gtag_report_conversion(url) {
 	}
 	  // Clear conversation
 	function clearConversation() {
-		conversationHistory = [];
-		localStorage.removeItem('conversationHistory');
-		renderConversation();
-		document.getElementById('response').innerHTML = '';
-		document.getElementById('walletMessage').innerHTML = '';
-		console.log("Conversation cleared");
+	  conversationHistory = [];
+	  localStorage.removeItem('conversationHistory');
+	  renderConversation();
+	  document.getElementById('response').innerHTML = '';
+	  document.getElementById('walletMessage').innerHTML = '';
+	  
+	  // Reset any image-specific UI elements
+	  const messageContents = document.querySelectorAll('.message-content');
+	  messageContents.forEach(content => {
+		content.style.padding = '';
+	  });
+	  
+	  console.log("Conversation cleared");
 	}
 
   // Handle Enter key
