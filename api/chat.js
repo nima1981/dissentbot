@@ -114,6 +114,8 @@ export default async function handler(req, res) {
 	console.log("Model", model);
 	
 	console.log("API", api);
+	
+	console.log("Type", type);
 
     if (token) {
       try {
