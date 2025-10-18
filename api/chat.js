@@ -327,7 +327,7 @@ export default async function handler(req, res) {
 		messageObject = {
 			model: model,
 			prompt: text,
-			max_tokens: maxTokens
+			safeMode: "false"
 		  }
 	}
 
