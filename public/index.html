@@ -1456,6 +1456,9 @@ function gtag_report_conversion(url) {
 	  
 	  const apiDropdown = document.getElementById('apiDropdown');
 	  const api = apiDropdown.value;
+	  
+	  const typeDropdown = document.getElementById('typeDropdown');
+	  const type = typeDropdown.value;
 
 	  if (!text) return alert("Enter a question");
 	  
@@ -1512,7 +1515,7 @@ function gtag_report_conversion(url) {
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, api: api, model: model, ...authData })
+		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, type: type, api: api, model: model, ...authData })
 		});
 		
 		// ✅ CLEAR TIMER
@@ -1764,9 +1767,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const typeDropdown = document.getElementById('typeDropdown');
     const typeLabel = document.getElementById('type-label');
 
-    // Initialize Type dropdown from localStorage
-    const savedType = localStorage.getItem('selectedType') || 'text';
-    typeDropdown.value = savedType;
+    // Initialize Type dropdown from localStorage with explicit default
+    const savedType = localStorage.getItem('selectedType');
+    if (savedType === null || savedType === undefined) {
+        // No value in localStorage - explicitly set to 'text'
+        typeDropdown.value = 'text';
+        localStorage.setItem('selectedType', 'text'); // Ensure it's saved for next time
+    } else {
+        typeDropdown.value = savedType;
+    }
     
     // Show/hide Type dropdown based on API selection
     if (apiDropdown.value === 'Venice') {
