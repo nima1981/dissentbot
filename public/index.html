@@ -1572,29 +1572,44 @@ function gtag_report_conversion(url) {
 		//console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''));
 
 		// ✅ HANDLE SUCCESS CASE
-		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
-		let sanitizedAnswer = marked.parse(
-			data.answer
-				.replace(/\[REF\]/g, ' [REF]')
-				.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
-				.replace("</think>",'</div>'))
-				.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
-
-		const sanitizedContext = marked.parse(data.context || "No context");
-		
-		const appendix = data.web_search_citations.map((citation, index) => 
-			`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
-		).join('<br>');
-		
-		if (appendix){
-			sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + appendix + '</p>'
+		if (type === 'image') {
+			// Handle image response - assume data.answer contains base64 string
+			const imgSrc = data.answer.startsWith('data:image') ? 
+						   data.answer : 
+						   `data:image/png;base64,${data.answer}`;
+			
+			const imgHtml = `<div class="image-response">
+				<img src="${imgSrc}" 
+					 style="max-width: 100%; border-radius: 8px; margin: 10px 0;" 
+					 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgaGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4tIEltYWdlIEVycm9yIC08L3RleHQ+PC9zdmc+';" >
+			</div>`;
+			
+			conversationHistory.push({ 
+				role: 'assistant', 
+				content: imgHtml,
+				isImage: true
+			});
+		} else {
+			// Handle text response (current behavior)
+			let sanitizedAnswer = marked.parse(
+				data.answer
+					.replace(/$$REF$$/g, ' [REF]')
+					.replace("",' <b>Thought Process:</b> ')
+					.replace("",''))
+					.replace(/<a\b(?![^>]*target=)/gi, ' 
+				`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
+			).join('<br>');
+			
+			if (appendix){
+				sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + appendix + '</p>'
+			}
+			
+			conversationHistory.push({ 
+				role: 'assistant', 
+				content: sanitizedAnswer 
+			});
 		}
-		
-		conversationHistory.push({ 
-			role: 'assistant', 
-			content: sanitizedAnswer 
-		});
-	
+
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		renderConversation();
 
