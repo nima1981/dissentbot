@@ -1576,7 +1576,7 @@ function gtag_report_conversion(url) {
 		
 		let sanitizedAnswer = "";
 		
-		if (type = "image"){
+		if (type == "image"){
 		
 			sanitizedAnswer = "<img style='display:block; width:100px;height:100px;' id='base64image' src='data:image/webp;base64, " + data.answer + "' />";		
 
