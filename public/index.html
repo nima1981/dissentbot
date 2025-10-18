@@ -1767,14 +1767,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const typeDropdown = document.getElementById('typeDropdown');
     const typeLabel = document.getElementById('type-label');
 
-    // Initialize Type dropdown from localStorage with explicit default
-    const savedType = localStorage.getItem('selectedType');
-    if (savedType === null || savedType === undefined) {
-        // No value in localStorage - explicitly set to 'text'
-        typeDropdown.value = 'text';
-        localStorage.setItem('selectedType', 'text'); // Ensure it's saved for next time
+    // Initialize Type dropdown from localStorage
+    const savedType = localStorage.getItem('selectedType') || 'text';
+    typeDropdown.value = savedType;
+    
+    // Show/hide Type dropdown based on API selection - explicitly handle both cases
+    if (apiDropdown.value === 'Venice') {
+        typeDropdown.style.display = 'inline-block';
+        typeLabel.style.display = 'inline-block';
     } else {
-        typeDropdown.value = savedType;
+        typeDropdown.style.display = 'none';
+        typeLabel.style.display = 'none';
     }
     
     // Show/hide Type dropdown based on API selection
@@ -1899,15 +1902,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedApi = localStorage.getItem('selectedApi') || 'Venice';
     apiDropdown.value = selectedApi;
 
-	// Fetch models and populate the model dropdown based on the initial API selection
-	fetchModels(selectedApi).then(models => {
-		populateModelDropdown(models, selectedApi);
-		setTimeframeSelection(); // Set the timeframe selection
-	}).catch(error => {
-		console.error("Error fetching models on initial load:", error);
-		// Fallback to empty models array if there's an error
-		populateModelDropdown([], selectedApi);
-	});
+    // Fetch models and populate the model dropdown based on the initial API selection
+    fetchModels(selectedApi).then(models => {
+        populateModelDropdown(models, selectedApi);
+        setTimeframeSelection(); // Set the timeframe selection
+        
+        // Ensure Type dropdown visibility is correct after model fetch
+        if (apiDropdown.value === 'Venice') {
+            typeDropdown.style.display = 'inline-block';
+            typeLabel.style.display = 'inline-block';
+        } else {
+            typeDropdown.style.display = 'none';
+            typeLabel.style.display = 'none';
+        }
+    });
 
     // Add event listeners to save the selections when they change
     modelDropdown.addEventListener('change', saveSelectedModelId);
