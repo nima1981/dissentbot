@@ -345,10 +345,11 @@ export default async function handler(req, res) {
 		  }
 		);
 		
-		console.log("answer:", apiResponse.data.choices[0].message.content);
+		
 		console.log("FULL API RESPONSE OBJECT:", apiResponse.data);
 		
 		if (type == 'image') {
+			console.log("answer:", apiResponse.images[0]);
 			// ✅ SUCCESS — BREAK RETRY LOOP
 			res.status(200).json({
 			  answer: apiResponse.data.images[0],
@@ -356,7 +357,7 @@ export default async function handler(req, res) {
 			});
 			
 		} else {
-		
+			console.log("answer:", apiResponse.data.choices[0].message.content);
 			// ✅ SUCCESS — BREAK RETRY LOOP
 			res.status(200).json({
 			  answer: apiResponse.data.choices[0].message.content,
