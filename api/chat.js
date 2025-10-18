@@ -203,7 +203,13 @@ export default async function handler(req, res) {
 			"Set-Cookie",
 			`isStaked=${cookieValue}; Max-Age=2592000; Path=/; Secure; SameSite=None; Domain=.dissentbot.com`
 		  );
+		} else if (type == "image"){
+			return res.status(403).json({ error: "Image generation is only allowed for users who have staked 10 MOR." });
 		}
+	}
+	
+	if (!cookieStaked && type == "image"){
+		return res.status(403).json({ error: "Image generation is only allowed for users who have staked 10 MOR." });
 	}
 	
 
