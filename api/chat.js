@@ -325,9 +325,9 @@ export default async function handler(req, res) {
 		  
 	if (type == 'image') {
 		messageObject = {
-			model: model,
-			prompt: text,
-			safe_mode: "false"
+			"model": model,
+			"prompt": text,
+			"safe_mode": false
 		  }
 	}
 
