@@ -717,13 +717,20 @@ function gtag_report_conversion(url) {
 	  
 	  <label id="api-label" for="apiDropdown">API</label>
 	  <select id="apiDropdown">
-	    <option value="Venice" selected="selected">Venice</option>
-	    <option value="Morpheus">Morpheus</option>
-      </select>
-	
+		<option value="Venice" selected="selected">Venice</option>
+		<option value="Morpheus">Morpheus</option>
+	  </select>
+	  
+	  
+	  <label id="type-label" for="typeDropdown" style="display: none;">Type</label>
+	  <select id="typeDropdown" style="display: none;">
+		<option value="text">Text</option>
+		<option value="image">Image</option>
+	  </select>
+	  
 	  <label id="model-label" for="modelDropdown">Model</label>
 	  <select id="modelDropdown">
-      </select>
+	  </select>
 	</div>
 	
 
@@ -1754,6 +1761,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const apiDropdown = document.getElementById('apiDropdown');
     const modelDropdown = document.getElementById('modelDropdown');
     const timeframeDropdown = document.getElementById('timeframe');
+    const typeDropdown = document.getElementById('typeDropdown');
+    const typeLabel = document.getElementById('type-label');
+
+    // Initialize Type dropdown from localStorage
+    const savedType = localStorage.getItem('selectedType') || 'text';
+    typeDropdown.value = savedType;
+    
+    // Show/hide Type dropdown based on API selection
+    if (apiDropdown.value === 'Venice') {
+        typeDropdown.style.display = 'inline-block';
+        typeLabel.style.display = 'inline-block';
+    }
 
     // Function to fetch models from the API
     async function fetchModels(api) {
@@ -1761,7 +1780,14 @@ document.addEventListener('DOMContentLoaded', function() {
             Venice: VENICE_MODELS_API_URL,
             Morpheus: MORPHEUS_MODELS_API_URL
         };
-        const url = apiUrls[api];
+        
+        let url = apiUrls[api];
+        
+        // Append ?type=image if API is Venice and Type is Image
+        if (api === 'Venice' && typeDropdown.value === 'image') {
+            url += '?type=image';
+        }
+        
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -1774,6 +1800,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return [];
         }
     }
+    
 
     // Function to populate the model dropdown
     function populateModelDropdown(models, api) {
@@ -1794,9 +1821,18 @@ document.addEventListener('DOMContentLoaded', function() {
         modelDropdown.value = selectedModelId;
     }
 
-    // Function to save the selected model id to localStorage
+     // Function to save the selected model id to localStorage
     function saveSelectedModelId() {
         localStorage.setItem('selectedModelId', modelDropdown.value);
+    }
+    
+    // Function to save the selected type to localStorage
+    function saveSelectedType() {
+        localStorage.setItem('selectedType', typeDropdown.value);
+        // Re-fetch models when type changes
+        fetchModels(apiDropdown.value).then(models => {
+            populateModelDropdown(models, apiDropdown.value);
+        });
     }
 
     // Function to set the selected option for the timeframe dropdown
@@ -1814,7 +1850,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleApiDropdownChange() {
         const selectedApi = apiDropdown.value;
         localStorage.setItem('selectedApi', selectedApi);
-		localStorage.removeItem('selectedModelId');
+        localStorage.removeItem('selectedModelId');
+        
+        // Show/hide Type dropdown based on API selection
+        if (selectedApi === 'Venice') {
+            typeDropdown.style.display = 'inline-block';
+            typeLabel.style.display = 'inline-block';
+        } else {
+            typeDropdown.style.display = 'none';
+            typeLabel.style.display = 'none';
+        }
+        
         fetchModels(selectedApi).then(models => {
             populateModelDropdown(models, selectedApi);
         });
@@ -1834,6 +1880,7 @@ document.addEventListener('DOMContentLoaded', function() {
     modelDropdown.addEventListener('change', saveSelectedModelId);
     timeframeDropdown.addEventListener('change', saveSelectedTimeframe);
     apiDropdown.addEventListener('change', handleApiDropdownChange);
+    typeDropdown.addEventListener('change', saveSelectedType);
 });
 </script>
 
