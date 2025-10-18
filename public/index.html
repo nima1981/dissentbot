@@ -1758,8 +1758,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to fetch models from the API
     async function fetchModels(api) {
         const apiUrls = {
-            Venice: 'https://api.venice.ai/api/v1/models',
-            Morpheus: 'https://api.mor.org/api/v1/models'
+            Venice: VENICE_MODELS_API_URL,
+            Morpheus: MORPHEUS_MODELS_API_URL
         };
         const url = apiUrls[api];
         try {
