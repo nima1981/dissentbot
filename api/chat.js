@@ -327,7 +327,7 @@ export default async function handler(req, res) {
 		messageObject = {
 			model: model,
 			prompt: text,
-			safeMode: "false"
+			safe_mode: "false"
 		  }
 	}
 
