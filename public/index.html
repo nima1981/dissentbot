@@ -1768,10 +1768,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const typeLabel = document.getElementById('type-label');
 
     // Initialize Type dropdown from localStorage
-    const savedType = localStorage.getItem('selectedType') || 'text';
-    typeDropdown.value = savedType;
+    let savedType = localStorage.getItem('selectedType');
     
-    // Show/hide Type dropdown based on API selection - explicitly handle both cases
+    // Reset Type to "text" if API is not Venice
+    if (apiDropdown.value !== 'Venice') {
+        savedType = 'text';
+        localStorage.setItem('selectedType', 'text');
+    }
+    
+    typeDropdown.value = savedType || 'text';
+    
+    // Show/hide Type dropdown based on API selection
     if (apiDropdown.value === 'Venice') {
         typeDropdown.style.display = 'inline-block';
         typeLabel.style.display = 'inline-block';
@@ -1878,25 +1885,31 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('selectedTimeframe', timeframeDropdown.value);
     }
 
-    // Function to handle API dropdown change
-    function handleApiDropdownChange() {
-        const selectedApi = apiDropdown.value;
-        localStorage.setItem('selectedApi', selectedApi);
-        localStorage.removeItem('selectedModelId');
-        
-        // Show/hide Type dropdown based on API selection
-        if (selectedApi === 'Venice') {
-            typeDropdown.style.display = 'inline-block';
-            typeLabel.style.display = 'inline-block';
-        } else {
-            typeDropdown.style.display = 'none';
-            typeLabel.style.display = 'none';
-        }
-        
-        fetchModels(selectedApi).then(models => {
-            populateModelDropdown(models, selectedApi);
-        });
-    }
+	// Function to handle API dropdown change
+	function handleApiDropdownChange() {
+		const selectedApi = apiDropdown.value;
+		localStorage.setItem('selectedApi', selectedApi);
+		localStorage.removeItem('selectedModelId');
+		
+		// Reset Type to "text" if switching away from Venice
+		if (selectedApi !== 'Venice' && typeDropdown.value !== 'text') {
+			typeDropdown.value = 'text';
+			localStorage.setItem('selectedType', 'text');
+		}
+		
+		// Show/hide Type dropdown based on API selection
+		if (selectedApi === 'Venice') {
+			typeDropdown.style.display = 'inline-block';
+			typeLabel.style.display = 'inline-block';
+		} else {
+			typeDropdown.style.display = 'none';
+			typeLabel.style.display = 'none';
+		}
+		
+		fetchModels(selectedApi).then(models => {
+			populateModelDropdown(models, selectedApi);
+		});
+	}
 
     // Set the initial API selection from localStorage or default to 'Venice'
     const selectedApi = localStorage.getItem('selectedApi') || 'Venice';
