@@ -1861,8 +1861,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			} else {
 				option.textContent = model.id;
 			}
-			if (model.id in modelDescriptions){
-				option.textcontent += ' (' + modelDescriptions[model.id] + ')';
+			if (option.value in modelDescriptions){
+				option.textcontent += ' (' + modelDescriptions[option.value] + ')';
 			} else {
 				console.log(model.id + " not found in " + JSON.stringify(modelDescriptions));
 			}
