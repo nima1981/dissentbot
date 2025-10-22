@@ -1863,6 +1863,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 			if (model.id in modelDescriptions){
 				option.textcontent += ' (' + modelDescriptions[model.id] + ')';
+			} else {
+				console.log(model.id + " not found in " + JSON.stringify(modelDescriptions));
 			}
 			modelDropdown.appendChild(option);
 		});
