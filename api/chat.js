@@ -269,33 +269,41 @@ export default async function handler(req, res) {
 	console.log("End Date", endDate);	
 	
 	//text += "\n\nContext: The current date and time is " + today + ".";
+	
+	let context = '';
 
-    const queryEmbedding = await getEmbedding(text);
-    const pineconeIndex = await initPinecone();
-    const results = await pineconeIndex.query({
-      vector: queryEmbedding,
-      topK: process.env.MAX_CONTEXT_PARAGRAPHS,
-      includeMetadata: true,
-	  filter: {
-		timestamp: { $gte: startDate, $lte: endDate },
-	  },
-    });
-  
-    const context = results.matches
-      .map(match => 
-		'Title: ' + match.metadata?.title + "\n" +
-		'Author: ' + match.metadata?.author + "\n" +
-		'Content: ' + match.metadata?.content + "\n" + 
-		'Date: ' + match.metadata?.date + "\n" +
-		'Primary URL: https://dissentwatch.com/boost/?boost_post_id=' + match.metadata?.post_id +
-		(match.metadata?.nostr_event_id ? "\nNOSTR URL: https://primal.net/e/" + match.metadata?.nostr_event_id : '')
-		|| '')
-      .join("\n\n");
+	if (type != "image"){
+		
+		context = "Here is the Context that you need to exhaustively incorporate in your response:\n\n";
+		
+		const queryEmbedding = await getEmbedding(text);
+		const pineconeIndex = await initPinecone();
+	
+		const results = await pineconeIndex.query({
+		  vector: queryEmbedding,
+		  topK: process.env.MAX_CONTEXT_PARAGRAPHS,
+		  includeMetadata: true,
+		  filter: {
+			timestamp: { $gte: startDate, $lte: endDate },
+		  },
+		});
+	  
+		const context += results.matches
+		  .map(match => 
+			'Title: ' + match.metadata?.title + "\n" +
+			'Author: ' + match.metadata?.author + "\n" +
+			'Content: ' + match.metadata?.content + "\n" + 
+			'Date: ' + match.metadata?.date + "\n" +
+			'Primary URL: https://dissentwatch.com/boost/?boost_post_id=' + match.metadata?.post_id +
+			(match.metadata?.nostr_event_id ? "\nNOSTR URL: https://primal.net/e/" + match.metadata?.nostr_event_id : '')
+			|| '')
+		  .join("\n\n");
+	}
 	
     const messages = [
       { role: 'system', content: process.env.INSTRUCTIONS + " Today's date and time is " + today + ". Use this date as a reference point for any predictions, analyses, or interpretations of events when formulating your response." },
       //{ role: 'system', content: 'What follows is a set of paragraphs representing online posts that are relevant to this conversation, also known as Context. They are ordered by relevance from more to less relevant. Each Context paragraph consists of Title, Author, Content, Date, Primary URL, and optionally NOSTR URL. When formulating your answer you must incorporate the Content and use the standard markdown formatting outlined before to reference Title, Author, Primary URL (and the NOSTR URL if and only if provided) from every single paragraph from the following Context: \n\n' + context },
-	  { role: 'system', content: 'Here is the Context that you need to exhaustively incorporate in your response:\n\n' + context },
+	  { role: 'system', content: context },
       ...history.map(msg => ({ role: msg.role, content: msg.content /*.replace(/<[^>]*>?/gm, '')*/ })),
     ];
 	
@@ -311,16 +319,16 @@ export default async function handler(req, res) {
 	const maxRetries = 5;
 	let apiError = null;
 	
-	let chatCompletionApiURL = process.env.VENICE_API_CHAT_COMPLETION;
-	let chatCompletionApiKey = process.env.VENICE_API_KEY;
+	let apiUrl = process.env.VENICE_API_CHAT_COMPLETION;
+	let apiKey = process.env.VENICE_API_KEY;
 	
 	if (api == "Morpheus"){
-		chatCompletionApiURL = process.env.MORPHEUS_API_CHAT_COMPLETION;
-		chatCompletionApiKey = process.env.MORPHEUS_API_KEY;
+		apiUrl = process.env.MORPHEUS_API_CHAT_COMPLETION;
+		apiKey = process.env.MORPHEUS_API_KEY;
 	}
 	
 	if (type == "image"){
-		chatCompletionApiURL = process.env.VENICE_API_GENERATE_IMAGE;
+		apiUrl = process.env.VENICE_API_GENERATE_IMAGE;
 	}
 	
 	let messageObject = {
@@ -340,11 +348,11 @@ export default async function handler(req, res) {
 	while (retries <= maxRetries) {
 	  try {
 		const apiResponse = await axios.post(
-		  chatCompletionApiURL,
+		  apiUrl,
 		  messageObject,
 		  {
 			headers: {
-			  "Authorization": `Bearer ${chatCompletionApiKey}`,
+			  "Authorization": `Bearer ${apiKey}`,
 			  "Content-Type": "application/json"
 			},
 			responseType: "json"
@@ -380,7 +388,7 @@ export default async function handler(req, res) {
 		retries++;
 
 		// ✅ LOG RETRY
-		console.error(`API (${chatCompletionApiURL}) failed (attempt ${retries}/${maxRetries + 1})`, error.message);
+		console.error(`API (${apiUrl}) failed (attempt ${retries}/${maxRetries + 1})`, error.message);
 
 		// ✅ ONLY RETRY ON 500-LEVEL ERRORS
 		if (
