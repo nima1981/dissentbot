@@ -1834,6 +1834,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+	const modelDescriptions = {
+		"qwen3-235b": "Advanced reasoning capabilities",
+		"qwen3-4b" : "Efficient reasoning model",
+		"mistral-31-24b": "Vision-capable model",
+		"qwen3-4b": "Best balance of speed and cost",
+		"llama-3.2-3b": "Fastest for simple tasks",
+		"venice-uncensored": "No content filtering",
+		"llama-3.3-70b": "Balanced high-intelligence",
+		"qwen3-235b": "Most powerful flagship model",
+		"qwen-image": "Highest quality image generation",
+		"venice-sd35": "Default choice with Eliza integration",
+		"lustify-sdxl": "Uncensored adult image generation",
+		"hidream": "Production-ready generation",
+		"wai-Illustrious": "Anime-style generation",
+	};
 
 	// Function to populate the model dropdown
 	function populateModelDropdown(models, api) {
@@ -1846,6 +1861,11 @@ document.addEventListener('DOMContentLoaded', function() {
 			} else {
 				option.textContent = model.id;
 			}
+			
+			if (option.value in modelDescriptions){
+				option.textContent += ' (' + modelDescriptions[option.value] + ')';
+			}
+			
 			modelDropdown.appendChild(option);
 		});
 
