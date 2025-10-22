@@ -300,6 +300,8 @@ export default async function handler(req, res) {
 			(match.metadata?.nostr_event_id ? "\nNOSTR URL: https://primal.net/e/" + match.metadata?.nostr_event_id : '')
 			|| '')
 		  .join("\n\n");
+		  
+		context += "If the user asks you to generate an image please advise them to select 'Images' instead of 'Text' in the 'Type' dropdown of this app.";
 	} else {
 		context = "Generate an image following the user's instructions meticulously.";
 	}
