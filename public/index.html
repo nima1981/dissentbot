@@ -1861,12 +1861,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			} else {
 				option.textContent = model.id;
 			}
-			if (option.value in modelDescriptions){
-				option.textContent += ' (' + modelDescriptions[option.value] + ')';
-				console.log (option.textContent);
-			} else {
-				console.log(option.value + " returns " + modelDescriptions[option.value] + ", not found in " + JSON.stringify(modelDescriptions));
-			}
+
 			modelDropdown.appendChild(option);
 		});
 
