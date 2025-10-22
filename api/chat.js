@@ -367,7 +367,7 @@ export default async function handler(req, res) {
 		console.log("FULL API RESPONSE OBJECT:", apiResponse.data);
 		
 		if (type == 'image') {
-			console.log("answer:", apiResponse.data.images[0]);
+			//console.log("answer:", apiResponse.data.images[0]);
 			// ✅ SUCCESS — BREAK RETRY LOOP
 			res.status(200).json({
 			  answer: apiResponse.data.images[0],
