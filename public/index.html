@@ -1863,6 +1863,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 			if (option.value in modelDescriptions){
 				option.textcontent += ' (' + modelDescriptions[option.value] + ')';
+				console.log (option.textcontent);
 			} else {
 				console.log(option.value + " returns " + modelDescriptions[option.value] + ", not found in " + JSON.stringify(modelDescriptions));
 			}
