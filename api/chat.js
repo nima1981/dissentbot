@@ -298,6 +298,8 @@ export default async function handler(req, res) {
 			(match.metadata?.nostr_event_id ? "\nNOSTR URL: https://primal.net/e/" + match.metadata?.nostr_event_id : '')
 			|| '')
 		  .join("\n\n");
+	} else {
+		context = "Generate an image following the user's instructions meticulously.";
 	}
 	
     const messages = [
