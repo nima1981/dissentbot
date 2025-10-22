@@ -288,7 +288,7 @@ export default async function handler(req, res) {
 		  },
 		});
 	  
-		const context += results.matches
+		context += results.matches
 		  .map(match => 
 			'Title: ' + match.metadata?.title + "\n" +
 			'Author: ' + match.metadata?.author + "\n" +
