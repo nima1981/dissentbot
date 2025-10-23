@@ -903,61 +903,63 @@ function gtag_report_conversion(url) {
 	}
 
   // Render conversation history
-	function renderConversation() {
-	 conversationDiv.innerHTML = conversationHistory.map((message, index) => 
-  `<div class="message ${message.role}">
-    <div class="message-content ${message.role}">${message.content}</div>
-    ${message.role === 'assistant' && message.markdown ? 
-      `<div class="copy-response">
-        <button class="copy-btn" data-index="${index}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"></path>
-            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"></path>
-          </svg>
-        </button>
-      </div>` : ''}
-  </div>`
-).join('');
+function renderConversation() {
+  const conversationDiv = document.getElementById('conversation');
+  
+  conversationDiv.innerHTML = conversationHistory.map((message, index) => 
+    `<div class="message ${message.role}">
+      <div class="message-content ${message.role}">${message.content}</div>
+      ${message.role === 'assistant' && message.markdown ? 
+        `<div class="copy-response">
+          <button class="copy-btn" data-index="${index}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"></path>
+              <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"></path>
+            </svg>
+          </button>
+        </div>` : ''}
+    </div>`
+  ).join('');
 
-	  // Add event listeners to copy buttons
-	  conversationDiv.querySelectorAll('.copy-btn').forEach(button => {
-		button.addEventListener('click', function() {
-		  const index = parseInt(this.getAttribute('data-index'));
-		  const message = conversationHistory[index];
-		  
-		  navigator.clipboard.writeText(message.markdown).then(() => {
-			// Visual feedback - change to checkmark for 2 seconds
-			const originalHTML = this.innerHTML;
-			this.innerHTML = '✓';
-			setTimeout(() => {
-			  this.innerHTML = originalHTML;
-			}, 2000);
-		  }).catch(err => {
-			console.error('Failed to copy: ', err);
-		  });
-		});
-	  });
+  // Add event listeners to copy buttons
+  conversationDiv.querySelectorAll('.copy-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const index = parseInt(this.getAttribute('data-index'));
+      const message = conversationHistory[index];
+      
+      navigator.clipboard.writeText(message.markdown).then(() => {
+        // Visual feedback - change to checkmark for 2 seconds
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '✓';
+        setTimeout(() => {
+          this.innerHTML = originalHTML;
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+    });
+  });
 
-	  // Scroll to the bottom of the conversation
-	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
+  // Scroll to the bottom of the conversation
+  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
 
-	  // Show or hide the clear button based on conversation history
-	  const clearButton = document.getElementById('clearButton');
-	  if (conversationHistory.length > 0) {
-		clearButton.style.display = 'block';
-	  } else {
-		clearButton.style.display = 'none';
-	  }
-	  
-	  // Update button text on page load
-	  const connectButton = document.getElementById('connectWallet');
-	  connectButton.innerHTML = 
-		(isAuthenticated || localStorage.getItem('walletAddress')) 
-		? `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]` 
-		: '<span id="connectAction">[CONNECT]</span>';
-		
-	  document.getElementById('walletMessage').innerHTML = '';
-	}
+  // Show or hide the clear button based on conversation history
+  const clearButton = document.getElementById('clearButton');
+  if (conversationHistory.length > 0) {
+    clearButton.style.display = 'block';
+  } else {
+    clearButton.style.display = 'none';
+  }
+  
+  // Update button text on page load
+  const connectButton = document.getElementById('connectWallet');
+  connectButton.innerHTML = 
+    (isAuthenticated || localStorage.getItem('walletAddress')) 
+    ? `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]` 
+    : '<span id="connectAction">[CONNECT]</span>';
+    
+  document.getElementById('walletMessage').innerHTML = '';
+}
 
 	async function signChallenge(address) {
 	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
@@ -1491,277 +1493,230 @@ function gtag_report_conversion(url) {
 	
 	let longWaitTimer1, longWaitTimer2, longWaitTimer3, longWaitTimer4;
 
-	async function sendMessage() {
-	  const input = document.getElementById('userInput');
-	  const text = input.value.trim();
-	  
-	  const timeframe = document.getElementById('timeframe');
-	  const timeframeValue = timeframe.value;
-	  
-	  const modelDropdown = document.getElementById('modelDropdown');
-	  const model = modelDropdown.value;
-	  
-	  const apiDropdown = document.getElementById('apiDropdown');
-	  const api = apiDropdown.value;
-	  
-	  const typeDropdown = document.getElementById('typeDropdown');
-	  const type = typeDropdown.value;
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  
+  const timeframe = document.getElementById('timeframe');
+  const timeframeValue = timeframe.value;
+  
+  const modelDropdown = document.getElementById('modelDropdown');
+  const model = modelDropdown.value;
+  
+  const apiDropdown = document.getElementById('apiDropdown');
+  const api = apiDropdown.value;
+  
+  const typeDropdown = document.getElementById('typeDropdown');
+  const type = typeDropdown.value;
 
-	  if (!text) return alert("Enter a question");
-	  
-	  // Add user message to conversation history
-      conversationHistory.push({ role: 'user', content: text });
-      renderConversation();
+  if (!text) return alert("Enter a question");
+  
+  // Add user message to conversation history
+  conversationHistory.push({ role: 'user', content: text });
+  renderConversation();
 
-      input.value = ''; // Clear input field
+  input.value = ''; // Clear input field
 
-	  try {
-		document.getElementById('loading').style.display = 'flex';
+  try {
+    document.getElementById('loading').style.display = 'flex';
 
-		// ✅ SHOW MESSAGE AFTER 10s
-		  const loadingMessage = document.getElementById('loading-message');
-		 // ✅ SET MESSAGE AFTER 20s
-		  longWaitTimer1 = setTimeout(() => {
-			document.getElementById('loading-message').textContent = "Thinking more ...";
-		  }, 20000);
-		  // ✅ SET MESSAGE AFTER 40s
-		  longWaitTimer2 = setTimeout(() => {
-			document.getElementById('loading-message').textContent = "Almost there ...";
-		  }, 40000);
-		  // ✅ SET MESSAGE AFTER 60s
-		  longWaitTimer3 = setTimeout(() => {
-			document.getElementById('loading-message').textContent = "Finalizing response ...";
-		  }, 60000);
-		  // ✅ SET MESSAGE AFTER 80s
-		  longWaitTimer4 = setTimeout(() => {
-			document.getElementById('loading-message').textContent = "Sorry for the delay ...";
-		  }, 80000);
-		  
-		const sessionToken = localStorage.getItem('sessionToken');
-		const wallet = localStorage.getItem('walletAddress');
-		const baseSessionToken = localStorage.getItem('baseSessionToken'); // NEW LINE
-		let authData = {};
-
-		if (sessionToken) {
-		  authData = { token: sessionToken };
-		} else if (wallet) {
-		  const { message, signature } = await signChallenge(wallet);
-		  authData = { 
-			message, 
-			signature, 
-			walletAddress: wallet 
-		  };
-		  
-		  // Add Base session token if available
-		  if (baseSessionToken) {
-			authData.baseSessionToken = baseSessionToken;
-		  }
-		}
-
-		// ✅ FETCH AND READ BODY ONCE
-		const response = await fetch('/api/chat', {
-		  method: 'POST',
-		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, type: type, api: api, model: model, ...authData })
-		});
-		
-		// ✅ CLEAR TIMER
-		clearTimeout(longWaitTimer1);
-		clearTimeout(longWaitTimer2);
-		clearTimeout(longWaitTimer3);
-		clearTimeout(longWaitTimer4);
-		loadingMessage.textContent = "Thinking...";
-		document.getElementById('loading').style.display = 'none';
-
-		// ✅ READ BODY ONCE
-		const bodyText = await response.text(); // ✅ FIRST AND ONLY READ
-
-		// ✅ PARSE ONCE
-		let data;
-		try {
-		  data = JSON.parse(bodyText);
-		} catch {
-		  data = { answer: bodyText, context: "" };
-		}
-		
-		//console.log("testing");
-		//console.log("data.web_search_citations", JSON.stringify(data.web_search_citations));
-		
-		// ✅ HANDLE FORBIDDEN
-		if (response.status === 403) {
-			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-			document.getElementById('stake-modal').style.display = 'flex';
-			return;
-		}
-		
-		// ✅ HANDLE FORBIDDEN
-		if (response.status === 429) {
-			document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
-			document.getElementById('stake-modal').style.display = 'flex';
-			return;
-		}
-		
-		// ✅ HANDLE 500 ERROR
-		if (response.status === 500) {
-			document.getElementById('walletMessage').innerHTML = 'Apologies, the AI network returned a temporary error. Please try again now or choose a different API/model if issues persist!';
-			return;
-		}
-
-		// ✅ HANDLE OTHER ERRORS
-		if (!response.ok) {
-		  console.error("Chat error:", data.error);
-		  //document.getElementById('walletMessage').innerHTML = `⚠️ ${data.error}`;
-		  document.getElementById('walletMessage').innerHTML = '';
-		  return;
-		}
-		
-		//console.log("Answer:", data.answer);
-		//console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''));
-
-		// ✅ HANDLE SUCCESS CASE
-		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
-		
-// Store both HTML (for display) and markdown (for copying)
-let sanitizedAnswer = "";
-let markdownContent = "";
-let sanitizedContext = marked.parse(data.context || "No context");
-
-if (type == "image") {
-    // For images, create both HTML and markdown representations
-    const imageUrl = 'data:image/webp;base64, ' + data.answer;
-    sanitizedAnswer = `<img style='display:block; width:100%;' id='base64image' src='${imageUrl}' >`;
-    markdownContent = `![Generated Image](${imageUrl})`;
-} else {
-    // Store the raw markdown before HTML conversion
-    markdownContent = data.answer
-        .replace(/$$REF$$/g, ' [REF]')
-        .replace("<tool_call>", ' <b>Thought Process:</b> ')
-        .replace("", '');
+    // ✅ SHOW MESSAGE AFTER 10s
+    const loadingMessage = document.getElementById('loading-message');
+    // ✅ SET MESSAGE AFTER 20s
+    longWaitTimer1 = setTimeout(() => {
+      document.getElementById('loading-message').textContent = "Thinking more ...";
+    }, 20000);
+    // ✅ SET MESSAGE AFTER 40s
+    longWaitTimer2 = setTimeout(() => {
+      document.getElementById('loading-message').textContent = "Almost there ...";
+    }, 40000);
+    // ✅ SET MESSAGE AFTER 60s
+    longWaitTimer3 = setTimeout(() => {
+      document.getElementById('loading-message').textContent = "Finalizing response ...";
+    }, 60000);
+    // ✅ SET MESSAGE AFTER 80s
+    longWaitTimer4 = setTimeout(() => {
+      document.getElementById('loading-message').textContent = "Sorry for the delay ...";
+    }, 80000);
     
-    // Convert to HTML for display
-    sanitizedAnswer = marked.parse(markdownContent)
-        .replace(/<a\b(?![^>]*target=)/gi, ' 0) {
-    // HTML references
-    const htmlAppendix = data.web_search_citations.map((citation, index) => 
-        `[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
-    ).join('<br>');
-    
-    sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + htmlAppendix + '</p>';
-    
-    // Markdown references
-    let markdownAppendix = '\n\n**References**\n';
-    data.web_search_citations.forEach((citation, index) => {
-        markdownAppendix += `[${index}]: ${citation.title} - ${citation.url}\n`;
+    const sessionToken = localStorage.getItem('sessionToken');
+    const wallet = localStorage.getItem('walletAddress');
+    const baseSessionToken = localStorage.getItem('baseSessionToken');
+    let authData = {};
+
+    if (sessionToken) {
+      authData = { token: sessionToken };
+    } else if (wallet) {
+      const { message, signature } = await signChallenge(wallet);
+      authData = { 
+        message, 
+        signature, 
+        walletAddress: wallet 
+      };
+      
+      if (baseSessionToken) {
+        authData.baseSessionToken = baseSessionToken;
+      }
+    }
+
+    // ✅ FETCH AND READ BODY ONCE
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, type: type, api: api, model: model, ...authData })
     });
     
-    markdownContent += markdownAppendix;
+    // ✅ CLEAR TIMER
+    clearTimeout(longWaitTimer1);
+    clearTimeout(longWaitTimer2);
+    clearTimeout(longWaitTimer3);
+    clearTimeout(longWaitTimer4);
+    loadingMessage.textContent = "Thinking...";
+    document.getElementById('loading').style.display = 'none';
+
+    // ✅ READ BODY ONCE
+    const bodyText = await response.text();
+
+    // ✅ PARSE ONCE
+    let data;
+    try {
+      data = JSON.parse(bodyText);
+    } catch {
+      data = { answer: bodyText, context: "" };
+    }
+    
+    // ✅ HANDLE FORBIDDEN
+    if (response.status === 403) {
+      document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
+      document.getElementById('stake-modal').style.display = 'flex';
+      return;
+    }
+    
+    // ✅ HANDLE FORBIDDEN
+    if (response.status === 429) {
+      document.getElementById('walletMessage').innerHTML = INSUFFICIENT_MOR_MESSAGE;
+      document.getElementById('stake-modal').style.display = 'flex';
+      return;
+    }
+    
+    // ✅ HANDLE 500 ERROR
+    if (response.status === 500) {
+      document.getElementById('walletMessage').innerHTML = 'Apologies, the AI network returned a temporary error. Please try again now or choose a different API/model if issues persist!';
+      return;
+    }
+
+    // ✅ HANDLE OTHER ERRORS
+    if (!response.ok) {
+      console.error("Chat error:", data.error);
+      document.getElementById('walletMessage').innerHTML = '';
+      return;
+    }
+    
+    // Store both HTML (for display) and markdown (for copying)
+    let sanitizedAnswer = "";
+    let markdownContent = "";
+    let sanitizedContext = marked.parse(data.context || "No context");
+
+    if (type == "image") {
+      // For images, create both HTML and markdown representations
+      const imageUrl = 'data:image/webp;base64, ' + data.answer;
+      sanitizedAnswer = `<img style='display:block; width:100%;' id='base64image' src='${imageUrl}' >`;
+      markdownContent = `![Generated Image](${imageUrl})`;
+    } else {
+      // Store the raw markdown before HTML conversion
+      markdownContent = data.answer
+          .replace(/$$REF$$/g, ' [REF]')
+          .replace("<tool_call>", ' <b>Thought Process:</b> ')
+          .replace("", '');
+      
+      // Convert to HTML for display
+      sanitizedAnswer = marked.parse(markdownContent)
+          .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+      
+      // Add references if they exist
+      if (data.web_search_citations && data.web_search_citations.length > 0) {
+        // HTML references
+        const htmlAppendix = data.web_search_citations.map((citation, index) => 
+            `[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
+        ).join('<br>');
+        
+        sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + htmlAppendix + '</p>';
+        
+        // Markdown references
+        let markdownAppendix = '\n\n**References**\n';
+        data.web_search_citations.forEach((citation, index) => {
+            markdownAppendix += `[${index}]: ${citation.title} - ${citation.url}\n`;
+        });
+        
+        markdownContent += markdownAppendix;
+      }
+    }
+
+    // Store both versions in conversation history
+    conversationHistory.push({ 
+      role: 'assistant', 
+      content: sanitizedAnswer,
+      markdown: markdownContent
+    });
+
+    localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+    renderConversation();
+
+    document.getElementById('response').innerHTML = `
+      <h3>Answer:</h3>
+      <p>${sanitizedAnswer}</p>
+      <h3>Context:</h3>
+      <p>${sanitizedContext}</p>
+    `;
+
+  } catch (error) {
+    clearTimeout(longWaitTimer1);
+    clearTimeout(longWaitTimer2);
+    clearTimeout(longWaitTimer3);
+    clearTimeout(longWaitTimer4);
+    console.error("Chat error:", error);
+    
+    // Show meaningful error to user
+    let errorMessage = "Failed to get response from AI network";
+    
+    if (window.ethereum?.isCoinbaseWallet) {
+      errorMessage = "⚠️ Base App connection issue. Please disconnect and reconnect your wallet.";
+      
+      // Keep user's message visible for troubleshooting
+      if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length-1].role === 'user') {
+        conversationHistory.pop();
+      }
+      
+      document.getElementById('walletMessage').innerHTML = `
+        <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+          ${errorMessage}<br>
+          <small style="display: block; margin-top: 5px; opacity: 0.8;">Tip: Disconnect from wallet menu, then reconnect</small>
+        </div>
+      `;
+      
+      if (error.message.includes("Invalid cookie") || error.message.includes("stake")) {
+        setTimeout(() => {
+          document.getElementById('stake-modal').style.display = 'flex';
+        }, 1500);
+      }
+      
+      return;
+    }
+    
+    document.getElementById('walletMessage').innerHTML = `<span style="color: #dc3545">${errorMessage}</span>`;
+    
+    if (error.message.includes("Invalid cookie") || error.message.includes("stake")) {
+      document.getElementById('stake-modal').style.display = 'flex';
+    }
+  } finally {
+    document.getElementById('loading').style.display = 'none';
+    
+    if (!window.ethereum?.isCoinbaseWallet || !error) {
+      renderConversation();
+    }
+  }
+  gtag_report_conversion('https://dissentbot.com');
 }
-
-// Store both versions in conversation history
-conversationHistory.push({ 
-    role: 'assistant', 
-    content: sanitizedAnswer,
-    markdown: markdownContent
-});
-
-localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
-renderConversation();
-
-document.getElementById('response').innerHTML = `
-  <h3>Answer:
-  <p>${sanitizedAnswer}</p>
-  </h3><h3>Context:</h3>
-  <p>${sanitizedContext}</p>
-`;
-				// HTML references
-				const htmlAppendix = data.web_search_citations.map((citation, index) => 
-					`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
-				).join('<br>');
-				
-				sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + htmlAppendix + '</p>';
-				
-				// Markdown references
-				let markdownAppendix = '\n\n**References**\n';
-				data.web_search_citations.forEach((citation, index) => {
-					markdownAppendix += `[${index}]: ${citation.title} - ${citation.url}\n`;
-				});
-				
-				markdownContent += markdownAppendix;
-			}
-		}
-
-		// Store both versions in conversation history
-		conversationHistory.push({ 
-			role: 'assistant', 
-			content: sanitizedAnswer,
-			markdown: markdownContent
-		});
-	
-		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
-		renderConversation();
-
-		document.getElementById('response').innerHTML = `
-		  <h3>Answer:
-		  <p>${sanitizedAnswer}</p>
-		  <h3>Context:</h3>
-		  <p>${sanitizedContext}</p>
-		`;
-
-	  } catch (error) {
-	    clearTimeout(longWaitTimer1);
-		clearTimeout(longWaitTimer2);
-		clearTimeout(longWaitTimer3);
-		clearTimeout(longWaitTimer4);
-		console.error("Chat error:", error);
-		console.error("Chat error details:", error.message, error.stack);
-		// Show meaningful error to user
-		let errorMessage = "Failed to get response from AI network";
-		
-		  if (window.ethereum?.isCoinbaseWallet) {
-			errorMessage = "⚠️ Base App connection issue. Please disconnect and reconnect your wallet.";
-			
-			// Prevent UI from clearing by not resetting conversation
-			// Keep user's message visible for troubleshooting
-			if (conversationHistory.length > 0 && conversationHistory[conversationHistory.length-1].role === 'user') {
-			  conversationHistory.pop(); // Only remove the last user message if it's the one that failed
-			}
-			
-			// Show persistent error message
-			document.getElementById('walletMessage').innerHTML = `
-			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-				${errorMessage}<br>
-				<small style="display: block; margin-top: 5px; opacity: 0.8;">Tip: Disconnect from wallet menu, then reconnect</small>
-			  </div>
-			`;
-			
-			// Auto-open stake modal for specific errors
-			if (error.message.includes("Invalid cookie") || error.message.includes("stake")) {
-			  setTimeout(() => {
-				document.getElementById('stake-modal').style.display = 'flex';
-			  }, 1500);
-			}
-			
-			return; // Prevent further UI reset
-		  }
-		
-		// Show error in UI
-		document.getElementById('walletMessage').innerHTML = `<span style="color: #dc3545">${errorMessage}</span>`;
-		
-		// Optional: Auto-open stake modal for specific errors
-		if (error.message.includes("Invalid cookie") || error.message.includes("stake")) {
-			document.getElementById('stake-modal').style.display = 'flex';
-		}
-  
-	  } finally {
-		document.getElementById('loading').style.display = 'none';
-		 
-		// Only render conversation if we didn't return early from Base App error
-		if (!window.ethereum?.isCoinbaseWallet || !error) {
-			renderConversation();
-		}
-	  }
-	  gtag_report_conversion('https://dissentbot.com');
-	}
 	  // Clear conversation
 	function clearConversation() {
 		conversationHistory = [];
