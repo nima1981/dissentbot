@@ -922,7 +922,8 @@ function renderConversation() {
   ).join('');
 
   // Add event listeners to copy buttons
-  conversationDiv.querySelectorAll('.copy-btn').forEach(button => {
+  const copyButtons = conversationDiv.querySelectorAll('.copy-btn');
+  copyButtons.forEach(button => {
     button.addEventListener('click', function() {
       const index = parseInt(this.getAttribute('data-index'));
       const message = conversationHistory[index];
@@ -1623,18 +1624,16 @@ async function sendMessage() {
       sanitizedAnswer = `<img style='display:block; width:100%;' id='base64image' src='${imageUrl}' >`;
       markdownContent = `![Generated Image](${imageUrl})`;
     } else {
-      // Store the raw markdown before HTML conversion
-      markdownContent = data.answer
+      // Store the raw markdown before HTML conversion - PRESERVING THOUGHT PROCESS TAGS
+      markdownContent = data.answer;
+      
+      // Convert to HTML for display - PRESERVING THOUGHT PROCESS TAGS
+      sanitizedAnswer = marked.parse(
+        data.answer
           .replace(/$$REF$$/g, ' [REF]')
-          .replace("<tool_call>", ' <b>Thought Process:</b> ')
-          .replace("", '');
-      
-      // Convert to HTML for display
-      sanitizedAnswer = marked.parse(markdownContent)
-          .replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
-      
-      // Add references if they exist
-      if (data.web_search_citations && data.web_search_citations.length > 0) {
+          .replace("</tool_call>", ' <b>Thought Process:</b> ')
+          .replace("", '')
+      ).replace(/<a\b(?![^>]*target=)/gi, ' 0) {
         // HTML references
         const htmlAppendix = data.web_search_citations.map((citation, index) => 
             `[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
