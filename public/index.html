@@ -904,23 +904,20 @@ function gtag_report_conversion(url) {
 
   // Render conversation history
 	function renderConversation() {
-	  const conversationDiv = document.getElementById('conversation');
-	  
-	  // Build HTML directly with already-converted content (fixes double-conversion bug)
-	  conversationDiv.innerHTML = conversationHistory.map((message, index) => 
-		`<div class="message ${message.role}">
-		  <div class="message-content ${message.role}">${message.content}</div>
-		  ${message.role === 'assistant' ? 
-			`<div class="copy-response">
-			  <button class="copy-btn" data-index="${index}">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-				  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"></path>
-				  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"></path>
-				</svg>
-			  </button>
-			</div>` : ''}
-		</div>`
-	  ).join('');
+	 conversationDiv.innerHTML = conversationHistory.map((message, index) => 
+  `<div class="message ${message.role}">
+    <div class="message-content ${message.role}">${message.content}</div>
+    ${message.role === 'assistant' && message.markdown ? 
+      `<div class="copy-response">
+        <button class="copy-btn" data-index="${index}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"></path>
+            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"></path>
+          </svg>
+        </button>
+      </div>` : ''}
+  </div>`
+).join('');
 
 	  // Add event listeners to copy buttons
 	  conversationDiv.querySelectorAll('.copy-btn').forEach(button => {
@@ -1624,25 +1621,58 @@ function gtag_report_conversion(url) {
 		// ✅ HANDLE SUCCESS CASE
 		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
 		
-		// Store both HTML (for display) and markdown (for copying)
-		let sanitizedAnswer = "";
-		let markdownContent = "";
+// Store both HTML (for display) and markdown (for copying)
+let sanitizedAnswer = "";
+let markdownContent = "";
+let sanitizedContext = marked.parse(data.context || "No context");
 
-		if (type == "image"){
-			// For images, create both HTML and markdown representations
-			const imageUrl = 'data:image/webp;base64, ' + data.answer;
-			sanitizedAnswer = `<img style='display:block; width:100%;' id='base64image' src='${imageUrl}' >`;
-			markdownContent = `![Generated Image](${imageUrl})`;
-		} else {
-			// Store the raw markdown before HTML conversion
-			markdownContent = data.answer
-				.replace(/$$REF$$/g, ' [REF]')
-				.replace("",' <b>Thought Process:</b> ')
-				.replace("",'');
-			
-			// Convert to HTML for display
-			sanitizedAnswer = marked.parse(markdownContent)
-				.replace(/<a\b(?![^>]*target=)/gi, ' 0) {
+if (type == "image") {
+    // For images, create both HTML and markdown representations
+    const imageUrl = 'data:image/webp;base64, ' + data.answer;
+    sanitizedAnswer = `<img style='display:block; width:100%;' id='base64image' src='${imageUrl}' >`;
+    markdownContent = `![Generated Image](${imageUrl})`;
+} else {
+    // Store the raw markdown before HTML conversion
+    markdownContent = data.answer
+        .replace(/$$REF$$/g, ' [REF]')
+        .replace("<tool_call>", ' <b>Thought Process:</b> ')
+        .replace("", '');
+    
+    // Convert to HTML for display
+    sanitizedAnswer = marked.parse(markdownContent)
+        .replace(/<a\b(?![^>]*target=)/gi, ' 0) {
+    // HTML references
+    const htmlAppendix = data.web_search_citations.map((citation, index) => 
+        `[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
+    ).join('<br>');
+    
+    sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + htmlAppendix + '</p>';
+    
+    // Markdown references
+    let markdownAppendix = '\n\n**References**\n';
+    data.web_search_citations.forEach((citation, index) => {
+        markdownAppendix += `[${index}]: ${citation.title} - ${citation.url}\n`;
+    });
+    
+    markdownContent += markdownAppendix;
+}
+
+// Store both versions in conversation history
+conversationHistory.push({ 
+    role: 'assistant', 
+    content: sanitizedAnswer,
+    markdown: markdownContent
+});
+
+localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+renderConversation();
+
+document.getElementById('response').innerHTML = `
+  <h3>Answer:
+  <p>${sanitizedAnswer}</p>
+  </h3><h3>Context:</h3>
+  <p>${sanitizedContext}</p>
+`;
 				// HTML references
 				const htmlAppendix = data.web_search_citations.map((citation, index) => 
 					`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
