@@ -656,31 +656,6 @@ function gtag_report_conversion(url) {
     #footer div {
       margin-right: 10px;
     }
-	
-	.copy-response {
-	  display: flex;
-	  justify-content: flex-end;
-	  margin-top: 5px;
-	  padding-right: 10px;
-	}
-
-	.copy-btn {
-	  background: none;
-	  border: none;
-	  cursor: pointer;
-	  opacity: 0.6;
-	  transition: opacity 0.2s;
-	  padding: 2px;
-	}
-
-	.copy-btn:hover {
-	  opacity: 1;
-	}
-
-	.copy-btn svg {
-	  width: 14px;
-	  height: 14px;
-	}
 
   </style>
 </head>
@@ -903,56 +878,34 @@ function gtag_report_conversion(url) {
 	}
 
   // Render conversation history
-	function renderConversation() {
-	  const conversationDiv = document.getElementById('conversation');
-	  
-	  // Build HTML directly with already-converted content (fixes double-conversion bug)
-	  conversationDiv.innerHTML = conversationHistory.map((message, index) => 
-		`<div class="message ${message.role}">
-		  <div class="message-content ${message.role}">${message.content}</div>
-		  ${message.role === 'assistant' ? 
-			`<div class="copy-response">
-			  <button class="copy-btn" data-index="${index}">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-				  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"></path>
-				  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"></path>
-				</svg>
-			  </button>
-			</div>` : ''}
-		</div>`
-	  ).join('');
+    function renderConversation() {
+      const conversationDiv = document.getElementById('conversation');
+      conversationDiv.innerHTML = conversationHistory.map(message => 
+        `<div class="message ${message.role}">
+          <div class="message-content ${message.role}">${message.content}</div>
+        </div>`
+      ).join('');
 
-	  // Add event listeners to copy buttons
-	  conversationDiv.querySelectorAll('.copy-btn').forEach(button => {
-		button.addEventListener('click', function() {
-		  const index = parseInt(this.getAttribute('data-index'));
-		  const message = conversationHistory[index];
-		  
-		  navigator.clipboard.writeText(message.markdown).then(() => {
-			// Visual feedback - change to checkmark for 2 seconds
-			const originalHTML = this.innerHTML;
-			this.innerHTML = '✓';
-			setTimeout(() => {
-			  this.innerHTML = originalHTML;
-			}, 2000);
-		  }).catch(err => {
-			console.error('Failed to copy: ', err);
-		  });
-		});
-	  });
+      // Set innerHTML for message content
+      conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
+        // Convert Markdown to HTML
+        const sanitizedContent = marked.parse(conversationHistory[index].content);
+		console.log('sanitizedContend after marked: ', sanitizedContent);
+        contentDiv.innerHTML = sanitizedContent;
+      });
 
-	  // Scroll to the bottom of the conversation
+      // Scroll to the bottom of the conversation
 	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
 
-	  // Show or hide the clear button based on conversation history
-	  const clearButton = document.getElementById('clearButton');
-	  if (conversationHistory.length > 0) {
-		clearButton.style.display = 'block';
-	  } else {
-		clearButton.style.display = 'none';
-	  }
+      // Show or hide the clear button based on conversation history
+      const clearButton = document.getElementById('clearButton');
+      if (conversationHistory.length > 0) {
+        clearButton.style.display = 'block';
+      } else {
+        clearButton.style.display = 'none';
+      }
 	  
-	  // Update button text on page load
+	    // Update button text on page load
 	  const connectButton = document.getElementById('connectWallet');
 	  connectButton.innerHTML = 
 		(isAuthenticated || localStorage.getItem('walletAddress')) 
@@ -960,7 +913,8 @@ function gtag_report_conversion(url) {
 		: '<span id="connectAction">[CONNECT]</span>';
 		
 	  document.getElementById('walletMessage').innerHTML = '';
-	}
+	  
+    }
 
 	async function signChallenge(address) {
 	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
@@ -1624,47 +1578,35 @@ function gtag_report_conversion(url) {
 		// ✅ HANDLE SUCCESS CASE
 		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
 		
-		// Store both HTML (for display) and markdown (for copying)
 		let sanitizedAnswer = "";
-		let markdownContent = "";
-
+		
 		if (type == "image"){
-			// For images, create both HTML and markdown representations
-			const imageUrl = 'data:image/webp;base64, ' + data.answer;
-			sanitizedAnswer = `<img style='display:block; width:100%;' id='base64image' src='${imageUrl}' >`;
-			markdownContent = `![Generated Image](${imageUrl})`;
+		
+			sanitizedAnswer = "<img style='display:block; width:100%;' id='base64image' src='data:image/webp;base64, " + data.answer + "' />";		
+
 		} else {
-			// Store the raw markdown before HTML conversion
-			markdownContent = data.answer
-				.replace(/$$REF$$/g, ' [REF]')
-				.replace("",' <b>Thought Process:</b> ')
-				.replace("",'');
-			
-			// Convert to HTML for display
-			sanitizedAnswer = marked.parse(markdownContent)
-				.replace(/<a\b(?![^>]*target=)/gi, ' 0) {
-				// HTML references
-				const htmlAppendix = data.web_search_citations.map((citation, index) => 
-					`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
-				).join('<br>');
-				
-				sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + htmlAppendix + '</p>';
-				
-				// Markdown references
-				let markdownAppendix = '\n\n**References**\n';
-				data.web_search_citations.forEach((citation, index) => {
-					markdownAppendix += `[${index}]: ${citation.title} - ${citation.url}\n`;
-				});
-				
-				markdownContent += markdownAppendix;
-			}
+		
+			sanitizedAnswer = marked.parse(
+				data.answer
+					.replace(/\[REF\]/g, ' [REF]')
+					.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
+					.replace("</think>",'</div>'))
+					.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 		}
 
-		// Store both versions in conversation history
+		const sanitizedContext = marked.parse(data.context || "No context");
+		
+		const appendix = data.web_search_citations.map((citation, index) => 
+			`[${index}]<a href="${citation.url}" target="_blank">${citation.title}</a>`
+		).join('<br>');
+		
+		if (appendix){
+			sanitizedAnswer += '<p class="appendix"><b>References</b><br>' + appendix + '</p>'
+		}
+		
 		conversationHistory.push({ 
 			role: 'assistant', 
-			content: sanitizedAnswer,
-			markdown: markdownContent
+			content: sanitizedAnswer 
 		});
 	
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
