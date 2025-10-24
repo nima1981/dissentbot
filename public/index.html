@@ -656,18 +656,39 @@ function gtag_report_conversion(url) {
     #footer div {
       margin-right: 10px;
     }
+	/* ChatGPT-style copy icon */
 	.copy-icon {
+	  display: flex;
+	  align-items: center;
+	  gap: 6px;
+	  font-size: 0.85em;
+	  color: #999;
 	  cursor: pointer;
-	  font-size: 0.9em;
-	  color: #555;
-	  text-align: right;
-	  margin-top: 6px;
 	  user-select: none;
+	  position: relative;
+	  margin-top: 6px;
+	  margin-left: 4px;
+	  transition: color 0.15s ease;
+	  width: fit-content;
+	}
+
+	.copy-icon svg {
+	  width: 16px;
+	  height: 16px;
+	  stroke: #999;
+	  stroke-width: 1.6;
+	  fill: none;
+	  transition: stroke 0.15s ease;
 	}
 
 	.copy-icon:hover {
-	  color: #000;
+	  color: #333;
 	}
+
+	.copy-icon:hover svg {
+	  stroke: #333;
+	}
+
 
   </style>
 </head>
@@ -900,7 +921,14 @@ function gtag_report_conversion(url) {
 			${marked.parse(message.content)}
 		  </div>
 		  ${message.role === 'assistant' ? `
-			<div class="copy-icon" onclick="copyBotAnswer(${index})">📋 Copy</div>
+			<div class="copy-icon" onclick="copyBotAnswer(${index})">
+			  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+				<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+				<path d="M5 15H4a2 2 0 0 1-2-2V4
+						 a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+			  </svg>
+			  <span>Copy</span>
+			</div>
 		  ` : ''}
 		</div>
 	  `).join('');
@@ -919,6 +947,32 @@ function gtag_report_conversion(url) {
 	  // Keep clear button visibility logic
 	  const clearButton = document.getElementById('clearButton');
 	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
+	}
+
+	function copyBotAnswer(index) {
+	  const message = conversationHistory[index];
+	  if (!message || message.role !== 'assistant') return;
+
+	  // Convert HTML → Markdown
+	  const tempDiv = document.createElement('div');
+	  tempDiv.innerHTML = message.content;
+	  const markdown = htmlToMarkdown(tempDiv);
+
+	  // Copy to clipboard
+	  navigator.clipboard.writeText(markdown).then(() => {
+		const icon = document.querySelector(`.copy-icon[onclick="copyBotAnswer(${index})"]`);
+		if (icon) {
+		  const label = icon.querySelector('span');
+		  if (label) {
+			label.textContent = 'Copied!';
+			icon.querySelector('svg').style.stroke = '#22c55e'; // green feedback
+			setTimeout(() => {
+			  label.textContent = 'Copy';
+			  icon.querySelector('svg').style.stroke = '';
+			}, 1500);
+		  }
+		}
+	  });
 	}
 
 
