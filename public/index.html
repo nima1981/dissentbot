@@ -948,6 +948,90 @@ function gtag_report_conversion(url) {
 	  const clearButton = document.getElementById('clearButton');
 	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
 	}
+	
+	// --- HTML -> Markdown converter (place this in global scope, before copyBotAnswer) ---
+	function htmlToMarkdown(node) {
+	  if (!node) return '';
+
+	  // Helper to escape and trim
+	  const trim = s => s.replace(/\s+/g, ' ').trim();
+
+	  function walk(el) {
+		let out = '';
+
+		el.childNodes.forEach(child => {
+		  if (child.nodeType === Node.TEXT_NODE) {
+			out += child.textContent;
+			return;
+		  }
+		  if (child.nodeType !== Node.ELEMENT_NODE) return;
+
+		  const tag = child.tagName.toLowerCase();
+
+		  if (tag === 'strong' || tag === 'b') {
+			out += `**${walk(child)}**`;
+		  } else if (tag === 'em' || tag === 'i') {
+			out += `*${walk(child)}*`;
+		  } else if (tag === 'a') {
+			const href = child.getAttribute('href') || '';
+			const text = trim(walk(child)) || href;
+			out += `[${text}](${href})`;
+		  } else if (tag === 'br') {
+			out += '\n';
+		  } else if (tag === 'p') {
+			const content = trim(walk(child));
+			if (content) out += `\n\n${content}\n\n`;
+		  } else if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
+			const level = parseInt(tag[1], 10);
+			out += `\n\n${'#'.repeat(level)} ${trim(walk(child))}\n\n`;
+		  } else if (tag === 'ul') {
+			out += '\n' + Array.from(child.children).map(li => `- ${trim(walk(li))}`).join('\n') + '\n';
+		  } else if (tag === 'ol') {
+			out += '\n' + Array.from(child.children).map((li, i) => `${i + 1}. ${trim(walk(li))}`).join('\n') + '\n';
+		  } else if (tag === 'pre') {
+			out += `\n\n\`\`\`\n${child.textContent.replace(/^\n+|\n+$/g, '')}\n\`\`\`\n\n`;
+		  } else if (tag === 'code') {
+			// inline code if parent is not pre
+			if (child.parentElement && child.parentElement.tagName.toLowerCase() === 'pre') {
+			  out += child.textContent;
+			} else {
+			  out += `\`${child.textContent}\``;
+			}
+		  } else if (tag === 'img') {
+			const src = child.getAttribute('src') || '';
+			const alt = child.getAttribute('alt') || '';
+			out += `![${alt}](${src})`;
+		  } else if (tag === 'blockquote') {
+			const content = trim(walk(child)).split('\n').map(l => `> ${l}`).join('\n');
+			out += `\n\n${content}\n\n`;
+		  } else if (tag === 'table') {
+			// Simple table serializer (headers + rows)
+			const rows = Array.from(child.querySelectorAll('tr')).map(tr =>
+			  Array.from(tr.children).map(td => trim(walk(td))).join(' | ')
+			);
+			if (rows.length) {
+			  // add header separator if more than 1 row
+			  let tableMd = `\n\n${rows[0]}\n`;
+			  if (rows.length > 1) {
+				const cols = rows[0].split(' | ').map(() => '---').join(' | ');
+				tableMd += `${cols}\n`;
+				for (let i = 1; i < rows.length; i++) tableMd += `${rows[i]}\n`;
+			  }
+			  out += tableMd + '\n';
+			}
+		  } else {
+			// default: recurse
+			out += walk(child);
+		  }
+		});
+
+		return out;
+	  }
+
+	  // Walk and then tidy whitespace
+	  return walk(node).replace(/\n{3,}/g, '\n\n').trim();
+	}
+
 
 	function copyBotAnswer(index) {
 	  const message = conversationHistory[index];
