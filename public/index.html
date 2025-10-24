@@ -656,6 +656,18 @@ function gtag_report_conversion(url) {
     #footer div {
       margin-right: 10px;
     }
+	.copy-icon {
+	  cursor: pointer;
+	  font-size: 0.9em;
+	  color: #555;
+	  text-align: right;
+	  margin-top: 6px;
+	  user-select: none;
+	}
+
+	.copy-icon:hover {
+	  color: #000;
+	}
 
   </style>
 </head>
@@ -877,44 +889,98 @@ function gtag_report_conversion(url) {
 		document.getElementById('walletMessage').innerHTML = '';
 	}
 
-  // Render conversation history
-    function renderConversation() {
-      const conversationDiv = document.getElementById('conversation');
-      conversationDiv.innerHTML = conversationHistory.map(message => 
-        `<div class="message ${message.role}">
-          <div class="message-content ${message.role}">${message.content}</div>
-        </div>`
-      ).join('');
+	// Render conversation history
+	function renderConversation() {
+	  const conversationDiv = document.getElementById('conversation');
+	  conversationDiv.innerHTML = conversationHistory.map((message, index) => `
+		<div class="message ${message.role}">
+		  <div class="message-content ${message.role}" data-index="${index}">
+			${marked.parse(message.content)}
+		  </div>
+		  ${message.role === 'assistant' ? `
+			<div class="copy-icon" onclick="copyBotAnswer(${index})">📋 Copy</div>
+		  ` : ''}
+		</div>
+	  `).join('');
 
-      // Set innerHTML for message content
-      conversationDiv.querySelectorAll('.message-content').forEach((contentDiv, index) => {
-        // Convert Markdown to HTML
-        const sanitizedContent = marked.parse(conversationHistory[index].content);
-		console.log('sanitizedContend after marked: ', sanitizedContent);
-        contentDiv.innerHTML = sanitizedContent;
-      });
-
-      // Scroll to the bottom of the conversation
 	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
 
-      // Show or hide the clear button based on conversation history
-      const clearButton = document.getElementById('clearButton');
-      if (conversationHistory.length > 0) {
-        clearButton.style.display = 'block';
-      } else {
-        clearButton.style.display = 'none';
-      }
+	  const clearButton = document.getElementById('clearButton');
+	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
+	}
+
+	function copyBotAnswer(index) {
+	  const message = conversationHistory[index];
+	  if (!message || message.role !== 'assistant') return;
+
+	  // Create a temporary element to extract text
+	  const tempDiv = document.createElement('div');
+	  tempDiv.innerHTML = message.content;
 	  
-	    // Update button text on page load
-	  const connectButton = document.getElementById('connectWallet');
-	  connectButton.innerHTML = 
-		(isAuthenticated || localStorage.getItem('walletAddress')) 
-		? `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]` 
-		: '<span id="connectAction">[CONNECT]</span>';
-		
-	  document.getElementById('walletMessage').innerHTML = '';
-	  
-    }
+	  // Convert HTML back to Markdown using DOM traversal
+	  let markdown = htmlToMarkdown(tempDiv);
+
+	  navigator.clipboard.writeText(markdown).then(() => {
+		const icon = document.querySelector(`.copy-icon[onclick="copyBotAnswer(${index})"]`);
+		if (icon) {
+		  const oldText = icon.textContent;
+		  icon.textContent = '✅ Copied!';
+		  setTimeout(() => (icon.textContent = oldText), 1500);
+		}
+	  });
+	}
+
+	// Simple HTML → Markdown converter
+	function htmlToMarkdown(node) {
+	  if (!node) return '';
+	  let text = '';
+
+	  node.childNodes.forEach(child => {
+		if (child.nodeType === Node.TEXT_NODE) {
+		  text += child.textContent;
+		} else if (child.nodeType === Node.ELEMENT_NODE) {
+		  switch (child.tagName.toLowerCase()) {
+			case 'strong':
+			case 'b':
+			  text += '**' + htmlToMarkdown(child) + '**';
+			  break;
+			case 'em':
+			case 'i':
+			  text += '*' + htmlToMarkdown(child) + '*';
+			  break;
+			case 'a':
+			  text += `[${htmlToMarkdown(child)}](${child.getAttribute('href')})`;
+			  break;
+			case 'br':
+			  text += '\n';
+			  break;
+			case 'p':
+			  text += '\n' + htmlToMarkdown(child) + '\n';
+			  break;
+			case 'ul':
+			  text += '\n' + Array.from(child.children).map(li => '- ' + htmlToMarkdown(li)).join('\n') + '\n';
+			  break;
+			case 'ol':
+			  text += '\n' + Array.from(child.children).map((li, i) => `${i + 1}. ${htmlToMarkdown(li)}`).join('\n') + '\n';
+			  break;
+			case 'code':
+			  text += '`' + child.textContent + '`';
+			  break;
+			case 'pre':
+			  text += '\n```\n' + child.textContent.trim() + '\n```\n';
+			  break;
+			case 'img':
+			  text += `![image](${child.getAttribute('src')})`;
+			  break;
+			default:
+			  text += htmlToMarkdown(child);
+		  }
+		}
+	  });
+
+	  return text;
+	}
+
 
 	async function signChallenge(address) {
 	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
