@@ -656,7 +656,8 @@ function gtag_report_conversion(url) {
     #footer div {
       margin-right: 10px;
     }
-	/* ChatGPT-style copy icon */
+
+	/* ChatGPT-style copy icon: sits underneath the bot answer, bottom-left */
 	.copy-icon {
 	  display: flex;
 	  align-items: center;
@@ -665,10 +666,9 @@ function gtag_report_conversion(url) {
 	  color: #999;
 	  cursor: pointer;
 	  user-select: none;
-	  position: relative;
-	  margin-top: 6px;
-	  margin-left: 4px;
 	  transition: color 0.15s ease;
+	  margin-top: 8px;
+	  margin-left: 4px;
 	  width: fit-content;
 	}
 
@@ -688,6 +688,7 @@ function gtag_report_conversion(url) {
 	.copy-icon:hover svg {
 	  stroke: #333;
 	}
+
 
 
   </style>
@@ -915,23 +916,23 @@ function gtag_report_conversion(url) {
 	  const conversationDiv = document.getElementById('conversation');
 
 	  // Render messages + copy button for bot answers
-	  conversationDiv.innerHTML = conversationHistory.map((message, index) => `
-		<div class="message ${message.role}">
-		  <div class="message-content ${message.role}" data-index="${index}">
-			${marked.parse(message.content)}
-		  </div>
-		  ${message.role === 'assistant' ? `
-			<div class="copy-icon" onclick="copyBotAnswer(${index})">
-			  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-				<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-				<path d="M5 15H4a2 2 0 0 1-2-2V4
-						 a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-			  </svg>
-			  <span></span>
+		conversationDiv.innerHTML = conversationHistory.map((message, index) => `
+		  <div class="message ${message.role}">
+			<div class="message-content ${message.role}" data-index="${index}">
+			  ${marked.parse(message.content)}
 			</div>
-		  ` : ''}
-		</div>
-	  `).join('');
+			${message.role === 'assistant' ? `
+			  <div class="copy-icon" onclick="copyBotAnswer(${index})">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+				  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+				  <path d="M5 15H4a2 2 0 0 1-2-2V4
+						   a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+				</svg>
+				<span>Copy</span>
+			  </div>
+			` : ''}
+		  </div>
+		`).join('');
 
 	  // Maintain scroll behavior
 	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
