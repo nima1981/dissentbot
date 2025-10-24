@@ -889,9 +889,11 @@ function gtag_report_conversion(url) {
 		document.getElementById('walletMessage').innerHTML = '';
 	}
 
-	// Render conversation history
+  // Render conversation history
 	function renderConversation() {
 	  const conversationDiv = document.getElementById('conversation');
+
+	  // Render messages + copy button for bot answers
 	  conversationDiv.innerHTML = conversationHistory.map((message, index) => `
 		<div class="message ${message.role}">
 		  <div class="message-content ${message.role}" data-index="${index}">
@@ -903,82 +905,20 @@ function gtag_report_conversion(url) {
 		</div>
 	  `).join('');
 
+	  // Maintain scroll behavior
 	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
 
+	  // Preserve CONNECT button UI update
+	  const connectButton = document.getElementById('connectWallet');
+	  if (walletAddress) {
+		connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+	  } else {
+		connectButton.innerHTML = '<span id="connectAction">[CONNECT]</span>';
+	  }
+
+	  // Keep clear button visibility logic
 	  const clearButton = document.getElementById('clearButton');
 	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
-	}
-
-	function copyBotAnswer(index) {
-	  const message = conversationHistory[index];
-	  if (!message || message.role !== 'assistant') return;
-
-	  // Create a temporary element to extract text
-	  const tempDiv = document.createElement('div');
-	  tempDiv.innerHTML = message.content;
-	  
-	  // Convert HTML back to Markdown using DOM traversal
-	  let markdown = htmlToMarkdown(tempDiv);
-
-	  navigator.clipboard.writeText(markdown).then(() => {
-		const icon = document.querySelector(`.copy-icon[onclick="copyBotAnswer(${index})"]`);
-		if (icon) {
-		  const oldText = icon.textContent;
-		  icon.textContent = '✅ Copied!';
-		  setTimeout(() => (icon.textContent = oldText), 1500);
-		}
-	  });
-	}
-
-	// Simple HTML → Markdown converter
-	function htmlToMarkdown(node) {
-	  if (!node) return '';
-	  let text = '';
-
-	  node.childNodes.forEach(child => {
-		if (child.nodeType === Node.TEXT_NODE) {
-		  text += child.textContent;
-		} else if (child.nodeType === Node.ELEMENT_NODE) {
-		  switch (child.tagName.toLowerCase()) {
-			case 'strong':
-			case 'b':
-			  text += '**' + htmlToMarkdown(child) + '**';
-			  break;
-			case 'em':
-			case 'i':
-			  text += '*' + htmlToMarkdown(child) + '*';
-			  break;
-			case 'a':
-			  text += `[${htmlToMarkdown(child)}](${child.getAttribute('href')})`;
-			  break;
-			case 'br':
-			  text += '\n';
-			  break;
-			case 'p':
-			  text += '\n' + htmlToMarkdown(child) + '\n';
-			  break;
-			case 'ul':
-			  text += '\n' + Array.from(child.children).map(li => '- ' + htmlToMarkdown(li)).join('\n') + '\n';
-			  break;
-			case 'ol':
-			  text += '\n' + Array.from(child.children).map((li, i) => `${i + 1}. ${htmlToMarkdown(li)}`).join('\n') + '\n';
-			  break;
-			case 'code':
-			  text += '`' + child.textContent + '`';
-			  break;
-			case 'pre':
-			  text += '\n```\n' + child.textContent.trim() + '\n```\n';
-			  break;
-			case 'img':
-			  text += `![image](${child.getAttribute('src')})`;
-			  break;
-			default:
-			  text += htmlToMarkdown(child);
-		  }
-		}
-	  });
-
-	  return text;
 	}
 
 
