@@ -927,7 +927,7 @@ function gtag_report_conversion(url) {
 				<path d="M5 15H4a2 2 0 0 1-2-2V4
 						 a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
 			  </svg>
-			  <span>Copy</span>
+			  <span></span>
 			</div>
 		  ` : ''}
 		</div>
@@ -1051,7 +1051,7 @@ function gtag_report_conversion(url) {
 			label.textContent = 'Copied!';
 			icon.querySelector('svg').style.stroke = '#22c55e'; // green feedback
 			setTimeout(() => {
-			  label.textContent = 'Copy';
+			  label.textContent = '';
 			  icon.querySelector('svg').style.stroke = '';
 			}, 1500);
 		  }
