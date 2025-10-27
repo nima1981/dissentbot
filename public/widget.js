@@ -20,6 +20,7 @@
   // Create iframe for chatbot
   const chatIframe = document.createElement('iframe');
   chatIframe.src = 'https://dissentbot.com';
+  chatIframe.allow = 'clipboard-write';
   chatIframe.style = `
     width: 100%;
     height: 100%;
