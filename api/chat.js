@@ -392,7 +392,7 @@ export default async function handler(req, res) {
 		retries++;
 
 		// ✅ LOG RETRY
-		console.error(`API (${apiUrl}) failed (attempt ${retries}/${maxRetries + 1})`, error.message);
+		console.error(`API (${apiUrl}) failed (attempt ${retries}/${maxRetries + 1})`, error);
 
 		// ✅ ONLY RETRY ON 500-LEVEL ERRORS
 		if (
