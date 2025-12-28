@@ -407,7 +407,9 @@ export default async function handler(req, res) {
 		}
 
 		// ✅ ALL RETRIES FAILED — RETURN ERROR TO CLIENT
+		console.error("ERROR", error);
 		res.status(500).json({ error: "AI network temporarily unavailable" });
+
 		return;
 	  }
 	}
