@@ -782,7 +782,6 @@ function gtag_report_conversion(url) {
    
 	<div id="walletMessage"></div>
   </div>
-  <div id="response"></div>
 
   <div id="embed-modal" style="display:none;">
     <div class="overlay"></div>
@@ -1761,13 +1760,6 @@ function gtag_report_conversion(url) {
 	
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		renderConversation();
-
-		document.getElementById('response').innerHTML = `
-		  <h3>Answer:
-		  <p>${sanitizedAnswer}</p>
-		  <h3>Context:</h3>
-		  <p>${sanitizedContext}</p>
-		`;
 
 	  } catch (error) {
 	    clearTimeout(longWaitTimer1);
