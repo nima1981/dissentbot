@@ -1810,9 +1810,11 @@ function gtag_report_conversion(url) {
 		document.getElementById('loading').style.display = 'none';
 		 
 		// Only render conversation if we didn't return early from Base App error
+		/*
 		if (!window.ethereum?.isCoinbaseWallet || !error) {
 			renderConversation();
 		}
+		*/
 	  }
 	  gtag_report_conversion('https://dissentbot.com');
 	}
