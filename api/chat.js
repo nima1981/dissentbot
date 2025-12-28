@@ -378,10 +378,24 @@ export default async function handler(req, res) {
 		} else {
 			console.log("answer:", apiResponse.data.choices[0].message.content);
 			// ✅ SUCCESS — BREAK RETRY LOOP
+			const rawContent = apiResponse.data.choices[0].message.content;
+
+			const answer =
+			  Array.isArray(rawContent)
+				? rawContent
+					.map(part =>
+					  part.text ||
+					  part.content ||
+					  (typeof part === "string" ? part : "")
+					)
+					.join("")
+				: rawContent;
+
+			
 			res.status(200).json({
-			  answer: apiResponse.data.choices[0].message.content,
+			  answer: answer,
 			  context,
-			  web_search_citations: apiResponse.data?.venice_parameters?.web_search_citations
+			  web_search_citations: apiResponse.data?.venice_parameters?.web_search_citations ?? []
 			});
 		}
 		
