@@ -910,23 +910,22 @@ window.addEventListener("beforeunload", (e) => {
 		document.getElementById('walletMessage').innerHTML = '';
 	}
 
-	let pendingScroll = false;
+	function smoothScrollToBottom() {
+	  const el = document.getElementById("conversation");
+	  const start = el.scrollTop;
+	  const end = el.scrollHeight;
+	  const duration = 300;
+	  const startTime = performance.now();
 
-	function scrollConversationOnceSmooth() {
-	  if (pendingScroll) return;
-	  pendingScroll = true;
+	  function animate(time) {
+		const progress = Math.min((time - startTime) / duration, 1);
+		el.scrollTop = start + (end - start) * progress;
+		if (progress < 1) requestAnimationFrame(animate);
+	  }
 
-	  requestAnimationFrame(() => {
-		requestAnimationFrame(() => {
-		  const el = document.getElementById('conversation');
-		  el.scrollTo({
-			top: el.scrollHeight,
-			behavior: 'smooth'
-		  });
-		  pendingScroll = false;
-		});
-	  });
+	  requestAnimationFrame(animate);
 	}
+
 
 
 
@@ -971,7 +970,10 @@ window.addEventListener("beforeunload", (e) => {
 	  const clearButton = document.getElementById('clearButton');
 	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
 	  
-	  scrollConversationOnceSmooth();
+	  requestAnimationFrame(() => {
+		requestAnimationFrame(smoothScrollToBottom);
+	  });
+
 	  
 	}
 	
