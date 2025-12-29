@@ -176,7 +176,6 @@ function gtag_report_conversion(url) {
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #ddd #f4f4f9;
-      transition: scroll-top 10s ease;
     }
 
     #conversation::-webkit-scrollbar {
@@ -915,8 +914,24 @@ function gtag_report_conversion(url) {
 		document.getElementById('walletMessage').innerHTML = '';
 	}
 
+	let pendingScroll = false;
+
+	function scrollConversationOnce() {
+	  if (pendingScroll) return;
+	  pendingScroll = true;
+
+	  requestAnimationFrame(() => {
+		requestAnimationFrame(() => {
+		  const el = document.getElementById('conversation');
+		  el.scrollTop = el.scrollHeight;
+		  pendingScroll = false;
+		});
+	  });
+	}
+
+
   // Render conversation history
-	function renderConversation() {
+	function renderConversation() {	
 	  const conversationDiv = document.getElementById('conversation');
 
 	  // Render messages + copy button for bot answers
@@ -939,7 +954,10 @@ function gtag_report_conversion(url) {
 		`).join('');
 
 	  // Maintain scroll behavior
-	  conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
+	  //conversationDiv.scrollTo({ top: conversationDiv.scrollHeight, behavior: 'smooth' });
+	  
+	  conversationDiv.scrollTop = conversationDiv.scrollHeight;
+
 
 	  // Preserve CONNECT button UI update
 	  const connectButton = document.getElementById('connectWallet');
@@ -952,6 +970,9 @@ function gtag_report_conversion(url) {
 	  // Keep clear button visibility logic
 	  const clearButton = document.getElementById('clearButton');
 	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
+	  
+	  scrollConversationOnce();
+	  
 	}
 	
 	// --- HTML -> Markdown converter (place this in global scope, before copyBotAnswer) ---
