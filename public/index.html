@@ -14,17 +14,10 @@
 <!-- Event snippet for Click Chat Button conversion page
 In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
 <script>
-function gtag_report_conversion(url) {
-  var callback = function () {
-    if (typeof(url) != 'undefined') {
-      window.location = url;
-    }
-  };
+function gtag_report_conversion() {
   gtag('event', 'conversion', {
-      'send_to': 'AW-17558178554/1H2TCPS005obEPqVsrRB',
-      'event_callback': callback
+    'send_to': 'AW-17558178554/1H2TCPS005obEPqVsrRB'
   });
-  return false;
 }
 </script>
 
