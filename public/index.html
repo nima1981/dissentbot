@@ -1729,6 +1729,11 @@ window.addEventListener("beforeunload", (e) => {
 			document.getElementById('stake-modal').style.display = 'flex';
 			return;
 		}
+		// ✅ HANDLE COOKIE INVALID
+		if (response.status === 401) {
+			document.getElementById('walletMessage').innerHTML = 'Invalid or expired cookie detected. Please reconnect your wallet.';
+			return;
+		}
 		
 		// ✅ HANDLE FORBIDDEN
 		if (response.status === 429) {
@@ -1746,8 +1751,8 @@ window.addEventListener("beforeunload", (e) => {
 		// ✅ HANDLE OTHER ERRORS
 		if (!response.ok) {
 		  console.error("Chat error:", data.error);
-		  //document.getElementById('walletMessage').innerHTML = `⚠️ ${data.error}`;
-		  document.getElementById('walletMessage').innerHTML = '';
+		  document.getElementById('walletMessage').innerHTML = `⚠️ ${data.error}`;
+		  //document.getElementById('walletMessage').innerHTML = '';
 		  return;
 		}
 		
