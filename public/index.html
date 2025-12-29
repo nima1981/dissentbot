@@ -862,8 +862,6 @@ function gtag_report_conversion(url) {
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
 
-  <!-- Include marked.js -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
   // Ensure marked.js is loaded
@@ -876,13 +874,13 @@ function gtag_report_conversion(url) {
   console.log("WalletConnectProvider available?", !!window.WalletConnectProvider);
   
    // ✅ REGISTER SERVICE WORKER
-  if ('serviceWorker' in navigator) {
+ /* if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then(reg => console.log('Service worker registered:', reg.scope))
         .catch(err => console.error('Service worker registration failed:', err));
     });
-  }
+  }*/
 	  
   // Initialize variables
   let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
@@ -916,18 +914,22 @@ function gtag_report_conversion(url) {
 
 	let pendingScroll = false;
 
-	function scrollConversationOnce() {
+	function scrollConversationOnceSmooth() {
 	  if (pendingScroll) return;
 	  pendingScroll = true;
 
 	  requestAnimationFrame(() => {
 		requestAnimationFrame(() => {
 		  const el = document.getElementById('conversation');
-		  el.scrollTop = el.scrollHeight;
+		  el.scrollTo({
+			top: el.scrollHeight,
+			behavior: 'smooth'
+		  });
 		  pendingScroll = false;
 		});
 	  });
 	}
+
 
 
   // Render conversation history
@@ -971,7 +973,7 @@ function gtag_report_conversion(url) {
 	  const clearButton = document.getElementById('clearButton');
 	  clearButton.style.display = conversationHistory.length > 0 ? 'block' : 'none';
 	  
-	  scrollConversationOnce();
+	  scrollConversationOnceSmooth();
 	  
 	}
 	
@@ -1115,11 +1117,17 @@ function gtag_report_conversion(url) {
 		
 		// Special handling for WebAuthn responses
 		if (error.message.includes('WebAuthn')) {
-		  // This happens when Base app uses WebAuthn
-		  // We need to handle it by refreshing
-		  window.location.reload();
-		  throw new Error("Please try connecting again");
+		  console.warn("WebAuthn issue detected – prompting reconnect instead");
+
+		  document.getElementById('walletMessage').innerHTML = `
+			<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:4px;">
+			  Wallet connection expired. Please disconnect and reconnect.
+			</div>
+		  `;
+
+		  throw new Error("Wallet reconnect required");
 		}
+
 		
 		throw error;
 	  }
