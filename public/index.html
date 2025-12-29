@@ -176,7 +176,7 @@ function gtag_report_conversion(url) {
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #ddd #f4f4f9;
-      /*transition: scroll-top 10s ease;*/
+      transition: scroll-top 10s ease;
     }
 
     #conversation::-webkit-scrollbar {
@@ -1621,8 +1621,6 @@ function gtag_report_conversion(url) {
 
       input.value = ''; // Clear input field
 
-	  let response = null;
-
 	  try {
 		document.getElementById('loading').style.display = 'flex';
 
@@ -1667,7 +1665,7 @@ function gtag_report_conversion(url) {
 		}
 
 		// ✅ FETCH AND READ BODY ONCE
-		response = await fetch('/api/chat', {
+		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, type: type, api: api, model: model, ...authData })
@@ -1727,7 +1725,8 @@ function gtag_report_conversion(url) {
 		//console.log("Answer after replace:", data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, ''));
 
 		// ✅ HANDLE SUCCESS CASE
-				
+		//const sanitizedAnswer = marked.parse(data.answer.replace(/\[REF\]/g, '').replace(/\[\/REF\]/g, '').replace("<think>",'<div class="think"> <b>Thought Process:</b> ').replace("</think>",'</div>'))
+		
 		let sanitizedAnswer = "";
 		
 		if (type == "image"){
@@ -1736,12 +1735,14 @@ function gtag_report_conversion(url) {
 
 		} else {
 		
-			sanitizedAnswer = marked.parse(
+			const parsedContent = marked.parse(
 				data.answer
 					.replace(/\[REF\]/g, ' [REF]')
 					.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
 					.replace("</think>",'</div>'))
 					.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
+					
+			sanitizedAnswer = parsedContent;
 		}
 
 		const sanitizedContext = marked.parse(data.context || "No context");
@@ -1761,10 +1762,6 @@ function gtag_report_conversion(url) {
 	
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
 		//renderConversation();
-		//hasRendered = true; // Mark as rendered
-		
-		// ✅ APPEND ONLY THE ASSISTANT MESSAGE - don't re-render everything
-        appendAssistantMessage(sanitizedAnswer, conversationHistory.length - 1);
 
 	  } catch (error) {
 	    clearTimeout(longWaitTimer1);
@@ -1816,49 +1813,14 @@ function gtag_report_conversion(url) {
 		 
 		// Only render conversation if we didn't return early from Base App error
 		
+		
+		if (!window.ethereum?.isCoinbaseWallet || !error) {
+			renderConversation();
+		}
 	  }
 	  gtag_report_conversion('https://dissentbot.com');
 	}
-	
-	// ✅ NEW FUNCTION - append only the assistant message
-	function appendAssistantMessage(content, index) {
-		const conversationDiv = document.getElementById('conversation');
-		
-		// Create the assistant message element
-		const messageDiv = document.createElement('div');
-		messageDiv.className = 'message assistant';
-		messageDiv.innerHTML = `
-			<div class="message-content assistant" data-index="${index}">
-				${content}
-			</div>
-			<div class="copy-icon" onclick="copyBotAnswer(${index})">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-					<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-					<path d="M5 15H4a2 2 0 0 1-2-2V4 a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-				</svg>
-				<span></span>
-			</div>
-		`;
-		
-		conversationDiv.appendChild(messageDiv);
-		
-		// Scroll to bottom smoothly
-		/*
-		conversationDiv.scrollTo({ 
-			top: conversationDiv.scrollHeight, 
-			behavior: 'smooth' 
-		});
-		*/
-		
-		// Scroll to bottom instantly (no animation)
-		conversationDiv.scrollTop = conversationDiv.scrollHeight;
-		
-		// Update clear button visibility
-		const clearButton = document.getElementById('clearButton');
-		clearButton.style.display = 'block';
-	}
-	
-	// Clear conversation
+	  // Clear conversation
 	function clearConversation() {
 		conversationHistory = [];
 		localStorage.removeItem('conversationHistory');
