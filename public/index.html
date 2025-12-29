@@ -1735,11 +1735,11 @@ function gtag_report_conversion(url) {
 
 		} else {
 		
-			const parsedContent = marked.parse(
+			const parsedContent = 
 				data.answer
 					.replace(/\[REF\]/g, ' [REF]')
 					.replace("<think>",'<div class="think"> <b>Thought Process:</b> ')
-					.replace("</think>",'</div>'))
+					.replace("</think>",'</div>')
 					.replace(/<a\b(?![^>]*target=)/gi, '<a target="_blank" rel="noopener"');
 					
 			sanitizedAnswer = parsedContent;
