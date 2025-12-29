@@ -1621,7 +1621,8 @@ function gtag_report_conversion(url) {
 
       input.value = ''; // Clear input field
 
-	  let hasRendered = false;
+	  //let hasRendered = false;
+	  let response = null;
 
 	  try {
 		document.getElementById('loading').style.display = 'flex';
@@ -1667,7 +1668,7 @@ function gtag_report_conversion(url) {
 		}
 
 		// ✅ FETCH AND READ BODY ONCE
-		const response = await fetch('/api/chat', {
+		response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
 		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, type: type, api: api, model: model, ...authData })
@@ -1761,8 +1762,8 @@ function gtag_report_conversion(url) {
 		});
 	
 		localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
-		renderConversation();
-		hasRendered = true; // Mark as rendered
+		//renderConversation();
+		//hasRendered = true; // Mark as rendered
 
 	  } catch (error) {
 	    clearTimeout(longWaitTimer1);
@@ -1814,11 +1815,10 @@ function gtag_report_conversion(url) {
 		 
 		// Only render conversation if we didn't return early from Base App error
 		
-		if (!window.ethereum?.isCoinbaseWallet || !error) {
-			if (!hasRendered) {
-				renderConversation();
-			}
-		}
+        if ((!window.ethereum?.isCoinbaseWallet || !error) && 
+            (response?.ok || (error && !response))) {
+            renderConversation();
+        }
 	  }
 	  gtag_report_conversion('https://dissentbot.com');
 	}
