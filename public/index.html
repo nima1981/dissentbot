@@ -1843,10 +1843,15 @@ function gtag_report_conversion(url) {
 		conversationDiv.appendChild(messageDiv);
 		
 		// Scroll to bottom smoothly
+		/*
 		conversationDiv.scrollTo({ 
 			top: conversationDiv.scrollHeight, 
 			behavior: 'smooth' 
 		});
+		*/
+		
+		// Scroll to bottom instantly (no animation)
+		conversationDiv.scrollTop = conversationDiv.scrollHeight;
 		
 		// Update clear button visibility
 		const clearButton = document.getElementById('clearButton');
