@@ -923,7 +923,7 @@ function gtag_report_conversion(url) {
 		conversationDiv.innerHTML = conversationHistory.map((message, index) => `
 		  <div class="message ${message.role}">
 			<div class="message-content ${message.role}" data-index="${index}">
-			  ${marked.parse(message.content)}
+			  ${message.content}
 			</div>
 			${message.role === 'assistant' ? `
 			  <div class="copy-icon" onclick="copyBotAnswer(${index})">
