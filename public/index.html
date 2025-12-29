@@ -864,6 +864,11 @@ function gtag_report_conversion(url) {
 
 
 <script>
+
+window.addEventListener("beforeunload", (e) => {
+  console.trace("🔥 beforeunload triggered");
+});
+
   // Ensure marked.js is loaded
   if (typeof marked !== 'function') {
     console.error("marked.js is not loaded correctly.");
@@ -874,13 +879,13 @@ function gtag_report_conversion(url) {
   console.log("WalletConnectProvider available?", !!window.WalletConnectProvider);
   
    // ✅ REGISTER SERVICE WORKER
- /* if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then(reg => console.log('Service worker registered:', reg.scope))
         .catch(err => console.error('Service worker registration failed:', err));
     });
-  }*/
+  }
 	  
   // Initialize variables
   let conversationHistory = JSON.parse(localStorage.getItem('conversationHistory')) || [];
