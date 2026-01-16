@@ -159,7 +159,10 @@ async function verifyMorpheusStake(address) {
     console.log("stakedTokens:", stakedTokens);
     //return stakedTokens >= process.env.MIN_STAKE;
 
-	const hardcodedStakers = ['0xf9a2605bc6287b5c92ea30bc79d20ccdac9a354d', '0x6b4070225873c32a75c5d0bc19b8b544a87789f1'];
+	const hardcodedStakers = ['0xf9a2605bc6287b5c92ea30bc79d20ccdac9a354d',
+		'0x6b4070225873c32a75c5d0bc19b8b544a87789f1',
+		'0x5f0282e607a9b377685dea7c61ada15db1ce8b0a'
+	];
 	
 	if (hardcodedStakers.indexOf(address.toLowerCase()) !== -1) 
 		return true;
