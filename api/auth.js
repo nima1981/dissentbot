@@ -163,7 +163,7 @@ async function verifyMorpheusStake(address) {
 		'0x6b4070225873c32a75c5d0bc19b8b544a87789f1',
 		'0x5f0282e607a9b377685dea7c61ada15db1ce8b0a',
 		'0x19508728f1e2a61e4dc641e90fa0f528a5c29662',
-		'0x6fa66C78f14a082a4bfcc8023972dd0fe6eb76e7'
+		'0x6fa66c78f14a082a4bfcc8023972dd0fe6eb76e7'
 	];
 	
 	if (hardcodedStakers.indexOf(address.toLowerCase()) !== -1) 
