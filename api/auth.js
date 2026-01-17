@@ -2,6 +2,46 @@
 import jwt from "jsonwebtoken";
 import { ethers } from "ethers";
 
+
+// EIP-1271 smart contract wallet signature verification
+const EIP1271_MAGIC_VALUE = '0x1626ba7e';
+const EIP1271_ABI = ['function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)'];
+
+async function verifyEIP1271Signature(walletAddress, message, signature) {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(process.env.BASE_RPC_URL || 'https://mainnet.base.org');
+    
+    // Check if the address is a contract
+    const code = await provider.getCode(walletAddress);
+    if (code === '0x' || code === '0x0') {
+      console.log('Address is not a contract');
+      return false;
+    }
+    
+    console.log('Address is a smart contract, verifying with EIP-1271...');
+    
+    // Hash the message the same way personal_sign does
+    const messageHash = ethers.utils.hashMessage(message);
+    
+    // Create contract instance
+    const contract = new ethers.Contract(walletAddress, EIP1271_ABI, provider);
+    
+    // Call isValidSignature
+    const result = await contract.isValidSignature(messageHash, signature);
+    
+    if (result === EIP1271_MAGIC_VALUE) {
+      console.log('✅ EIP-1271 signature verified');
+      return true;
+    } else {
+      console.log('EIP-1271 verification returned:', result);
+      return false;
+    }
+  } catch (error) {
+    console.error('EIP-1271 verification failed:', error.message);
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -75,6 +115,15 @@ export default async function handler(req, res) {
         }
       } else {
         throw err;
+      }
+    }
+
+	// <CHANGE> If all ECDSA methods failed, try EIP-1271 for smart contract wallets (e.g., Base wallet)
+    if (!recoveredAddress) {
+      console.log('All ECDSA verification methods failed, trying EIP-1271...');
+      const isValidEIP1271 = await verifyEIP1271Signature(walletAddress, message, signature);
+      if (isValidEIP1271) {
+        recoveredAddress = walletAddress; // Trust the claimed address since contract verified it
       }
     }
 
