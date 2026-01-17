@@ -1132,9 +1132,14 @@ window.addEventListener("beforeunload", (e) => {
 
 			// DISCONNECT BLOCK
 			if (storedAddress || storedSessionToken) {
-			  // Standard confirm dialog that works in Base app
-			  if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
-				return;
+			  // For Base wallet browser, skip confirm dialog (it doesn't work properly)
+			  const isBaseWalletBrowser = window.ethereum?.isCoinbaseWallet && 
+				/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+			  
+			  if (!isBaseWalletBrowser) {
+				if (!confirm("Are you sure you want to disconnect your wallet?\n\nYour session will be cleared.")) {
+				  return;
+				}
 			  }
 			  
 			  // Clear all storage
