@@ -164,7 +164,7 @@ export default async function handler(req, res) {
           const decoded = jwt.verify(signedCookie, process.env.SESSION_SECRET);
           if (decoded.staked && decoded.wallet) {
             // ✅ Double-check stake status in case cookie is old
-            const currentStakeStatus = await verifyMorpheusStake(decoded.wallet);
+            const currentStakeStatus = await verifyMorpheusStake2(decoded.wallet);
             if (currentStakeStatus) {
               cookieStaked = true;
             } else {
@@ -191,7 +191,7 @@ export default async function handler(req, res) {
 	if (!cookieStaked) {
 
 		// ✅ NOW CHECK STAKE AFTER verifiedAddress IS DEFINED
-		const isStaked = verifiedAddress ? await verifyMorpheusStake(verifiedAddress) : false;
+		const isStaked = verifiedAddress ? await verifyMorpheusStake2(verifiedAddress) : false;
 		
 		// ✅ SET JWT-SIGNED COOKIE
 		if (isStaked) {
@@ -484,3 +484,45 @@ async function verifyMorpheusStake(address) {
 		return false;
 	}
 }
+
+async function verifyMorpheusStake2(address) {
+  try {
+    const options = {
+      method: 'GET',
+    };
+
+    const url = `https://dashboard.mor.org/api/builders/goldsky/${process.env.SUBNET_ID}/full?network=base`;
+    const response = await fetch(url, options);
+
+    if (!response.ok) throw new Error('Morpheus API query failed.');
+
+    const apiResponse = await response.json();
+    console.log("Morpheus response stakers:", apiResponse.data.stakers);
+	
+	const foundStaker = apiResponse.data.stakers.find(item => item.address === address);
+
+    let stakedTokens = foundStaker?.staked ?? 0;
+	
+    console.log("stakedTokens:", stakedTokens);
+    //return stakedTokens >= process.env.MIN_STAKE;
+
+	const hardcodedStakers = ['0xf9a2605bc6287b5c92ea30bc79d20ccdac9a354d',
+		'0x6b4070225873c32a75c5d0bc19b8b544a87789f1',
+		'0x5f0282e607a9b377685dea7c61ada15db1ce8b0a',
+		'0x19508728f1e2a61e4dc641e90fa0f528a5c29662',
+		'0x6fa66c78f14a082a4bfcc8023972dd0fe6eb76e7',
+		'0x05438ca7c717c977133faac37349236d46dd5f70',
+		'0x86960eae5f550c9652e22e348c3cacc34c02e5f1'
+	];
+	
+	if (hardcodedStakers.indexOf(address.toLowerCase()) !== -1) 
+		return true;
+	else
+		return stakedTokens/1000000000000000000 >= process.env.MIN_STAKE;
+	
+  } catch (error) {
+    console.error("Staking verification failed:", error.message);
+    return false;
+  }
+}
+
