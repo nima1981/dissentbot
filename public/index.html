@@ -1114,9 +1114,7 @@ window.addEventListener("beforeunload", (e) => {
 	  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 	  debugLog('isMobileDevice: ' + isMobileDevice);
 	  
-	  const useEthSign = window.ethereum?.isCoinbaseWallet &&
-		(window.ethereum?.isBase || window.ethereum?.isBaseApp) &&
-		isMobileDevice;
+	  const useEthSign = window.ethereum?.isCoinbaseWallet && isMobileDevice;
 	  debugLog('useEthSign condition: ' + useEthSign);
 	  
 	  try {
