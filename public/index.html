@@ -165,11 +165,14 @@ function gtag_report_conversion() {
     }
 
     #conversation {
-      flex: 1;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #ddd #f4f4f9;
-    }
+	  flex: 1;
+	  overflow-y: auto;
+	  scrollbar-width: thin;
+	  scrollbar-color: #ddd #f4f4f9;
+	  touch-action: pan-y;
+	  overscroll-behavior: contain;
+	  -webkit-overflow-scrolling: touch;
+	}
 
     #conversation::-webkit-scrollbar {
       width: 8px;
@@ -2153,6 +2156,38 @@ document.addEventListener('DOMContentLoaded', function() {
     timeframeDropdown.addEventListener('change', saveSelectedTimeframe);
     apiDropdown.addEventListener('change', handleApiDropdownChange);
     typeDropdown.addEventListener('change', saveSelectedType);
+	
+	
+	// Fix for Android Base wallet browser scrolling issue
+	(function() {
+	  const conversationContainer = document.getElementById('conversation');
+	  
+	  if (!conversationContainer) return;
+	  
+	  let touchStartY = 0;
+	  
+	  conversationContainer.addEventListener('touchstart', function(e) {
+		touchStartY = e.touches[0].clientY;
+	  }, { passive: false });
+	  
+	  conversationContainer.addEventListener('touchmove', function(e) {
+		const touchY = e.touches[0].clientY;
+		const scrollTop = conversationContainer.scrollTop;
+		const scrollHeight = conversationContainer.scrollHeight;
+		const clientHeight = conversationContainer.clientHeight;
+		const isAtTop = scrollTop === 0;
+		const isAtBottom = scrollTop + clientHeight >= scrollHeight;
+		
+		// If scrolling down at top, or scrolling up at bottom, prevent page scroll
+		if ((isAtTop && touchY > touchStartY) || (isAtBottom && touchY < touchStartY)) {
+		  // Allow default behavior (page will scroll)
+		} else {
+		  // Prevent page scroll, allow container scroll
+		  e.stopPropagation();
+		}
+	  }, { passive: false });
+	})();
+	
 });
 </script>
 
