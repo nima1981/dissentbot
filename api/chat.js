@@ -5,6 +5,11 @@ import axios from "axios";
 import { ethers } from "ethers";
 import jwt from "jsonwebtoken";
 
+// Increase function timeout to handle slow AI responses (Pro plan allows up to 300s)
+export const config = {
+  maxDuration: 300,
+};
+
 export default async function handler(req, res) {
   const { method } = req;
   if (method !== "POST") return res.status(405).json({ error: "Method not allowed" });
