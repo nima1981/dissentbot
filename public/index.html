@@ -1817,7 +1817,7 @@ function gtag_report_conversion() {
 		console.error("Chat error:", error);
 		console.error("Chat error details:", error.message, error.stack);
 		// Show meaningful error to user
-		let errorMessage = "Failed to get response from AI network";
+		let errorMessage = "Failed to get response from AI network. Please try again or try a different model and contact us below if the problems persist.";
 		
 		  if (window.ethereum?.isCoinbaseWallet) {
 			errorMessage = "⚠️ Base App connection issue. Please disconnect and reconnect your wallet.";
