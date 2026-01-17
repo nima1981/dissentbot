@@ -1863,6 +1863,7 @@ function gtag_report_conversion() {
 	  // Clear conversation
 	function clearConversation() {
 	  conversationHistory = [];
+	  localStorage.removeItem('conversationHistory');
 	  document.getElementById('walletMessage').innerHTML = '';
 	  document.getElementById('walletMessage').textContent = '';
 	  // <CHANGE> Ensure walletMessage container is completely cleared
