@@ -1704,13 +1704,19 @@ function gtag_report_conversion() {
 			authData.baseSessionToken = baseSessionToken;
 		  }
 		}
-
+		
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 300000); // 300 seconds = 5 minutes
+		
 		// ✅ FETCH AND READ BODY ONCE
 		const response = await fetch('/api/chat', {
 		  method: 'POST',
 		  headers: { 'Content-Type': 'application/json' },
+		  signal: controller.signal,
 		  body: JSON.stringify({ text, history: conversationHistory, timeframe: timeframeValue, type: type, api: api, model: model, ...authData })
 		});
+		
+		clearTimeout(timeoutId);
 		
 		// ✅ CLEAR TIMER
 		clearTimeout(longWaitTimer1);
