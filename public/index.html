@@ -1102,62 +1102,57 @@ window.addEventListener("beforeunload", (e) => {
 	}
 
 
-	async function signChallenge(address) {
-	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
-	  
-	  debugLog('signChallenge called for: ' + address);
-	  debugLog('isCoinbaseWallet: ' + window.ethereum?.isCoinbaseWallet);
-	  debugLog('isBase: ' + window.ethereum?.isBase);
-	  debugLog('isBaseApp: ' + window.ethereum?.isBaseApp);
-	  debugLog('userAgent: ' + navigator.userAgent.substring(0, 50));
-	  
-	  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-	  debugLog('isMobileDevice: ' + isMobileDevice);
-	  
-	  const useEthSign = window.ethereum?.isCoinbaseWallet && isMobileDevice;
-	  debugLog('useEthSign condition: ' + useEthSign);
-	  
-	  try {
-		if (useEthSign) {
-		  debugLog('Using eth_sign method...');
-		  const msgHash = ethers.utils.hashMessage(message);
-		  debugLog('msgHash: ' + msgHash);
-		  const signature = await window.ethereum.request({
-			method: 'eth_sign',
-			params: [address, msgHash]
-		  });
-		  debugLog('eth_sign SUCCESS: ' + signature.substring(0, 20) + '...');
-		  return { message, signature };
-		}
-		
-		debugLog('Using personal_sign method...');
-		const signature = await window.ethereum.request({
-		  method: 'personal_sign',
-		  params: [message, address]
-		});
-		debugLog('personal_sign SUCCESS: ' + signature.substring(0, 20) + '...');
-		return { message, signature };
-	  } catch (error) {
-		debugLog('SIGNING ERROR: ' + error.message);
-		console.error("Signature error:", error);
-		
-		// Special handling for WebAuthn responses
-		if (error.message.includes('WebAuthn')) {
-		  debugLog('WebAuthn error detected');
-		  console.warn("WebAuthn issue detected – prompting reconnect instead");
+		async function signChallenge(address) {
+		  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 		  
-		  document.getElementById('walletMessage').innerHTML = `
-			<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:4px;">
-			  Wallet connection expired. Please disconnect and reconnect.
-			</div>
-		  `;
+		  debugLog('signChallenge called for: ' + address);
+		  debugLog('isCoinbaseWallet: ' + window.ethereum?.isCoinbaseWallet);
+		  debugLog('userAgent: ' + navigator.userAgent.substring(0, 50));
 		  
-		  throw new Error("Wallet reconnect required");
+		  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+		  const isCoinbaseMobile = window.ethereum?.isCoinbaseWallet && isMobileDevice;
+		  debugLog('isCoinbaseMobile: ' + isCoinbaseMobile);
+		  
+		  try {
+			let messageToSign = message;
+			
+			// Coinbase Wallet on Android requires hex-encoded message for personal_sign
+			if (isCoinbaseMobile) {
+			  debugLog('Converting message to hex for Coinbase mobile...');
+			  messageToSign = '0x' + Array.from(new TextEncoder().encode(message))
+				.map(b => b.toString(16).padStart(2, '0'))
+				.join('');
+			  debugLog('Hex message: ' + messageToSign.substring(0, 50) + '...');
+			}
+			
+			debugLog('Using personal_sign method...');
+			const signature = await window.ethereum.request({
+			  method: 'personal_sign',
+			  params: [messageToSign, address]
+			});
+			debugLog('personal_sign SUCCESS: ' + signature.substring(0, 20) + '...');
+			return { message, signature };  // Return original message for server verification
+		  } catch (error) {
+			debugLog('SIGNING ERROR: ' + error.message);
+			console.error("Signature error:", error);
+			
+			// Special handling for WebAuthn responses
+			if (error.message.includes('WebAuthn')) {
+			  debugLog('WebAuthn error detected');
+			  console.warn("WebAuthn issue detected – prompting reconnect instead");
+
+			  document.getElementById('walletMessage').innerHTML = `
+				<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:4px;">
+				  Wallet connection expired. Please disconnect and reconnect.
+				</div>
+			  `;
+
+			  throw new Error("Wallet reconnect required");
+			}
+
+			throw error;
+		  }
 		}
-		
-		throw error;
-	  }
-	}
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
 
