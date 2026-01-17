@@ -96,11 +96,11 @@ export default async function handler(req, res) {
               console.log("✅ Extracted pre-JSON signature verified:", recoveredAddress);
             } catch (sigErr) {
               console.warn("❌ Pre-JSON signature invalid:", sigErr.message);
-              throw new Error("No valid embedded signature found");
+              // Don't throw - let EIP-1271 handle it
             }
           } catch (jsonErr) {
-            console.error("❌ Failed to parse WebAuthn JSON:", jsonErr.message);
-            throw err; // rethrow to go to next fallback
+            console.warn("❌ Failed to parse WebAuthn JSON:", jsonErr.message);
+            // Don't throw - let EIP-1271 handle it
           }
         } else {
           // Try recoverAddress fallback
@@ -109,13 +109,12 @@ export default async function handler(req, res) {
             recoveredAddress = ethers.utils.recoverAddress(msgHash, signature);
             console.log("✅ recoverAddress fallback succeeded:", recoveredAddress);
           } catch (recoverErr) {
-            console.error("❌ recoverAddress fallback failed:", recoverErr.message);
-            throw err;
+            console.warn("❌ recoverAddress fallback failed:", recoverErr.message);
+            // Don't throw - let EIP-1271 handle it
           }
         }
-      } else {
-        throw err;
       }
+      // Removed: else { throw err; } - let EIP-1271 handle unknown signature types
     }
 
 	// <CHANGE> If all ECDSA methods failed, try EIP-1271 for smart contract wallets (e.g., Base wallet)
