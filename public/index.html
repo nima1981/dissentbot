@@ -858,6 +858,20 @@ function gtag_report_conversion() {
 
 <script>
 
+// DEBUG HELPER - shows messages on screen (remove after debugging)
+function debugLog(msg) {
+  let debugDiv = document.getElementById('debug-output');
+  if (!debugDiv) {
+    debugDiv = document.createElement('div');
+    debugDiv.id = 'debug-output';
+    debugDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:5px;z-index:9999;white-space:pre-wrap;';
+    document.body.appendChild(debugDiv);
+  }
+  const time = new Date().toLocaleTimeString();
+  debugDiv.innerHTML += `[${time}] ${msg}\n`;
+  debugDiv.scrollTop = debugDiv.scrollHeight;
+}
+
 window.addEventListener("beforeunload", (e) => {
   console.trace("🔥 beforeunload triggered");
 });
@@ -1091,34 +1105,61 @@ window.addEventListener("beforeunload", (e) => {
 	async function signChallenge(address) {
 	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 	  
-	  try {		
-		// Standard approach for other wallets
+	  debugLog('signChallenge called for: ' + address);
+	  debugLog('isCoinbaseWallet: ' + window.ethereum?.isCoinbaseWallet);
+	  debugLog('isBase: ' + window.ethereum?.isBase);
+	  debugLog('isBaseApp: ' + window.ethereum?.isBaseApp);
+	  debugLog('userAgent: ' + navigator.userAgent.substring(0, 50));
+	  
+	  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+	  debugLog('isMobileDevice: ' + isMobileDevice);
+	  
+	  const useEthSign = window.ethereum?.isCoinbaseWallet &&
+		(window.ethereum?.isBase || window.ethereum?.isBaseApp) &&
+		isMobileDevice;
+	  debugLog('useEthSign condition: ' + useEthSign);
+	  
+	  try {
+		if (useEthSign) {
+		  debugLog('Using eth_sign method...');
+		  const msgHash = ethers.utils.hashMessage(message);
+		  debugLog('msgHash: ' + msgHash);
+		  const signature = await window.ethereum.request({
+			method: 'eth_sign',
+			params: [address, msgHash]
+		  });
+		  debugLog('eth_sign SUCCESS: ' + signature.substring(0, 20) + '...');
+		  return { message, signature };
+		}
+		
+		debugLog('Using personal_sign method...');
 		const signature = await window.ethereum.request({
 		  method: 'personal_sign',
 		  params: [message, address]
 		});
+		debugLog('personal_sign SUCCESS: ' + signature.substring(0, 20) + '...');
 		return { message, signature };
 	  } catch (error) {
+		debugLog('SIGNING ERROR: ' + error.message);
 		console.error("Signature error:", error);
 		
 		// Special handling for WebAuthn responses
 		if (error.message.includes('WebAuthn')) {
+		  debugLog('WebAuthn error detected');
 		  console.warn("WebAuthn issue detected – prompting reconnect instead");
-
+		  
 		  document.getElementById('walletMessage').innerHTML = `
 			<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:4px;">
 			  Wallet connection expired. Please disconnect and reconnect.
 			</div>
 		  `;
-
+		  
 		  throw new Error("Wallet reconnect required");
 		}
-
 		
 		throw error;
 	  }
 	}
-
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
 
@@ -1169,56 +1210,67 @@ window.addEventListener("beforeunload", (e) => {
 		  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 		  
 		  // COINBASE WALLET / BASE APP MOBILE HANDLER (verified working)
-		  if (isMobile && window.ethereum?.isCoinbaseWallet) {
-			try {
-			  // Request accounts (this triggers the connection flow)
-			  const accounts = await window.ethereum.request({ 
-				method: 'eth_requestAccounts' 
-			  });
-			  
-			  if (!accounts || accounts.length === 0) {
-				throw new Error("No accounts returned");
-			  }
-			  
-			  walletAddress = accounts[0];
-			  localStorage.setItem('walletAddress', walletAddress);
-			  
-			  // Sign challenge (with proper Base app handling)
-			  const { message, signature } = await signChallenge(walletAddress);
-			  
-			  // Authenticate with backend
-			  const authResponse = await fetch('/api/auth', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ walletAddress, signature, message })
-			  });
-			  
-			  if (!authResponse.ok) {
+			if (isMobile && window.ethereum?.isCoinbaseWallet) {
+			  debugLog('Entered Base wallet handler');
+			  try {
+				debugLog('Requesting eth_requestAccounts...');
+				const accounts = await window.ethereum.request({
+				  method: 'eth_requestAccounts'
+				});
+				debugLog('Accounts received: ' + JSON.stringify(accounts));
+				
+				if (!accounts || accounts.length === 0) {
+				  throw new Error("No accounts returned");
+				}
+				
+				walletAddress = accounts[0];
+				localStorage.setItem('walletAddress', walletAddress);
+				debugLog('Wallet address saved: ' + walletAddress);
+				
+				// Sign challenge (with proper Base app handling)
+				debugLog('Calling signChallenge...');
+				const { message, signature } = await signChallenge(walletAddress);
+				debugLog('signChallenge returned successfully');
+				
+				// Authenticate with backend
+				debugLog('Calling /api/auth...');
+				const authResponse = await fetch('/api/auth', {
+				  method: 'POST',
+				  headers: { 'Content-Type': 'application/json' },
+				  body: JSON.stringify({ walletAddress, signature, message })
+				});
+				debugLog('Auth response status: ' + authResponse.status);
+				
+				if (!authResponse.ok) {
+				  const errorText = await authResponse.text();
+				  debugLog('Auth failed: ' + errorText);
 				  console.error("❌ Server rejected wallet signature");
 				  localStorage.removeItem('walletAddress');
 				  localStorage.removeItem('sessionToken');
-				  throw new Error("Authentication failed");
+				  throw new Error("Authentication failed: " + errorText);
+				}
+				
+				const { token } = await authResponse.json();
+				localStorage.setItem('sessionToken', token);
+				isAuthenticated = true;
+				debugLog('Authentication complete, token saved');
+				
+				// Update UI
+				connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+				document.getElementById('walletMessage').textContent = '';
+				
+			  } catch (error) {
+				debugLog('CATCH BLOCK ERROR: ' + error.message);
+				console.error("Base app connection failed:", error);
+				document.getElementById('walletMessage').innerHTML = `
+				  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+					Connection failed. Please try again.<br>
+					<small style="display: block; margin-top: 5px; opacity: 0.8;">Tip: Force close Base app and try again</small>
+				  </div>
+				`;
 			  }
-
-			  const { token } = await authResponse.json();
-			  localStorage.setItem('sessionToken', token);
-			  isAuthenticated = true;
-			  
-			  // Update UI
-			  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-			  document.getElementById('walletMessage').textContent = '';
-			  
-			} catch (error) {
-			  console.error("Base app connection failed:", error);
-			  document.getElementById('walletMessage').innerHTML = `
-				<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-				  Connection failed. Please try again.<br>
-				  <small style="display: block; margin-top: 5px; opacity: 0.8;">Tip: Force close Base app and try again</small>
-				</div>
-			  `;
+			  return;
 			}
-			return;
-		  }
 
 			  
 			// MOBILE WALLET SELECTION MODAL
