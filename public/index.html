@@ -1091,21 +1091,7 @@ window.addEventListener("beforeunload", (e) => {
 	async function signChallenge(address) {
 	  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 	  
-	  try {
-		// For Base app mobile, use special handling
-		if (window.ethereum?.isCoinbaseWallet && 
-			(window.ethereum?.isBase || window.ethereum?.isBaseApp) &&
-			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-		  
-		  // Base app requires this specific signing method
-		  const msgHash = ethers.utils.hashMessage(message);
-		  const signature = await window.ethereum.request({
-			method: 'eth_sign',
-			params: [address, msgHash]
-		  });
-		  return { message, signature };
-		}
-		
+	  try {		
 		// Standard approach for other wallets
 		const signature = await window.ethereum.request({
 		  method: 'personal_sign',
