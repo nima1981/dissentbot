@@ -1834,16 +1834,10 @@ window.addEventListener("beforeunload", (e) => {
 			document.getElementById('stake-modal').style.display = 'flex';
 		}
   
-	  } finally {
-		document.getElementById('loading').style.display = 'none';
-		 
-		// Only render conversation if we didn't return early from Base App error
-		
-		
-		if (!window.ethereum?.isCoinbaseWallet || !error) {
-			renderConversation();
-		}
-	  }
+	} finally {
+	  document.getElementById('loading').style.display = 'none';
+	  renderConversation();
+	}
 	  gtag_report_conversion('https://dissentbot.com');
 	}
 	  // Clear conversation
