@@ -883,6 +883,20 @@ function gtag_report_conversion() {
 
 <script>
 
+// DEBUG HELPER - shows messages on screen (remove after debugging)
+function debugLog(msg) {
+  let debugDiv = document.getElementById('debug-output');
+  if (!debugDiv) {
+    debugDiv = document.createElement('div');
+    debugDiv.id = 'debug-output';
+    debugDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:5px;z-index:999999;white-space:pre-wrap;';
+    document.body.appendChild(debugDiv);
+  }
+  const time = new Date().toLocaleTimeString();
+  debugDiv.innerHTML += `[${time}] ${msg}\n`;
+  debugDiv.scrollTop = debugDiv.scrollHeight;
+}
+
   // Ensure marked.js is loaded
   if (typeof marked !== 'function') {
     console.error("marked.js is not loaded correctly.");
@@ -1154,18 +1168,23 @@ function gtag_report_conversion() {
 		
 		// Helper function to complete WalletConnect authentication
 		async function completeWalletConnectAuth(provider, address) {
+		  debugLog('completeWalletConnectAuth called for: ' + address);
 		  try {
 			walletAddress = address;
 			localStorage.setItem('walletAddress', walletAddress);
 			localStorage.setItem('walletType', 'walletconnect');
 			
+			debugLog('Creating ethers provider...');
 			// Create ethers provider for signing
 			const ethersProvider = new ethers.providers.Web3Provider(provider);
 			const signer = ethersProvider.getSigner();
 			
 			// Sign challenge for authentication
 			const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
+			debugLog('Requesting signature...');
 			const signature = await signer.signMessage(message);
+			debugLog('Signature received: ' + signature.substring(0, 20) + '...');
+    
 			
 			// Authenticate with backend
 			const authResponse = await fetch('/api/auth', {
@@ -2216,16 +2235,21 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Check for existing WalletConnect session and complete auth if needed
 	async function checkWalletConnectSession() {
+	  debugLog('checkWalletConnectSession called');
+	  
 	  if (!window.WalletConnectEthereumProvider) {
-		console.log('WalletConnect provider not loaded yet');
+		debugLog('WalletConnect provider not loaded yet');
 		return;
 	  }
+	  
+	  debugLog('WalletConnect provider is loaded');
 	  
 	  try {
 		const projectId = '1c897dc3aa8727fec1077a8f67b467f1';
 		
 		// Initialize provider (or get existing instance)
 		if (!window.walletConnectProvider) {
+		  debugLog('Creating new WalletConnect provider instance');
 		  window.walletConnectProvider = await window.WalletConnectEthereumProvider.init({
 			projectId: projectId,
 			chains: [1],
@@ -2235,49 +2259,72 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		
 		const provider = window.walletConnectProvider;
+		debugLog('Provider session: ' + (provider.session ? 'EXISTS' : 'NONE'));
+		debugLog('Provider connected: ' + provider.connected);
 		
 		// Check if there's an active session or a pending connection attempt
 		const isPending = localStorage.getItem('walletConnectPending') === 'true';
+		debugLog('Pending flag: ' + isPending);
+		
 		if (provider.session || isPending) {
-		  const accounts = await provider.request({ method: 'eth_accounts' });
-		  console.log('WalletConnect session found, accounts:', accounts);
+		  debugLog('Session or pending found, requesting accounts...');
 		  
-		  if (accounts && accounts.length > 0) {
-			const storedToken = localStorage.getItem('sessionToken');
-			const storedAddress = localStorage.getItem('walletAddress');
+		  try {
+			const accounts = await provider.request({ method: 'eth_accounts' });
+			debugLog('Accounts: ' + JSON.stringify(accounts));
 			
-			// If we have accounts but no token, complete authentication
-			if (!storedToken || storedAddress !== accounts[0]) {
-			  console.log('Completing WalletConnect authentication...');
-			  await completeWalletConnectAuth(provider, accounts[0]);
+			if (accounts && accounts.length > 0) {
+			  const storedToken = localStorage.getItem('sessionToken');
+			  const storedAddress = localStorage.getItem('walletAddress');
+			  
+			  debugLog('Stored token: ' + (storedToken ? 'YES' : 'NO'));
+			  debugLog('Stored address: ' + storedAddress);
+			  
+			  // If we have accounts but no token, complete authentication
+			  if (!storedToken || storedAddress !== accounts[0]) {
+				debugLog('Completing WalletConnect authentication...');
+				await completeWalletConnectAuth(provider, accounts[0]);
+			  } else {
+				// Already authenticated, just update UI
+				debugLog('Already authenticated, updating UI');
+				walletAddress = storedAddress;
+				isAuthenticated = true;
+				const connectButton = document.getElementById('connectWallet');
+				connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+			  }
 			} else {
-			  // Already authenticated, just update UI
-			  walletAddress = storedAddress;
-			  isAuthenticated = true;
-			  const connectButton = document.getElementById('connectWallet');
-			  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+			  debugLog('No accounts returned');
 			}
+		  } catch (accountsError) {
+			debugLog('Error getting accounts: ' + accountsError.message);
 		  }
+		} else {
+		  debugLog('No session and not pending');
 		}
 	  } catch (error) {
-		console.warn('WalletConnect session check failed:', error);
+		debugLog('Error in checkWalletConnectSession: ' + error.message);
 	  }
 	}
 
 	// Check session when page loads
-	setTimeout(checkWalletConnectSession, 1500);
+	debugLog('Setting up WalletConnect session check...');
+	setTimeout(() => {
+	  debugLog('Initial session check (1.5s timeout)');
+	  checkWalletConnectSession();
+	}, 1500);
 
 	// Check session when user returns to app (critical for mobile PWA)
 	document.addEventListener('visibilitychange', () => {
+	  debugLog('visibilitychange event: ' + document.visibilityState);
 	  if (document.visibilityState === 'visible') {
-		console.log('App became visible, checking WalletConnect session...');
+		debugLog('App became visible, checking session in 500ms...');
 		setTimeout(checkWalletConnectSession, 500);
 	  }
 	});
 
 	// Also check on focus (backup for some browsers)
 	window.addEventListener('focus', () => {
-	  console.log('Window focused, checking WalletConnect session...');
+	  debugLog('focus event fired');
 	  setTimeout(checkWalletConnectSession, 500);
 	});
 	
