@@ -21,9 +21,7 @@ function gtag_report_conversion() {
 }
 </script>
 
-<script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
-
-<script src="https://unpkg.com/@walletconnect/modal@2.6.0/dist/index.js"></script>
+<script src="https://unpkg.com/@walletconnect/ethereum-provider@2.11.0/dist/index.umd.js"></script>
 
   <meta charset="UTF-8">
   
@@ -1165,6 +1163,15 @@ function gtag_report_conversion() {
 			  // Clear all storage
 			  localStorage.removeItem('walletAddress');
 			  localStorage.removeItem('sessionToken');
+			  // Disconnect WalletConnect v2 if active
+				if (window.walletConnectProvider) {
+				  try {
+					await window.walletConnectProvider.disconnect();
+				  } catch (e) {
+					console.warn('WalletConnect disconnect error:', e);
+				  }
+				  window.walletConnectProvider = null;
+				}
 			  localStorage.removeItem('conversationHistory');
 			  
 			  // Reset variables
@@ -1313,80 +1320,11 @@ function gtag_report_conversion() {
 				  installUrl: 'https://phantom.app/download'
 				},
 				{
-				  id: 'walletconnect',
-				  name: 'WalletConnect',
-				  icon: 'https://upload.wikimedia.org/wikipedia/commons/1/13/Walletconnect-logo.png',
-				  
-				  getDeepLink: async () => {
-					try {
-					  // Initialize WalletConnect provider with proper RPC config
-					  const provider = new WalletConnectProvider.default({
-						rpc: {
-						  1: 'https://mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
-						  10: 'https://optimism-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
-						  42161: 'https://arbitrum-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
-						  8453: 'https://base-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b'
-						},
-						chainId: 1,
-						qrcode: true
-					  });
-
-					  // Connect to the provider
-					  await provider.enable();
-					  
-					  // Get accounts
-					  const accounts = await provider.request({ method: 'eth_accounts' });
-					  
-					  if (accounts && accounts.length > 0) {
-						walletAddress = accounts[0];
-						localStorage.setItem('walletAddress', walletAddress);
-						
-						// Sign challenge for authentication
-						const { message, signature } = await signChallenge(walletAddress);
-						
-						// Authenticate with backend
-						const authResponse = await fetch('/api/auth', {
-						  method: 'POST',
-						  headers: { 'Content-Type': 'application/json' },
-						  body: JSON.stringify({ walletAddress, signature, message })
-						});
-						
-						if (!authResponse.ok) {
-						  throw new Error("Authentication failed");
-						}
-
-						const { token } = await authResponse.json();
-						localStorage.setItem('sessionToken', token);
-						isAuthenticated = true;
-						
-						// Update UI
-						const connectButton = document.getElementById('connectWallet');
-						connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-						document.getElementById('walletMessage').textContent = '';
-						
-						// Close the wallet modal
-						document.body.removeChild(modal);
-					  }
-					  
-					} catch (error) {
-					
-					  const message = error?.message || '';
-
-					  if (message.includes('User closed modal')) {
-						// No-op: user canceled intentionally
-						return;
-					  }
-					
-					  console.error("WalletConnect error:", error);
-					  document.getElementById('walletMessage').innerHTML = `
-						<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-						  Connection failed: ${error.message}<br>
-						  <small style="display: block; margin-top: 5px; opacity: 0.8;">Check your RPC configuration</small>
-						</div>
-					  `;
-					}
-				  },
-				  installUrl: 'https://walletconnect.com'
+					id: 'walletconnect',
+					name: 'WalletConnect',
+					icon: 'https://upload.wikimedia.org/wikipedia/commons/1/13/Walletconnect-logo.png',
+					getDeepLink: () => null,
+					installUrl: 'https://walletconnect.com'
 				}
 			  ];
 
@@ -1492,77 +1430,92 @@ function gtag_report_conversion() {
 				  const walletId = option.getAttribute('data-wallet');
 				  const wallet = wallets.find(w => w.id === walletId);
 				  
-				      // Handle WalletConnect specially
-					if (walletId === 'walletconnect') {
-					  try {
-						// Initialize WalletConnect provider
-						const provider = new WalletConnectProvider.default({
-						  rpc: {
-							1: 'https://mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
-							10: 'https://optimism-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
-							42161: 'https://arbitrum-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b',
-							8453: 'https://base-mainnet.infura.io/v3/30226b65ffa9421fbe68316de7d7b46b'
-						  },
-						  chainId: 1,
-						  qrcode: true
-						});
-
-						// Connect
-						await provider.enable();
-						
-						// Get accounts
-						const accounts = await provider.request({ method: 'eth_accounts' });
-						
-						if (accounts && accounts.length > 0) {
-						  walletAddress = accounts[0];
-						  localStorage.setItem('walletAddress', walletAddress);
-						  
-						  // Continue with your authentication flow
-						  const { message, signature } = await signChallenge(walletAddress);
-						  
-						  // Authenticate with backend
-						  const authResponse = await fetch('/api/auth', {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ walletAddress, signature, message })
-						  });
-						  
-						  if (!authResponse.ok) {
-							throw new Error("Authentication failed");
-						  }
-
-						  const { token } = await authResponse.json();
-						  localStorage.setItem('sessionToken', token);
-						  isAuthenticated = true;
-						  
-						  // Update UI
-						  const connectButton = document.getElementById('connectWallet');
-						  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-						  document.getElementById('walletMessage').textContent = '';
-						  
-						  // Close the wallet modal
-						  document.body.removeChild(modal);
-						}
-						
-					  } catch (error) {
-					  
-					  	const message = error?.message || '';
-
-						if (message.includes('User closed modal')) {
-							// No-op: user canceled intentionally
-							return;
-						}
-					  
-						console.error("WalletConnect error:", error);
-						document.getElementById('walletMessage').innerHTML = `
-						  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-					        Connection failed: ${error.message}<br>
-							<small style="display: block; margin-top: 5px; opacity: 0.8;">Check your RPC configuration</small>
-						  </div>
-						`;
+				// Handle WalletConnect specially using v2
+				if (walletId === 'walletconnect') {
+				  try {
+					// YOUR PROJECT ID FROM WALLETCONNECT CLOUD
+					const projectId = '1c897dc3aa8727fec1077a8f67b467f1';
+					
+					// Initialize WalletConnect v2 provider
+					const provider = await window.EthereumProvider.init({
+					  projectId: projectId,
+					  chains: [1],
+					  optionalChains: [10, 42161, 8453],
+					  showQrModal: true,
+					  qrModalOptions: {
+						themeMode: 'dark'
+					  },
+					  metadata: {
+						name: 'DissentBot',
+						description: 'The Web\'s Most Forbidden AI',
+						url: window.location.origin,
+						icons: [window.location.origin + '/icon-192.png']
 					  }
+					});
+
+					// Connect - this shows the QR modal or deep links to wallet
+					await provider.connect();
+					
+					// Get accounts
+					const accounts = provider.accounts;
+					
+					if (accounts && accounts.length > 0) {
+					  walletAddress = accounts[0];
+					  localStorage.setItem('walletAddress', walletAddress);
+					  
+					  // Create ethers provider for signing
+					  const ethersProvider = new ethers.providers.Web3Provider(provider);
+					  const signer = ethersProvider.getSigner();
+					  
+					  // Sign challenge for authentication
+					  const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
+					  const signature = await signer.signMessage(message);
+					  
+					  // Authenticate with backend
+					  const authResponse = await fetch('/api/auth', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ walletAddress, signature, message })
+					  });
+					  
+					  if (!authResponse.ok) {
+						throw new Error("Authentication failed");
+					  }
+
+					  const { token } = await authResponse.json();
+					  localStorage.setItem('sessionToken', token);
+					  isAuthenticated = true;
+					  
+					  // Store provider reference for later disconnect
+					  window.walletConnectProvider = provider;
+					  
+					  // Update UI
+					  const connectButton = document.getElementById('connectWallet');
+					  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+					  document.getElementById('walletMessage').textContent = '';
+					  
+					  // Close the wallet modal
+					  document.body.removeChild(modal);
+					}
+					
+				  } catch (error) {
+					const errorMsg = error?.message || '';
+
+					if (errorMsg.includes('User rejected') || errorMsg.includes('Connection request reset')) {
+					  // User canceled - no action needed
 					  return;
 					}
+				  
+					console.error("WalletConnect error:", error);
+					document.getElementById('walletMessage').innerHTML = `
+					  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+						Connection failed: ${error.message}<br>
+						<small style="display: block; margin-top: 5px; opacity: 0.8;">Please try again</small>
+					  </div>
+					`;
+				  }
+				  return;
+				}
 				  
 				  // CRITICAL: Use the wallet-specific deep link generator
 				  const redirectUrl = wallet.getDeepLink();
