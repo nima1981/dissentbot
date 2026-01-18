@@ -1189,7 +1189,7 @@ function gtag_report_conversion() {
 			const connectButton = document.getElementById('connectWallet');
 			connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
 			document.getElementById('walletMessage').textContent = '';
-			
+			localStorage.removeItem('walletConnectPending');
 			return true;
 		  } catch (error) {
 			console.error('WalletConnect auth error:', error);
@@ -1199,6 +1199,7 @@ function gtag_report_conversion() {
 				<small style="display: block; margin-top: 5px; opacity: 0.8;">Please try again</small>
 			  </div>
 			`;
+			localStorage.removeItem('walletConnectPending');
 			return false;
 		  }
 		}
@@ -1503,6 +1504,10 @@ function gtag_report_conversion() {
 			  if (modal && modal.parentNode) {
 				document.body.removeChild(modal);
 			  }
+			  
+			  // Mark that we're attempting a WalletConnect connection
+			  localStorage.setItem('walletConnectPending', 'true');
+			  localStorage.setItem('walletType', 'walletconnect');
 			  
 			  try {
 			  // Check if EthereumProvider is loaded
@@ -2209,52 +2214,72 @@ document.addEventListener('DOMContentLoaded', function() {
 	  }, { passive: false });
 	})();
 	
-	  // Check for existing WalletConnect session on page load
-		async function checkWalletConnectSession() {
-		  if (!window.WalletConnectEthereumProvider) return;
+	// Check for existing WalletConnect session and complete auth if needed
+	async function checkWalletConnectSession() {
+	  if (!window.WalletConnectEthereumProvider) {
+		console.log('WalletConnect provider not loaded yet');
+		return;
+	  }
+	  
+	  try {
+		const projectId = '1c897dc3aa8727fec1077a8f67b467f1';
+		
+		// Initialize provider (or get existing instance)
+		if (!window.walletConnectProvider) {
+		  window.walletConnectProvider = await window.WalletConnectEthereumProvider.init({
+			projectId: projectId,
+			chains: [1],
+			optionalChains: [10, 42161, 8453],
+			showQrModal: false
+		  });
+		}
+		
+		const provider = window.walletConnectProvider;
+		
+		// Check if there's an active session or a pending connection attempt
+		const isPending = localStorage.getItem('walletConnectPending') === 'true';
+		if (provider.session || isPending) {
+		  const accounts = await provider.request({ method: 'eth_accounts' });
+		  console.log('WalletConnect session found, accounts:', accounts);
 		  
-		  const storedWalletType = localStorage.getItem('walletType');
-		  if (storedWalletType !== 'walletconnect') return;
-		  
-		  try {
-			const projectId = '1c897dc3aa8727fec1077a8f67b467f1';
+		  if (accounts && accounts.length > 0) {
+			const storedToken = localStorage.getItem('sessionToken');
+			const storedAddress = localStorage.getItem('walletAddress');
 			
-			const provider = await window.WalletConnectEthereumProvider.init({
-			  projectId: projectId,
-			  chains: [1],
-			  optionalChains: [10, 42161, 8453],
-			  showQrModal: false // Don't show modal on session check
-			});
-			
-			// Check if there's an existing session
-			if (provider.session) {
-			  const accounts = await provider.request({ method: 'eth_accounts' });
-			  if (accounts && accounts.length > 0) {
-				// Session exists, restore connection
-				window.walletConnectProvider = provider;
-				
-				const storedAddress = localStorage.getItem('walletAddress');
-				const storedToken = localStorage.getItem('sessionToken');
-				
-				if (storedAddress && storedToken) {
-				  walletAddress = storedAddress;
-				  isAuthenticated = true;
-				  
-				  const connectButton = document.getElementById('connectWallet');
-				  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-				} else {
-				  // Have session but no token, complete auth
-				  await completeWalletConnectAuth(provider, accounts[0]);
-				}
-			  }
+			// If we have accounts but no token, complete authentication
+			if (!storedToken || storedAddress !== accounts[0]) {
+			  console.log('Completing WalletConnect authentication...');
+			  await completeWalletConnectAuth(provider, accounts[0]);
+			} else {
+			  // Already authenticated, just update UI
+			  walletAddress = storedAddress;
+			  isAuthenticated = true;
+			  const connectButton = document.getElementById('connectWallet');
+			  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
 			}
-		  } catch (error) {
-			console.warn('WalletConnect session check failed:', error);
 		  }
 		}
+	  } catch (error) {
+		console.warn('WalletConnect session check failed:', error);
+	  }
+	}
 
-		// Call on page load (after a short delay to ensure WalletConnect is loaded)
-		setTimeout(checkWalletConnectSession, 1000);
+	// Check session when page loads
+	setTimeout(checkWalletConnectSession, 1500);
+
+	// Check session when user returns to app (critical for mobile PWA)
+	document.addEventListener('visibilitychange', () => {
+	  if (document.visibilityState === 'visible') {
+		console.log('App became visible, checking WalletConnect session...');
+		setTimeout(checkWalletConnectSession, 500);
+	  }
+	});
+
+	// Also check on focus (backup for some browsers)
+	window.addEventListener('focus', () => {
+	  console.log('Window focused, checking WalletConnect session...');
+	  setTimeout(checkWalletConnectSession, 500);
+	});
 	
 });
 </script>
