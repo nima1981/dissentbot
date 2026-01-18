@@ -2356,42 +2356,66 @@ document.addEventListener('DOMContentLoaded', function() {
 		  } catch (accountsError) {
 			debugLog('Error getting accounts: ' + accountsError.message);
 		  }
-		    } else if (isPending && !provider.session) {
-		  // We have a pending flag but no session - need to reconnect
-		  debugLog('Pending but no session, calling connect()...');
-		  
-		  try {
-			// This should resume the pairing or prompt user again
-			await provider.connect();
-			
-			const accounts = await provider.request({ method: 'eth_accounts' });
-			debugLog('Accounts after reconnect: ' + JSON.stringify(accounts));
-			
-			if (accounts && accounts.length > 0) {
-			  const storedToken = localStorage.getItem('sessionToken');
-			  const storedAddress = localStorage.getItem('walletAddress');
-			  
-			  if (!storedToken || storedAddress !== accounts[0]) {
-				debugLog('Completing authentication after reconnect...');
-				window.wcAuthInProgress = true;
-				try {
-				  await completeWalletConnectAuth(provider, accounts[0]);
-				} finally {
-				  window.wcAuthInProgress = false;
-				}
-			  } else {
-				walletAddress = storedAddress;
-				isAuthenticated = true;
-				const connectButton = document.getElementById('connectWallet');
-				connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-			  }
-			}
-		  } catch (reconnectError) {
-			debugLog('Reconnect error: ' + reconnectError.message);
-			// Clear pending flag since reconnect failed
-			localStorage.removeItem('walletConnectPending');
-		  }
-    } else {
+		        } else if (isPending && !provider.session) {
+				  // We have a pending flag but no session
+				  debugLog('Pending but no session');
+				  
+				  // Prevent multiple simultaneous reconnect attempts
+				  if (window.wcReconnectInProgress) {
+					debugLog('Reconnect already in progress, skipping');
+					return;
+				  }
+				  
+				  // Show manual reconnect UI instead of auto-reconnecting
+				  // (Auto-reconnect doesn't work reliably on mobile PWAs)
+				  const connectButton = document.getElementById('connectWallet');
+				  document.getElementById('walletMessage').innerHTML = `
+					<div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
+					  WalletConnect session interrupted. 
+					  <br><button id="wcReconnectBtn" style="margin-top: 8px; padding: 8px 16px; background: #0c5460; color: white; border: none; border-radius: 4px; cursor: pointer;">Reconnect Wallet</button>
+					  <button id="wcCancelBtn" style="margin-top: 8px; margin-left: 8px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+					</div>
+				  `;
+				  
+				  document.getElementById('wcReconnectBtn')?.addEventListener('click', async () => {
+					debugLog('Manual reconnect clicked');
+					window.wcReconnectInProgress = true;
+					
+					document.getElementById('walletMessage').innerHTML = `
+					  <div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
+						Connecting... Please approve in your wallet app.
+					  </div>
+					`;
+					
+					try {
+					  await provider.connect();
+					  
+					  const accounts = await provider.request({ method: 'eth_accounts' });
+					  debugLog('Accounts after manual reconnect: ' + JSON.stringify(accounts));
+					  
+					  if (accounts && accounts.length > 0) {
+						await completeWalletConnectAuth(provider, accounts[0]);
+					  }
+					} catch (reconnectError) {
+					  debugLog('Manual reconnect error: ' + reconnectError.message);
+					  document.getElementById('walletMessage').innerHTML = `
+						<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+						  Connection failed: ${reconnectError.message}
+						  <br><small>Please try again or use a different wallet option.</small>
+						</div>
+					  `;
+					  localStorage.removeItem('walletConnectPending');
+					} finally {
+					  window.wcReconnectInProgress = false;
+					}
+				  });
+				  
+				  document.getElementById('wcCancelBtn')?.addEventListener('click', () => {
+					debugLog('Cancel clicked, clearing pending flag');
+					localStorage.removeItem('walletConnectPending');
+					document.getElementById('walletMessage').textContent = '';
+				  });
+				} else {
 		  debugLog('No session and not pending');
 		}
 	  } catch (error) {
