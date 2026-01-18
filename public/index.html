@@ -1174,51 +1174,97 @@ function debugLog(msg) {
 			localStorage.setItem('walletAddress', walletAddress);
 			localStorage.setItem('walletType', 'walletconnect');
 			
+			// Update UI to show we're connected but need signature
+			const connectButton = document.getElementById('connectWallet');
+			connectButton.innerHTML = `<span id="connectAction">[...]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+			
 			debugLog('Creating ethers provider...');
-			// Create ethers provider for signing
 			const ethersProvider = new ethers.providers.Web3Provider(provider);
 			const signer = ethersProvider.getSigner();
 			
-			// Sign challenge for authentication
 			const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
+			
+			// Show user that we need their signature
+			document.getElementById('walletMessage').innerHTML = `
+			  <div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
+				Please check your wallet app to sign the authentication message.
+				<br><small style="display: block; margin-top: 5px;">If you don't see a prompt, <a href="#" id="retrySignature" style="color: #0c5460; text-decoration: underline;">click here to retry</a></small>
+			  </div>
+			`;
+			
+			// Store message for retry
+			localStorage.setItem('wcPendingMessage', message);
+			
 			debugLog('Requesting signature...');
-			const signature = await signer.signMessage(message);
-			debugLog('Signature received: ' + signature.substring(0, 20) + '...');
-    
 			
-			// Authenticate with backend
-			const authResponse = await fetch('/api/auth', {
-			  method: 'POST',
-			  headers: { 'Content-Type': 'application/json' },
-			  body: JSON.stringify({ walletAddress, signature, message })
-			});
-			
-			if (!authResponse.ok) {
-			  throw new Error("Authentication failed");
+			try {
+			  const signature = await signer.signMessage(message);
+			  debugLog('Signature received: ' + signature.substring(0, 20) + '...');
+			  
+			  // Authenticate with backend
+			  debugLog('Calling /api/auth...');
+			  const authResponse = await fetch('/api/auth', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ walletAddress, signature, message })
+			  });
+			  
+			  debugLog('Auth response status: ' + authResponse.status);
+			  
+			  if (!authResponse.ok) {
+				const errorText = await authResponse.text();
+				debugLog('Auth failed: ' + errorText);
+				throw new Error("Authentication failed: " + errorText);
+			  }
+			  
+			  const { token } = await authResponse.json();
+			  localStorage.setItem('sessionToken', token);
+			  isAuthenticated = true;
+			  debugLog('Token saved, authentication complete');
+			  
+			  // Store provider reference for later disconnect
+			  window.walletConnectProvider = provider;
+			  
+			  // Update UI
+			  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+			  document.getElementById('walletMessage').textContent = '';
+			  
+			  // Clear pending flags
+			  localStorage.removeItem('walletConnectPending');
+			  localStorage.removeItem('wcPendingMessage');
+			  
+			  return true;
+			} catch (signError) {
+			  debugLog('Signature error: ' + signError.message);
+			  
+			  // Show retry button
+			  document.getElementById('walletMessage').innerHTML = `
+				<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+				  Signature required to complete authentication.
+				  <br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Sign Message</button>
+				</div>
+			  `;
+			  
+			  // Add retry handler
+			  document.getElementById('retrySignature')?.addEventListener('click', async () => {
+				debugLog('Retry signature clicked');
+				await completeWalletConnectAuth(provider, address);
+			  });
+			  
+			  return false;
 			}
-			
-			const { token } = await authResponse.json();
-			localStorage.setItem('sessionToken', token);
-			isAuthenticated = true;
-			
-			// Store provider reference for later disconnect
-			window.walletConnectProvider = provider;
-			
-			// Update UI
-			const connectButton = document.getElementById('connectWallet');
-			connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-			document.getElementById('walletMessage').textContent = '';
-			localStorage.removeItem('walletConnectPending');
-			return true;
 		  } catch (error) {
-			console.error('WalletConnect auth error:', error);
+			debugLog('completeWalletConnectAuth error: ' + error.message);
 			document.getElementById('walletMessage').innerHTML = `
 			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
 				Authentication failed: ${error.message}<br>
-				<small style="display: block; margin-top: 5px; opacity: 0.8;">Please try again</small>
+				<small style="display: block; margin-top: 5px; opacity: 0.8;">Please try disconnecting and reconnecting</small>
 			  </div>
 			`;
+			
 			localStorage.removeItem('walletConnectPending');
+			localStorage.removeItem('wcPendingMessage');
+			
 			return false;
 		  }
 		}
@@ -2237,6 +2283,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	async function checkWalletConnectSession() {
 	  debugLog('checkWalletConnectSession called');
 	  
+	  // Prevent multiple simultaneous auth attempts
+	  if (window.wcAuthInProgress) {
+		debugLog('Auth already in progress, skipping');
+		return;
+	  }
+	  
 	  if (!window.WalletConnectEthereumProvider) {
 		debugLog('WalletConnect provider not loaded yet');
 		return;
@@ -2283,7 +2335,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			  // If we have accounts but no token, complete authentication
 			  if (!storedToken || storedAddress !== accounts[0]) {
 				debugLog('Completing WalletConnect authentication...');
-				await completeWalletConnectAuth(provider, accounts[0]);
+				window.wcAuthInProgress = true;
+				try {
+				  await completeWalletConnectAuth(provider, accounts[0]);
+				} finally {
+				  window.wcAuthInProgress = false;
+				}
 			  } else {
 				// Already authenticated, just update UI
 				debugLog('Already authenticated, updating UI');
