@@ -1191,13 +1191,18 @@ function gtag_report_conversion() {
 			
 			const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 			
-			// Show user that we need their signature
-			document.getElementById('walletMessage').innerHTML = `
-			  <div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
-				Please check your wallet app to sign the authentication message.
-				<br><small style="display: block; margin-top: 5px;">If you don't see a prompt, <a href="#" id="retrySignature" style="color: #0c5460; text-decoration: underline;">click here to retry</a></small>
-			  </div>
-			`;
+			  // Only show "please sign" message after a delay (to avoid showing it if signature completes quickly)
+			  const signMessageTimeout = setTimeout(() => {
+				// Only show if still in progress
+				if (window.wcSignatureInProgress) {
+				  document.getElementById('walletMessage').innerHTML = `
+				  <div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
+				  Please check your wallet app to sign the authentication message.
+				  <br><small style="display: block; margin-top: 5px;">If you don't see a prompt, <a href="#" id="retrySignature" style="color: #0c5460; text-decoration: underline;">click here to retry</a></small>
+				  </div>
+				  `;
+				}
+			  }, 2000);
 			
 			// Store message for retry
 			localStorage.setItem('wcPendingMessage', message);
@@ -1230,7 +1235,8 @@ function gtag_report_conversion() {
 			  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
 			  document.getElementById('walletMessage').textContent = '';
 			  
-			  // Clear pending flags
+			  // Clear pending flags and timeout
+			  clearTimeout(signMessageTimeout);
 			  localStorage.removeItem('walletConnectPending');
 			  localStorage.removeItem('wcPendingMessage');
 			  window.wcSignatureInProgress = false;
