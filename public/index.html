@@ -2337,21 +2337,44 @@ document.addEventListener('DOMContentLoaded', function() {
 				  `;
 				  
 				  document.getElementById('wcReconnectBtn')?.addEventListener('click', async () => {
+					debugLog('Manual reconnect clicked');
 					window.wcReconnectInProgress = true;
 					
 					document.getElementById('walletMessage').innerHTML = `
 					  <div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
-						Connecting... Please approve in your wallet app.
+						Opening wallet selector...
 					  </div>
 					`;
 					
 					try {
-					  await provider.connect();
+					  // Create a NEW provider instance with showQrModal: true
+					  debugLog('Creating new provider with QR modal enabled');
+					  const newProvider = await window.WalletConnectEthereumProvider.init({
+						projectId: '1c897dc3aa8727fec1077a8f67b467f1',
+						chains: [1],
+						optionalChains: [10, 42161, 8453],
+						showQrModal: true,
+						qrModalOptions: {
+						  themeMode: 'dark'
+						},
+						metadata: {
+						  name: 'DissentBot',
+						  description: 'The Web\'s Most Forbidden AI',
+						  url: window.location.origin,
+						  icons: [window.location.origin + '/icon-192.png']
+						}
+					  });
 					  
-					  const accounts = await provider.request({ method: 'eth_accounts' });
+					  // Store the new provider
+					  window.walletConnectProvider = newProvider;
 					  
+					  debugLog('Calling connect() on new provider');
+					  await newProvider.connect();
+					  
+					  const accounts = await newProvider.request({ method: 'eth_accounts' });
+					  					  
 					  if (accounts && accounts.length > 0) {
-						await completeWalletConnectAuth(provider, accounts[0]);
+						await completeWalletConnectAuth(newProvider, accounts[0]);
 					  }
 					} catch (reconnectError) {
 					  document.getElementById('walletMessage').innerHTML = `
