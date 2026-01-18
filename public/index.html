@@ -1154,7 +1154,28 @@ function gtag_report_conversion() {
 		
 		// Helper function to complete WalletConnect authentication
 		async function completeWalletConnectAuth(provider, address) {
-
+		  
+		  // Check if already authenticated with this address
+		  const existingToken = localStorage.getItem('sessionToken');
+		  const existingAddress = localStorage.getItem('walletAddress');
+		  if (existingToken && existingAddress === address) {
+			// Already authenticated, just update UI and return
+			walletAddress = existingAddress;
+			isAuthenticated = true;
+			const connectButton = document.getElementById('connectWallet');
+			connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+			document.getElementById('walletMessage').textContent = '';
+			localStorage.removeItem('walletConnectPending');
+			localStorage.removeItem('wcPendingMessage');
+			return true;
+		  }
+		  
+		  // Prevent duplicate signature requests
+		  if (window.wcSignatureInProgress) {
+			return false;
+		  }
+		  window.wcSignatureInProgress = true;
+		  
 		  try {
 			walletAddress = address;
 			localStorage.setItem('walletAddress', walletAddress);
@@ -1212,6 +1233,7 @@ function gtag_report_conversion() {
 			  // Clear pending flags
 			  localStorage.removeItem('walletConnectPending');
 			  localStorage.removeItem('wcPendingMessage');
+			  window.wcSignatureInProgress = false;
 			  
 			  return true;
 			} catch (signError) {
@@ -1229,9 +1251,11 @@ function gtag_report_conversion() {
 				await completeWalletConnectAuth(provider, address);
 			  });
 			  
+			  window.wcSignatureInProgress = false;
 			  return false;
-			}
-		  } catch (error) {
+			  }
+			  } catch (error) {
+			  window.wcSignatureInProgress = false;
 			document.getElementById('walletMessage').innerHTML = `
 			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
 				Authentication failed: ${error.message}<br>
@@ -1241,7 +1265,7 @@ function gtag_report_conversion() {
 			
 			localStorage.removeItem('walletConnectPending');
 			localStorage.removeItem('wcPendingMessage');
-			
+			window.wcSignatureInProgress = false;
 			return false;
 		  }
 		}
@@ -2407,13 +2431,13 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Check session when user returns to app (critical for mobile PWA)
 	document.addEventListener('visibilitychange', () => {
 	  if (document.visibilityState === 'visible') {
-		setTimeout(checkWalletConnectSession, 500);
+		setTimeout(checkWalletConnectSession, 200);
 	  }
 	});
 
 	// Also check on focus (backup for some browsers)
 	window.addEventListener('focus', () => {
-	  setTimeout(checkWalletConnectSession, 500);
+	  setTimeout(checkWalletConnectSession, 200);
 	});
 	
 });
