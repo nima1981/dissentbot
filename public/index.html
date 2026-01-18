@@ -889,7 +889,7 @@ function debugLog(msg) {
   if (!debugDiv) {
     debugDiv = document.createElement('div');
     debugDiv.id = 'debug-output';
-    debugDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:150px;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:5px;z-index:99;white-space:pre-wrap;';
+    debugDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:150px;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:5px;z-index:2;white-space:pre-wrap;';
     document.body.appendChild(debugDiv);
   }
   const time = new Date().toLocaleTimeString();
