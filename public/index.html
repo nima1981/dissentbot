@@ -2337,7 +2337,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				  `;
 				  
 				  document.getElementById('wcReconnectBtn')?.addEventListener('click', async () => {
-					debugLog('Manual reconnect clicked');
+					//debugLog('Manual reconnect clicked');
 					window.wcReconnectInProgress = true;
 					
 					document.getElementById('walletMessage').innerHTML = `
@@ -2348,7 +2348,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					
 					try {
 					  // Create a NEW provider instance with showQrModal: true
-					  debugLog('Creating new provider with QR modal enabled');
+					  //debugLog('Creating new provider with QR modal enabled');
 					  const newProvider = await window.WalletConnectEthereumProvider.init({
 						projectId: '1c897dc3aa8727fec1077a8f67b467f1',
 						chains: [1],
@@ -2368,7 +2368,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					  // Store the new provider
 					  window.walletConnectProvider = newProvider;
 					  
-					  debugLog('Calling connect() on new provider');
 					  await newProvider.connect();
 					  
 					  const accounts = await newProvider.request({ method: 'eth_accounts' });
