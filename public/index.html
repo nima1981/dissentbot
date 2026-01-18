@@ -21,9 +21,20 @@ function gtag_report_conversion() {
 }
 </script>
 
+<script>
+  // Polyfill required for WalletConnect v2
+  if (typeof process === 'undefined') { 
+    window.process = { env: { NODE_ENV: 'production' } }; 
+  }
+</script>
 <script type="module">
-  import { EthereumProvider } from 'https://unpkg.com/@walletconnect/ethereum-provider@2.11.0/dist/index.es.js';
-  window.WalletConnectEthereumProvider = EthereumProvider;
+  try {
+    const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.17.0');
+    window.WalletConnectEthereumProvider = EthereumProvider;
+    window.wcLoadStatus = 'loaded';
+  } catch (err) {
+    window.wcLoadStatus = 'error: ' + err.message;
+  }
 </script>
 
   <meta charset="UTF-8">
@@ -1438,7 +1449,7 @@ function gtag_report_conversion() {
 			  try {
 				// Check if EthereumProvider is loaded
 				if (!window.WalletConnectEthereumProvider) {
-				  throw new Error('WalletConnect not loaded. Please refresh the page.');
+				  throw new Error('WalletConnect not loaded. Status: ' + (window.wcLoadStatus || 'unknown') + '. Please refresh the page.');
 				}
 				
 				// YOUR PROJECT ID FROM WALLETCONNECT CLOUD
