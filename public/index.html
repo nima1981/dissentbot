@@ -2314,12 +2314,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		debugLog('Provider session: ' + (provider.session ? 'EXISTS' : 'NONE'));
 		debugLog('Provider connected: ' + provider.connected);
 		
+		
 		// Check if there's an active session or a pending connection attempt
 		const isPending = localStorage.getItem('walletConnectPending') === 'true';
 		debugLog('Pending flag: ' + isPending);
 		
-		if (provider.session || isPending) {
-		  debugLog('Session or pending found, requesting accounts...');
+		if (provider.session) {
+		  debugLog('Session found, requesting accounts...');
 		  
 		  try {
 			const accounts = await provider.request({ method: 'eth_accounts' });
@@ -2355,7 +2356,42 @@ document.addEventListener('DOMContentLoaded', function() {
 		  } catch (accountsError) {
 			debugLog('Error getting accounts: ' + accountsError.message);
 		  }
-		} else {
+		    } else if (isPending && !provider.session) {
+		  // We have a pending flag but no session - need to reconnect
+		  debugLog('Pending but no session, calling connect()...');
+		  
+		  try {
+			// This should resume the pairing or prompt user again
+			await provider.connect();
+			
+			const accounts = await provider.request({ method: 'eth_accounts' });
+			debugLog('Accounts after reconnect: ' + JSON.stringify(accounts));
+			
+			if (accounts && accounts.length > 0) {
+			  const storedToken = localStorage.getItem('sessionToken');
+			  const storedAddress = localStorage.getItem('walletAddress');
+			  
+			  if (!storedToken || storedAddress !== accounts[0]) {
+				debugLog('Completing authentication after reconnect...');
+				window.wcAuthInProgress = true;
+				try {
+				  await completeWalletConnectAuth(provider, accounts[0]);
+				} finally {
+				  window.wcAuthInProgress = false;
+				}
+			  } else {
+				walletAddress = storedAddress;
+				isAuthenticated = true;
+				const connectButton = document.getElementById('connectWallet');
+				connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+			  }
+			}
+		  } catch (reconnectError) {
+			debugLog('Reconnect error: ' + reconnectError.message);
+			// Clear pending flag since reconnect failed
+			localStorage.removeItem('walletConnectPending');
+		  }
+    } else {
 		  debugLog('No session and not pending');
 		}
 	  } catch (error) {
