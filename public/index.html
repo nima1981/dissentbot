@@ -1191,18 +1191,40 @@ function gtag_report_conversion() {
 			
 			const message = `Please sign this message to verify wallet ownership. Timestamp ${Date.now()}.`;
 			
-			  // Only show "please sign" message after a delay (to avoid showing it if signature completes quickly)
+			  // Show loading state immediately so user knows something is happening
+			  document.getElementById('walletMessage').innerHTML = `
+				<div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
+				  <div style="display: flex; align-items: center; gap: 10px;">
+					<div style="width: 16px; height: 16px; border: 2px solid #0c5460; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+					<span>Verifying wallet connection...</span>
+				  </div>
+				</div>
+			  `;
+			  
+			  // Add spinner animation if not already present
+			  if (!document.getElementById('wc-spinner-style')) {
+				const style = document.createElement('style');
+				style.id = 'wc-spinner-style';
+				style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+				document.head.appendChild(style);
+			  }
+			  
+			  // Only show "please sign" message after a longer delay if still in progress
 			  const signMessageTimeout = setTimeout(() => {
-				// Only show if still in progress
 				if (window.wcSignatureInProgress) {
 				  document.getElementById('walletMessage').innerHTML = `
-				  <div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
-				  Please check your wallet app to sign the authentication message.
-				  <br><small style="display: block; margin-top: 5px;">If you don't see a prompt, <a href="#" id="retrySignature" style="color: #0c5460; text-decoration: underline;">click here to retry</a></small>
-				  </div>
+					<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+					  Signature required. Please check your wallet app.
+					  <br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Open Wallet to Sign</button>
+					</div>
 				  `;
+				  
+				  document.getElementById('retrySignature')?.addEventListener('click', async () => {
+					window.wcSignatureInProgress = false;
+					await completeWalletConnectAuth(provider, address);
+				  });
 				}
-			  }, 2000);
+			  }, 8000);
 			
 			// Store message for retry
 			localStorage.setItem('wcPendingMessage', message);
