@@ -1170,12 +1170,6 @@ function gtag_report_conversion() {
 			return true;
 		  }
 		  
-		  // Clear any pending timeout from previous calls
-		  if (window.wcSignMessageTimeout) {
-			clearTimeout(window.wcSignMessageTimeout);
-			window.wcSignMessageTimeout = null;
-		  }
-		  
 		  // Prevent duplicate signature requests
 		  if (window.wcSignatureInProgress) {
 		  return false;
@@ -1214,28 +1208,6 @@ function gtag_report_conversion() {
 				style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 				document.head.appendChild(style);
 			  }
-			  
-			  // Clear any existing timeout from previous calls
-			  if (window.wcSignMessageTimeout) {
-				clearTimeout(window.wcSignMessageTimeout);
-			  }
-			  
-			  // Only show "please sign" message after a longer delay if still in progress
-			  window.wcSignMessageTimeout = setTimeout(() => {
-			  if (window.wcSignatureInProgress) {
-			  document.getElementById('walletMessage').innerHTML = `
-			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-			  Signature required. Please check your wallet app.
-			  <br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Open Wallet to Sign</button>
-			  </div>
-			  `;
-			  
-			  document.getElementById('retrySignature')?.addEventListener('click', async () => {
-			  window.wcSignatureInProgress = false;
-			  await completeWalletConnectAuth(provider, address);
-			  });
-			  }
-			  }, 8000);
 			
 			// Store message for retry
 			localStorage.setItem('wcPendingMessage', message);
@@ -1269,7 +1241,6 @@ function gtag_report_conversion() {
 			  document.getElementById('walletMessage').textContent = '';
 			  
 			  // Clear pending flags and timeout
-			  clearTimeout(window.wcSignMessageTimeout);
 			  localStorage.removeItem('walletConnectPending');
 			  localStorage.removeItem('wcPendingMessage');
 			  window.wcSignatureInProgress = false;
@@ -1301,7 +1272,6 @@ function gtag_report_conversion() {
 				  const connectButton = document.getElementById('connectWallet');
 				  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
 				  document.getElementById('walletMessage').textContent = '';
-				  clearTimeout(window.wcSignMessageTimeout);
 				  localStorage.removeItem('walletConnectPending');
 				  localStorage.removeItem('wcPendingMessage');
 				  window.wcSignatureInProgress = false;
