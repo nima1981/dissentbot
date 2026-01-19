@@ -1266,38 +1266,53 @@ function gtag_report_conversion() {
 			  return true;
 			  } catch (signError) {
 			  
-			  // Wait briefly and check if auth actually succeeded (race condition on mobile)
-			  await new Promise(resolve => setTimeout(resolve, 1000));
-			  
-			  // Check if we actually got authenticated while the error was being caught
-			  const tokenAfterError = localStorage.getItem('sessionToken');
-			  const addressAfterError = localStorage.getItem('walletAddress');
-			  if (tokenAfterError && addressAfterError === address) {
-				// Auth succeeded despite the error - update UI and return
-				walletAddress = addressAfterError;
-				isAuthenticated = true;
-				const connectButton = document.getElementById('connectWallet');
-				connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-				document.getElementById('walletMessage').textContent = '';
-				clearTimeout(signMessageTimeout);
-				localStorage.removeItem('walletConnectPending');
-				localStorage.removeItem('wcPendingMessage');
-				window.wcSignatureInProgress = false;
-				return true;
-			  }
-			  
-			  // Show retry button only if auth really failed
+			  // Show spinner while we poll for auth completion (handles mobile race conditions)
 			  document.getElementById('walletMessage').innerHTML = `
-			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-			  Signature required to complete authentication.
-			  <br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Sign Message</button>
-			  </div>
+				<div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
+				  <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+					<div style="width: 16px; height: 16px; border: 2px solid #0c5460; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+					<span>Completing authentication...</span>
+				  </div>
+				</div>
 			  `;
 			  
-			  // Add retry handler
-			  document.getElementById('retrySignature')?.addEventListener('click', async () => {
-			  await completeWalletConnectAuth(provider, address);
-			  });
+			  // Poll for auth completion (check every 1 second for up to 15 seconds)
+			  let authCompleted = false;
+			  for (let i = 0; i < 15; i++) {
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				
+				const tokenAfterError = localStorage.getItem('sessionToken');
+				const addressAfterError = localStorage.getItem('walletAddress');
+				if (tokenAfterError && addressAfterError === address) {
+				  // Auth succeeded - update UI and return
+				  walletAddress = addressAfterError;
+				  isAuthenticated = true;
+				  const connectButton = document.getElementById('connectWallet');
+				  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+				  document.getElementById('walletMessage').textContent = '';
+				  clearTimeout(signMessageTimeout);
+				  localStorage.removeItem('walletConnectPending');
+				  localStorage.removeItem('wcPendingMessage');
+				  window.wcSignatureInProgress = false;
+				  authCompleted = true;
+				  return true;
+				}
+			  }
+			  
+			  // Only show retry button after 15 seconds of polling with no success
+			  if (!authCompleted) {
+				document.getElementById('walletMessage').innerHTML = `
+				  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+					Connection timed out. Please try again.
+					<br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry Connection</button>
+				  </div>
+				`;
+				
+				document.getElementById('retrySignature')?.addEventListener('click', async () => {
+				  window.wcSignatureInProgress = false;
+				  await completeWalletConnectAuth(provider, address);
+				});
+			  }
 			  
 			  window.wcSignatureInProgress = false;
 			  return false;
