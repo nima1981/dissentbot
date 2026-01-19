@@ -1264,19 +1264,39 @@ function gtag_report_conversion() {
 			  window.wcSignatureInProgress = false;
 			  
 			  return true;
-			} catch (signError) {
+			  } catch (signError) {
 			  
-			  // Show retry button
+			  // Wait briefly and check if auth actually succeeded (race condition on mobile)
+			  await new Promise(resolve => setTimeout(resolve, 1000));
+			  
+			  // Check if we actually got authenticated while the error was being caught
+			  const tokenAfterError = localStorage.getItem('sessionToken');
+			  const addressAfterError = localStorage.getItem('walletAddress');
+			  if (tokenAfterError && addressAfterError === address) {
+				// Auth succeeded despite the error - update UI and return
+				walletAddress = addressAfterError;
+				isAuthenticated = true;
+				const connectButton = document.getElementById('connectWallet');
+				connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
+				document.getElementById('walletMessage').textContent = '';
+				clearTimeout(signMessageTimeout);
+				localStorage.removeItem('walletConnectPending');
+				localStorage.removeItem('wcPendingMessage');
+				window.wcSignatureInProgress = false;
+				return true;
+			  }
+			  
+			  // Show retry button only if auth really failed
 			  document.getElementById('walletMessage').innerHTML = `
-				<div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
-				  Signature required to complete authentication.
-				  <br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Sign Message</button>
-				</div>
+			  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0;">
+			  Signature required to complete authentication.
+			  <br><button id="retrySignature" style="margin-top: 8px; padding: 8px 16px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer;">Sign Message</button>
+			  </div>
 			  `;
 			  
 			  // Add retry handler
 			  document.getElementById('retrySignature')?.addEventListener('click', async () => {
-				await completeWalletConnectAuth(provider, address);
+			  await completeWalletConnectAuth(provider, address);
 			  });
 			  
 			  window.wcSignatureInProgress = false;
