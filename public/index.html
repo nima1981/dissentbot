@@ -51,18 +51,49 @@ function gtag_report_conversion() {
   <title>DissentBot - The Web's Most Forbidden AI</title>
   <style>
   
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f4f4f9;
+      --bg-tertiary: #e9ecef;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --border-color: #ddd;
+      --accent-color: #000000;
+      --accent-hover: #333333;
+      --spinner-color: green;
+      --modal-bg: white;
+      --shadow-color: rgba(0,0,0,0.2);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3d3d3d;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #888;
+      --border-color: #444;
+      --accent-color: #e0e0e0;
+      --accent-hover: #ffffff;
+      --spinner-color: #4ade80;
+      --modal-bg: #2d2d2d;
+      --shadow-color: rgba(0,0,0,0.5);
+    }
+
     body {
       font-family: 'Courier New', monospace;
-      background-color: #ffffff;
+      background-color: var(--bg-primary);
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       flex-direction: column;
-      color: #333;
+      color: var(--text-primary);
       height: 100dvh;
       overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 	
 	html, body{
@@ -82,7 +113,7 @@ function gtag_report_conversion() {
 
     .chat-container {
       width: 100%;
-      background-color: #ffffff;
+      background-color: var(--bg-primary);
       margin: 0;
       display: flex;
       flex-direction: column;
@@ -91,7 +122,7 @@ function gtag_report_conversion() {
 
     h1 {
       background-color: transparent;
-      color: #333;
+      color: var(--text-primary);
       padding: 0;
       margin: 0;
       text-align: center;
@@ -180,7 +211,7 @@ function gtag_report_conversion() {
 	  flex: 1;
 	  overflow-y: auto;
 	  scrollbar-width: thin;
-	  scrollbar-color: #ddd #f4f4f9;
+	  scrollbar-color: var(--border-color) var(--bg-secondary);
 	  touch-action: pan-y;
 	  overscroll-behavior: contain;
 	  -webkit-overflow-scrolling: touch;
@@ -191,11 +222,11 @@ function gtag_report_conversion() {
     }
 
     #conversation::-webkit-scrollbar-track {
-      background: #f4f4f9;
+      background: var(--bg-secondary);
     }
 
     #conversation::-webkit-scrollbar-thumb {
-      background-color: #ddd;
+      background-color: var(--border-color);
       border-radius: 4px;
     }
 
@@ -237,13 +268,13 @@ function gtag_report_conversion() {
 	}
 
     .message-content.user {
-      background-color: #e9ecef;
-      color: #333;
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
     }
 
     .message-content.bot {
       background-color: transparent;
-      color: #333;
+      color: var(--text-primary);
     }
 
     .input-area {
@@ -266,8 +297,10 @@ function gtag_report_conversion() {
 	#userInput {
 	  flex: 1;
 	  padding: 10px 5px;
-	  border: 1px solid #ddd;
+	  border: 1px solid var(--border-color);
 	  border-radius: 24px;
+	  background-color: var(--bg-primary);
+	  color: var(--text-primary);
 	  margin-right: 5px;
 	  font-size: 1.3em;
 	  resize: none;
@@ -291,7 +324,7 @@ function gtag_report_conversion() {
     }
 
     .send-button, .clear-button {
-      background-color: #000000;
+      background-color: var(--accent-color);
       border: none;
       border-radius: 50%;
       width: 45px;
@@ -308,7 +341,7 @@ function gtag_report_conversion() {
     }
 
     .send-button:hover, .clear-button:hover {
-      background-color: #333333;
+      background-color: var(--accent-hover);
     }
 
     .send-button svg {
@@ -404,7 +437,7 @@ function gtag_report_conversion() {
 	  align-items: center;
 	  justify-content: center;
 	  height: 50px;
-	  background: #fff;
+	  background: var(--bg-primary);
 	  padding: 1em;
 	  border-radius: .5em;
 	}
@@ -418,23 +451,23 @@ function gtag_report_conversion() {
 	.spinner .dot {
 	  width: 20px;
 	  height: 20px;
-	  background: green;
+	  background: var(--spinner-color);
 	  border-radius: 50%;
 	  animation: bounce 1.4s infinite ease-in-out both;
 	}
 
 	.spinner .dot:nth-child(1) { 
 	  animation-delay: -0.32s; 
-	  background: green;
+	  background: var(--spinner-color);
 	}
 
 	.spinner .dot:nth-child(2) { 
 	  animation-delay: -0.16s; 
-	  background: green;
+	  background: var(--spinner-color);
 	}
 
 	.spinner .dot:nth-child(3) { 
-	  background: green;
+	  background: var(--spinner-color);
 	}
 
 	@keyframes bounce {
@@ -444,11 +477,11 @@ function gtag_report_conversion() {
 
 	#loading-message {
 	  margin: 0;
-	  color: green;
+	  color: var(--spinner-color);
 	  animation: pulse 2s infinite;
 	  text-transform: uppercase;
 	  text-align: center;
-	  background: #fff;
+	  background: var(--bg-primary);
 	}
 
 	@keyframes pulse {
@@ -472,7 +505,7 @@ function gtag_report_conversion() {
     }
 	
 	#powered a{
-		color: #333;
+		color: var(--text-primary);
 	}
 
     #github {
@@ -513,7 +546,7 @@ function gtag_report_conversion() {
 
     #embed-modal .modal-content, #stake-modal .modal-content {
       position: relative;
-      background: white;
+      background: var(--modal-bg);
       padding: 20px;
       border-radius: 8px;
       width: 500px;
@@ -535,7 +568,7 @@ function gtag_report_conversion() {
     }
 
     #embed-modal .code-box, #stake-modal .stake-content-box {
-      background: #f4f4f9;
+      background: var(--bg-secondary);
       padding: 15px;
       border-radius: 4px;
       margin: 15px 0;
@@ -566,7 +599,7 @@ function gtag_report_conversion() {
     }	
 	
 	#stake-modal .stake-content-box a{
-	  color: #000;
+	  color: var(--text-primary);
 	  font-family: sans-serif;
 	  text-decoration: none;
 	}
@@ -602,7 +635,7 @@ function gtag_report_conversion() {
     }
 	
 	.modal-content h2 a{
-	  color: #000;
+	  color: var(--text-primary);
 	}
 
     #embed-trigger {
@@ -639,7 +672,7 @@ function gtag_report_conversion() {
       margin-top: 1em;
       font-size: 1.2em;
       text-align: center;
-      color: #000000;
+      color: var(--text-primary);
       font-style: normal;
     }
 
@@ -684,7 +717,7 @@ function gtag_report_conversion() {
 	  align-items: center;
 	  gap: 6px;
 	  font-size: 0.85em;
-	  color: #999;
+	  color: var(--text-muted);
 	  cursor: pointer;
 	  user-select: none;
 	  transition: color 0.15s ease;
@@ -695,21 +728,47 @@ function gtag_report_conversion() {
 	.copy-icon svg {
 	  width: 30px;
 	  height: 30px;
-	  stroke: #999;
+	  stroke: var(--text-muted);
 	  stroke-width: 1.6;
 	  fill: none;
 	  transition: stroke 0.15s ease;
 	}
 
 	.copy-icon:hover {
-	  color: #333;
+	  color: var(--text-primary);
 	}
 
 	.copy-icon:hover svg {
-	  stroke: #333;
+	  stroke: var(--text-primary);
 	}
 
+    /* Dark mode toggle */
+    #theme-toggle {
+      width: 27px;
+      height: 27px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
 
+    #theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    #theme-toggle svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--text-primary);
+      transition: fill 0.3s ease;
+    }
+
+    /* Invert certain images in dark mode */
+    [data-theme="dark"] #email img,
+    [data-theme="dark"] #simplex img {
+      filter: invert(0.8);
+    }
 
   </style>
 </head>
@@ -830,6 +889,15 @@ function gtag_report_conversion() {
 
   <div id="footer">
   
+  <div id="theme-toggle" title="Toggle Dark/Light Mode">
+    <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;">
+      <path d="M12 3V1m0 22v-2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/>
+    </svg>
+    <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </div>
+
   <div id="simplex">
 	  <a title="Chat with us on SimpleX" href="https://smp9.simplex.im/a#UV1RJaGW2mQVfQA-n0fgU7E3WQ-ysN8H71NC1um04TE" target="_blank">
 		<img
@@ -1323,6 +1391,47 @@ function gtag_report_conversion() {
 		
 	  // Handle wallet connection
 	  document.addEventListener("DOMContentLoaded", function() {
+	  // Theme toggle functionality
+		const themeToggle = document.getElementById('theme-toggle');
+		const sunIcon = document.getElementById('theme-icon-sun');
+		const moonIcon = document.getElementById('theme-icon-moon');
+
+		function setTheme(theme) {
+		  document.documentElement.setAttribute('data-theme', theme);
+		  localStorage.setItem('theme', theme);
+		  
+		  if (theme === 'dark') {
+			sunIcon.style.display = 'block';
+			moonIcon.style.display = 'none';
+		  } else {
+			sunIcon.style.display = 'none';
+			moonIcon.style.display = 'block';
+		  }
+		}
+
+		// Check for saved preference or system preference
+		const savedTheme = localStorage.getItem('theme');
+		const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+		if (savedTheme) {
+		  setTheme(savedTheme);
+		} else if (systemPrefersDark) {
+		  setTheme('dark');
+		} else {
+		  setTheme('light');
+		}
+
+		themeToggle.addEventListener('click', () => {
+		  const currentTheme = document.documentElement.getAttribute('data-theme');
+		  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+		});
+
+		// Listen for system theme changes
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+		  if (!localStorage.getItem('theme')) {
+			setTheme(e.matches ? 'dark' : 'light');
+		  }
+		});
 
 		  document.getElementById('connectWallet').addEventListener('click', async () => {
 		  const connectButton = document.getElementById('connectWallet');
