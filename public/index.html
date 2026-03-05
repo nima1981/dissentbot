@@ -358,12 +358,17 @@ function gtag_report_conversion() {
       width: 20px;
       height: 20px;
       stroke: #ffffff;
+	  fill: #ffffff;
       stroke-width: 2px;
     }
 	
-	[data-theme="dark"] .send-button,
-	[data-theme="dark"] .clear-button {
-	  color: #000000;
+	[data-theme="dark"] .send-button svg {
+	  fill: #000000;
+	}
+
+	[data-theme="dark"] .clear-button svg {
+	  stroke: #000000;
+	  fill: #000000;
 	}
 	
 	#timeframeContainer{
