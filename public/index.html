@@ -1762,17 +1762,23 @@
 			  // Initialize WalletConnect v2 EthereumProvider
 			  const provider = await window.WalletConnectEthereumProvider.init({
 			  projectId: projectId,
-			  chains: [1],
-			  optionalChains: [10, 42161, 8453],
+			  chains: [1, 8453],
+			  optionalChains: [10, 42161],
 			  showQrModal: true,
 			  qrModalOptions: {
-			  themeMode: 'dark'
+			  themeMode: 'dark',
+			  explorerRecommendedWallets: 'NONE', // Prevents wallet recommendation conflicts
 			  },
 			  metadata: {
 			  name: 'DissentBot',
 			  description: 'The Web\'s Most Forbidden AI',
 			  url: window.location.origin,
 			  icons: [window.location.origin + '/icon-192.png']
+			  },
+			  
+			  relayUrl: 'wss://relay.walletconnect.com',
+			  storageOptions: {
+			    storage: window.localStorage,
 			  }
 			  });
 			  
@@ -2476,9 +2482,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (!window.walletConnectProvider) {
 		  window.walletConnectProvider = await window.WalletConnectEthereumProvider.init({
 			projectId: projectId,
-			chains: [1],
-			optionalChains: [10, 42161, 8453],
-			showQrModal: false
+			chains: [1, 8453],
+			optionalChains: [10, 42161],
+			showQrModal: false,
+			relayUrl: 'wss://relay.walletconnect.com',
+			storageOptions: {
+				storage: window.localStorage,
+			}
 		  });
 		}
 		
