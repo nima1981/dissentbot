@@ -1303,9 +1303,18 @@
 			// Store message for retry
 			localStorage.setItem('wcPendingMessage', message);
 			
+			// In completeWalletConnectAuth, add better timeout handling:
+			const AUTH_TIMEOUT = 30000; // 30 seconds
+
+			const timeoutPromise = new Promise((_, reject) => {
+			  setTimeout(() => reject(new Error('Authentication timeout')), AUTH_TIMEOUT);
+			});
 			
 			try {
-			  const signature = await signer.signMessage(message);
+			   const signature = await Promise.race([
+				signer.signMessage(message),
+				timeoutPromise
+			   ]);
 			  
 			  // Authenticate with backend
 			  const authResponse = await fetch('/api/auth', {
