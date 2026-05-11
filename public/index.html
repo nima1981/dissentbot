@@ -1015,6 +1015,7 @@
   
   const VENICE_MODELS_API_URL = "https://api.venice.ai/api/v1/models";
   const MORPHEUS_MODELS_API_URL = "https://api.mor.org/api/v1/models";
+  const WALLETCONNECT_PROJECT_ID = '1c897dc3aa8727fec1077a8f67b467f1';
 	
    if (walletAddress) {
 		isAuthenticated = true;
@@ -1757,7 +1758,7 @@
 			  }
 			  
 			  // YOUR PROJECT ID FROM WALLETCONNECT CLOUD
-			  const projectId = '1c897dc3aa8727fec1077a8f67b467f1';
+			  const projectId = WALLETCONNECT_PROJECT_ID;
 			  
 			  // Initialize WalletConnect v2 EthereumProvider
 			  const provider = await window.WalletConnectEthereumProvider.init({
@@ -2476,7 +2477,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	  
 	  
 	  try {
-		const projectId = '1c897dc3aa8727fec1077a8f67b467f1';
+		const projectId = WALLETCONNECT_PROJECT_ID;
 		
 		// Initialize provider (or get existing instance)
 		if (!window.walletConnectProvider) {
@@ -2560,7 +2561,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					  // Create a NEW provider instance with showQrModal: true
 					  //debugLog('Creating new provider with QR modal enabled');
 					  const newProvider = await window.WalletConnectEthereumProvider.init({
-						projectId: '1c897dc3aa8727fec1077a8f67b467f1',
+						projectId: WALLETCONNECT_PROJECT_ID,
 						chains: [1, 8453],
 						optionalChains: [10, 42161],
 						showQrModal: true,
