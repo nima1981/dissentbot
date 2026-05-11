@@ -1303,9 +1303,18 @@
 			// Store message for retry
 			localStorage.setItem('wcPendingMessage', message);
 			
+			// In completeWalletConnectAuth, add better timeout handling:
+			const AUTH_TIMEOUT = 30000; // 30 seconds
+
+			const timeoutPromise = new Promise((_, reject) => {
+			  setTimeout(() => reject(new Error('Authentication timeout')), AUTH_TIMEOUT);
+			});
 			
 			try {
-			  const signature = await signer.signMessage(message);
+			   const signature = await Promise.race([
+				signer.signMessage(message),
+				timeoutPromise
+			   ]);
 			  
 			  // Authenticate with backend
 			  const authResponse = await fetch('/api/auth', {
@@ -1337,39 +1346,19 @@
 			  window.wcSignatureInProgress = false;
 			  
 			  return true;
-			  } catch (signError) {
-			  
-			  // Show spinner while we poll for auth completion (handles mobile race conditions)
-			  document.getElementById('walletMessage').innerHTML = `
-				<div style="background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin: 10px 0;">
-				  <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-					<div style="width: 16px; height: 16px; border: 2px solid #0c5460; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-					<span>Completing authentication...</span>
-				  </div>
-				</div>
-			  `;
-			  
-			  // Poll for auth completion (check every 1 second for up to 15 seconds)
-			  let authCompleted = false;
-			  for (let i = 0; i < 15; i++) {
-				await new Promise(resolve => setTimeout(resolve, 1000));
-				
-				const tokenAfterError = localStorage.getItem('sessionToken');
-				const addressAfterError = localStorage.getItem('walletAddress');
-				if (tokenAfterError && addressAfterError === address) {
-				  // Auth succeeded - update UI and return
-				  walletAddress = addressAfterError;
-				  isAuthenticated = true;
-				  const connectButton = document.getElementById('connectWallet');
-				  connectButton.innerHTML = `<span id="connectAction">[x]</span>[${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}]`;
-				  document.getElementById('walletMessage').textContent = '';
-				  localStorage.removeItem('walletConnectPending');
-				  localStorage.removeItem('wcPendingMessage');
+				} catch (error) {
+				  if (error.message === 'Authentication timeout') {
+					// Show user-friendly timeout message
+					document.getElementById('walletMessage').innerHTML = `
+					  <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px;">
+						Connection timed out. Please try again.
+					  </div>
+					`;
+				  }
+				  // Reset state
 				  window.wcSignatureInProgress = false;
-				  authCompleted = true;
-				  return true;
+				  throw error;
 				}
-			  }
 			  
 			  // Only show retry button after 15 seconds of polling with no success
 			  if (!authCompleted) {
