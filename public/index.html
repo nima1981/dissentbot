@@ -1011,7 +1011,7 @@
 		  + 'You can <a target="_blank" href="'+ UNISWAP_MORPHEUS_URL + '">buy MOR on Uniswap</a> and '
 		  + '<a target="_blank" href="https://dashboard.mor.org/#/capital?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1&network=mainnet">learn about Morpheus AI here</a>.';
   const MODELS_API_URL = "https://api.venice.ai/api/v1/models";	
-  const DEFAULT_MODEL = "venice-uncensored";  
+  const DEFAULT_MODEL = "venice-uncensored-1-2";  
   
   const VENICE_MODELS_API_URL = "https://api.venice.ai/api/v1/models";
   const MORPHEUS_MODELS_API_URL = "https://api.mor.org/api/v1/models";
@@ -2339,7 +2339,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		} 
 		// Default for text models when no selection saved
 		else if (!selectedModelId) {
-			selectedModelId = 'venice-uncensored';
+			selectedModelId = DEFAULT_MODEL;
 		}
 		
 		// Make sure the selected model actually exists in the dropdown
