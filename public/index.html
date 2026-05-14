@@ -886,7 +886,7 @@
     <div class="overlay"></div>
     <div class="modal-content">
       <button class="stake-close-btn">×</button>
-      <h2>Stake only <a target="_blank" href="https://app.uniswap.org/swap?outputCurrency=0xcbb8f1bda10b9696c57e13bc128fe674769dcec0&exactAmount=10&exactField=output">10 MOR</a> on our <a href="https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base" target="_blank">Base subnet</a> for <u>UNLIMITED LIFETIME ACCESS</u> including <u>UNRESTRICTED IMAGE CREATION</u> or just <u><span id="web3-connect-text">connect your Web3 wallet</span></u> if you've staked already! If you change your mind <u>you can simply withdraw your stake</u>. Please allow for a minor delay before your stake is recognized by the chatbot.</h2>
+      <h2>Stake only <a target="_blank" href="https://app.uniswap.org/swap?outputCurrency=0x7431ada8a591c955a994a21710752ef9b882b8e3&exactAmount=10&exactField=output&chain=base">10 MOR</a> on our <a href="https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base" target="_blank">Base subnet</a> for <u>UNLIMITED LIFETIME ACCESS</u> including <u>UNRESTRICTED IMAGE CREATION</u> or just <u><span id="web3-connect-text">connect your Web3 wallet</span></u> if you've staked already! If you change your mind <u>you can simply withdraw your stake</u>. Please allow for a minor delay before your stake is recognized by the chatbot.</h2>
       <div class="stake-content-box">
         <p><a target="_blank" href="https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base"><img style="width: 29px;" src="/base-logo.png"/> Base Subnet</a></p>
         <p id="learn-more"><a target="_blank" href="https://dashboard.mor.org/#/capital?referrer=0x6B4070225873C32a75c5d0bC19b8B544a87789F1&network=mainnet"><img id="morpheus-logo-modal" src="/morpheus-logo.jpg"/> Learn more about Morpheus AI</a></p>
@@ -998,7 +998,7 @@
   const SUBNET_ID = "0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb";
   const MIN_STAKE = 10;
   //const MOCK_STAKE = 10;
-  const UNISWAP_MORPHEUS_URL = "https://app.uniswap.org/swap?outputCurrency=0xcbb8f1bda10b9696c57e13bc128fe674769dcec0&exactAmount=10&exactField=output";
+  const UNISWAP_MORPHEUS_URL = "https://app.uniswap.org/swap?outputCurrency=0x7431ada8a591c955a994a21710752ef9b882b8e3&exactAmount=10&exactField=output&chain=base";
   const MORPHEUS_URL = "https://www.coingecko.com/en/coins/morpheusai";
   const STAKE_MORPHEUS_BASE_URL = "https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base";
   const STAKE_MORPHEUS_ARBITRUM_URL = "https://builders.mor.org/builders/dissentwatch-arbitrum?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Arbitrum";
@@ -2182,7 +2182,7 @@
 		modalH2.innerHTML = `<span style="color: green;">Thanks for staking 10+ MOR on our subnet. Your <strong>UNLIMITED LIFETIME ACCESS</strong> is active!</span>`;
 	  } else {
 		// ❌ USER DOESN'T HAVE isStaked COOKIE
-		modalH2.innerHTML = `Stake only <a target="_blank" href="https://app.uniswap.org/swap?outputCurrency=0xcbb8f1bda10b9696c57e13bc128fe674769dcec0&exactAmount=10&exactField=output">10 MOR</a> on our <a href="https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base" target="_blank">Base subnet</a> for <u>UNLIMITED LIFETIME ACCESS</u> including <strong>UNRESTRICTED IMAGE CREATION</strong> or just <u><span id="web3-connect-text">connect your Web3 wallet</span></u> if you've staked already! If you change your mind <u>you can simply withdraw your stake</u>. Please allow for a minor delay before your stake is recognized by the chatbot.`;
+		modalH2.innerHTML = `Stake only <a target="_blank" href="https://app.uniswap.org/swap?outputCurrency=0x7431ada8a591c955a994a21710752ef9b882b8e3&exactAmount=10&exactField=output&chain=base">10 MOR</a> on our <a href="https://builders.mor.org/builders/dissentwatch-base?subnet_id=0x29d6c72e0af35f863f8c8345529ad5ad19b70b0d46225228e27c082710db4bfb&network=Base" target="_blank">Base subnet</a> for <u>UNLIMITED LIFETIME ACCESS</u> including <strong>UNRESTRICTED IMAGE CREATION</strong> or just <u><span id="web3-connect-text">connect your Web3 wallet</span></u> if you've staked already! If you change your mind <u>you can simply withdraw your stake</u>. Please allow for a minor delay before your stake is recognized by the chatbot.`;
 	  }
 
   });
